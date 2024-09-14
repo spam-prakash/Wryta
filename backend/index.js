@@ -2,34 +2,23 @@ const connectToMongo = require('./db')
 const cors = require('cors')
 const express = require('express')
 const app = express()
-
 app.use(express.json())
 const port = 8000
 connectToMongo()
 
-const allowedOrigins = [
-  'https://inotebook-frontend-murex.vercel.app', // Deployed frontend URL
-  'http://localhost:3006' // Local development
-]
-
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true)
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error('CORS policy does not allow this origin'), false)
-    }
-    return callback(null, true)
-  },
-  methods: 'GET,POST,PUT,DELETE',
-  credentials: true // Allow sending cookies and credentials
-}))
-
-// Allow OPTIONS requests for CORS Preflight
-app.options('*', cors())
 // CORS Configuration
+// const allowedOrigins = [
+//   'https://inotebook-frontend-murex.vercel.app', // Deployed frontend URL
+//   'http://localhost:3006' // Local development
+// ]
 
-// app.use(cors())
+// app.use(cors({
+//   origin: '*', // Allow requests from any origin (for testing)
+//   methods: 'GET,POST,PUT,DELETE', // Allowed methods
+//   credentials: true // Allow sending cookies and credentials
+// }))
+
+app.use(cors())
 
 // Avilable Routes
 app.use('/api/auth', require('./api/auth'))
