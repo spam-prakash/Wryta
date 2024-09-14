@@ -1,13 +1,13 @@
 // import { useState } from "react";
 // import { json } from "react-router-dom";
 // import Alert from "../../components/Alert";
-import { json } from 'react-router-dom';
-import NoteContext from './NoteContext';
-import { useState } from 'react';
+import { json } from 'react-router-dom'
+import NoteContext from './NoteContext'
+import { useState } from 'react'
 
-// const hostLink1 = process.env.HOSTLINK
-// console.log(hostLink1)
-const hostLink = 'https://inotebook-backend-delta-seven.vercel.app'
+const hostLink = 'http://localhost:8000'
+// console.log(hostLink)
+// const hostLink = 'https://inotebook-backend-delta-seven.vercel.app'
 const NoteState = (props) => {
   const notesInitial = []
 
@@ -25,11 +25,10 @@ const NoteState = (props) => {
       }
       // body: JSON.stringify({title,description,tag}),
     })
-    
+
     const json = await response.json()
     setNotes(json)
   }
-
 
   // Add a note
   const addNote = async (title, description, tag) => {
@@ -54,7 +53,7 @@ const NoteState = (props) => {
     //   __v: 0,
     // };
     setNotes(notes.concat(note))
-  };
+  }
 
   // Delete a note
   const deleteNote = async (id) => {
@@ -65,18 +64,16 @@ const NoteState = (props) => {
         'Content-Type': 'application/json',
         'auth-token':
           localStorage.getItem('token')
-      },
+      }
     })
     // const json = response.json();
-
-
 
     // LOGIC TO DELETE
     const newNotes = notes.filter((note) => {
       return note._id !== id
     })
     setNotes(newNotes)
-  };
+  }
 
   // Update a note
   const editNote = async (id, title, description, tag) => {
@@ -91,7 +88,7 @@ const NoteState = (props) => {
       body: JSON.stringify({ title, description, tag })
     })
     // const json = response.json();
-    let newNotes = JSON.parse(JSON.stringify(notes))
+    const newNotes = JSON.parse(JSON.stringify(notes))
 
     // Logic to edit
     for (let index = 0; index < newNotes.length; index++) {
@@ -99,12 +96,12 @@ const NoteState = (props) => {
       if (element._id === id) {
         newNotes[index].title = title
         newNotes[index].description = description
-        newNotes[index].tag = tag 
-        break;
+        newNotes[index].tag = tag
+        break
       }
     }
     setNotes(newNotes)
-    // showAlert("dgdag","dsggdsg")  
+    // showAlert("dgdag","dsggdsg")
   }
 
   return (
@@ -112,6 +109,6 @@ const NoteState = (props) => {
       {props.children}
     </NoteContext.Provider>
   )
-};
+}
 
 export default NoteState

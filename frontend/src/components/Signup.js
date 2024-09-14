@@ -1,23 +1,24 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 
 const Signup = (props) => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const [credentials, setCredentials] = useState({
     username: '',
     password: '',
     cpassword: '',
     name: '',
-    email: '',
+    email: ''
   })
-const hostLink = 'https://inotebook-backend-delta-seven.vercel.app'
+  const hostLink = process.env.HOSTLINK
+  // const hostLink = 'https://inotebook-backend-delta-seven.vercel.app'
   const handleSubmit = async (e) => {
     e.preventDefault()
-    let { name, username, email, password } = credentials
+    const { name, username, email, password } = credentials
     const response = await fetch(`${hostLink}/api/auth/createuser`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ name, username, email, password })
     })
@@ -25,7 +26,7 @@ const hostLink = 'https://inotebook-backend-delta-seven.vercel.app'
     // console.log(json);
     if (json.success) {
       localStorage.setItem('token', json.authtoken)
-      navigate('/login')      
+      navigate('/login')
       props.showAlert('New Account Created Successfully', '#D4EDDA')
     } else {
       props.showAlert('username or email already exists', '#F8D7DA')
@@ -33,7 +34,7 @@ const hostLink = 'https://inotebook-backend-delta-seven.vercel.app'
   }
   const onChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value })
-  };
+  }
   return (
     <>
       {' '}
@@ -47,14 +48,14 @@ const hostLink = 'https://inotebook-backend-delta-seven.vercel.app'
         <div className='mt-10 sm:mx-auto sm:w-full sm:max-w-sm'>
           <form className='space-y-2' onSubmit={handleSubmit}>
             <div>
-            <label
-                htmlFor='name'
-                className='block text-sm font-medium leading-6 text-white'
-              >
-                Name
+              <label
+              htmlFor='name'
+              className='block text-sm font-medium leading-6 text-white'
+            >
+              Name
               </label>
-            <div className='mt-2'>
-                <input
+              <div className='mt-2'>
+              <input
                   id='name'
                   name='name'
                   type='text'
@@ -65,8 +66,8 @@ const hostLink = 'https://inotebook-backend-delta-seven.vercel.app'
                   className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
                   onChange={onChange}
                 />
-              </div>
-          </div>
+            </div>
+            </div>
 
             <div>
               <label
@@ -183,6 +184,6 @@ const hostLink = 'https://inotebook-backend-delta-seven.vercel.app'
       </div>
     </>
   )
-};
+}
 
 export default Signup

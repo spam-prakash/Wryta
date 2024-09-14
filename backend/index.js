@@ -6,11 +6,18 @@ app.use(express.json())
 const port = 8000
 connectToMongo()
 app.use(cors({
-  origin: ['https://inotebook-frontend-murex.vercel.app'],
-  //   origin: ['http://localhost:8000'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  origin: 'https://inotebook-frontend-murex.vercel.app', // Allow requests from this origin
+  methods: 'GET,POST,PUT,DELETE', // Allowed methods
+  credentials: true // Allow sending cookies and credentials
 }))
+// app.use(cors({
+//   origin: 'http://localhost:3006', // Allow requests from this origin
+//   methods: 'GET,POST,PUT,DELETE', // Allowed methods
+//   credentials: true // Allow sending cookies and credentials
+// }))
+// app.use(cors({
+//   origin: '*'
+// }))
 
 // app.use(cors())
 

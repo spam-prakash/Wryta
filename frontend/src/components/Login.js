@@ -1,19 +1,19 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 
 const Login = (props) => {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const [credentials, setCredentials] = useState({
     username: '',
-    password: '',
+    password: ''
   })
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const response = await fetch('https://inotebook-backend-delta-seven.vercel.app/api/auth/login', {
+    const response = await fetch('http://localhost:8000/api/auth/login', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         username: credentials.username,
@@ -39,7 +39,7 @@ const Login = (props) => {
 
   const onChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value })
-  };
+  }
 
   return (
     <>
@@ -121,6 +121,6 @@ const Login = (props) => {
       </div>
     </>
   )
-};
+}
 
 export default Login
