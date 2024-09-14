@@ -31,6 +31,9 @@ app.use(cors({
   credentials: true // If you need to include cookies/auth tokens
 }))
 
+// Handle preflight requests
+app.options('*', cors())
+
 // Available Routes
 app.use('/api/auth', require('./api/auth'))
 app.use('/api/notes', require('./api/notes'))
