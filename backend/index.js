@@ -2,6 +2,11 @@ const connectToMongo = require('./db')
 const cors = require('cors')
 const express = require('express')
 const app = express()
+
+app.use(express.json())
+const port = 8000
+connectToMongo()
+
 const allowedOrigins = [
   'https://inotebook-frontend-murex.vercel.app', // Deployed frontend URL
   'http://localhost:3006' // Local development
@@ -22,11 +27,6 @@ app.use(cors({
 
 // Allow OPTIONS requests for CORS Preflight
 app.options('*', cors())
-
-app.use(express.json())
-const port = 8000
-connectToMongo()
-
 // CORS Configuration
 
 // app.use(cors())
