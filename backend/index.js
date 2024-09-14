@@ -25,6 +25,10 @@ app.use(cors({
   credentials: true // Allow sending cookies and credentials
 }))
 
+// Allow OPTIONS requests for CORS Preflight
+app.options('*', cors())
+
+
 
 // app.use(cors())
 
