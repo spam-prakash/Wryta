@@ -30,8 +30,11 @@ app.use(cors({
 app.use('/api/auth', require('./api/auth'))
 app.use('/api/notes', require('./api/notes'))
 
-app.get('/hii', (req, res) => {
+app.get('/', (req, res) => {
   res.send('Hello World!')
+})
+app.get('/hii', (req, res) => {
+  res.send('hii World!')
 })
 
 app.listen(port, () => {

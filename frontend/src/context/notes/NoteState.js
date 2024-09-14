@@ -5,7 +5,7 @@ import { json } from 'react-router-dom'
 import NoteContext from './NoteContext'
 import { useState } from 'react'
 
-// const hostLink = 'http://localhost:8000'
+const hostLink = 'http://localhost:8000'
 // console.log(hostLink)
 // const hostLink = 'https://inotebook-backend-opal.vercel.app'
 const NoteState = (props) => {
