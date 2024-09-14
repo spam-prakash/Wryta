@@ -8,9 +8,12 @@ const Login = (props) => {
     password: ''
   })
 
+  // const hostLink = 'https://inotebook-backend-delta-seven.vercel.app'
+  const hostLink = 'http://localhost:8000'
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const response = await fetch('https://inotebook-backend-delta-seven.vercel.app/api/auth/login', {
+    const response = await fetch(`${hostLink}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

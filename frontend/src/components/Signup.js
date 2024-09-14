@@ -10,8 +10,8 @@ const Signup = (props) => {
     name: '',
     email: ''
   })
-  // const hostLink = process.env.HOSTLINK
-  const hostLink = 'https://inotebook-backend-delta-seven.vercel.app'
+  const hostLink = 'http://localhost:8000'
+  // const hostLink = 'https://inotebook-backend-delta-seven.vercel.app'
   const handleSubmit = async (e) => {
     e.preventDefault()
     const { name, username, email, password } = credentials
@@ -56,16 +56,16 @@ const Signup = (props) => {
               </label>
               <div className='mt-2'>
                 <input
-                id='name'
-                name='name'
-                type='text'
-                autoComplete='email'
-                required
-                value={credentials.name}
-                placeholder='Enter your Name here'
-                className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
-                onChange={onChange}
-              />
+                  id='name'
+                  name='name'
+                  type='text'
+                  autoComplete='email'
+                  required
+                  value={credentials.name}
+                  placeholder='Enter your Name here'
+                  className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
+                  onChange={onChange}
+                />
               </div>
             </div>
 

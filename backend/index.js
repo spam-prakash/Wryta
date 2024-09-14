@@ -5,25 +5,32 @@ const app = express()
 app.use(express.json())
 const port = 8000
 connectToMongo()
+
+// CORS Configuration
+const allowedOrigins = [
+  'http://localhost:3006', // Local development
+  'https://inotebook-frontend-murex.vercel.app' // Deployed frontend
+]
+
 app.use(cors({
-  origin: 'https://inotebook-frontend-murex.vercel.app', // Allow requests from this origin
-  methods: 'GET,POST,PUT,DELETE', // Allowed methods
-  credentials: true // Allow sending cookies and credentials
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true)
+    if (allowedOrigins.indexOf(origin) === -1) {
+      // If the origin is not in the allowed list, reject the request
+      return callback(new Error('CORS policy does not allow this origin'), false)
+    }
+    return callback(null, true)
+  },
+  credentials: true, // Allow sending cookies and credentials
+  methods: 'GET,POST,PUT,DELETE' // Allowed methods
 }))
-// app.use(cors({
-//   origin: 'http://localhost:3006', // Allow requests from this origin
-//   methods: 'GET,POST,PUT,DELETE', // Allowed methods
-//   credentials: true // Allow sending cookies and credentials
-// }))
-// app.use(cors({
-//   origin: '*'
-// }))
 
 // app.use(cors())
 
 // Avilable Routes
-app.use('/api/auth', require('./routes/auth'))
-app.use('/api/notes', require('./routes/notes'))
+app.use('/api/auth', require('./api/auth'))
+app.use('/api/notes', require('./api/notes'))
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
