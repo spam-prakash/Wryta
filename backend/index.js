@@ -13,16 +13,11 @@ const allowedOrigins = [
 ]
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true) // Allow requests with no origin, like from mobile apps
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error('CORS policy does not allow this origin'), false)
-    }
-    return callback(null, true)
-  },
+  origin: '*', // Allow requests from any origin (for testing)
   methods: 'GET,POST,PUT,DELETE', // Allowed methods
   credentials: true // Allow sending cookies and credentials
 }))
+
 
 // app.use(cors())
 
