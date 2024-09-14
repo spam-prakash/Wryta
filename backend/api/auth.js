@@ -4,7 +4,7 @@ const router = express.Router()
 const { body, validationResult } = require('express-validator')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-const fetchUser = require('../middleware/fetchUser')
+const fetchUser = require('../middleware/fetchuser')
 
 const JWT_SCREAT = process.env.JWTSIGN
 
@@ -111,7 +111,7 @@ router.post('/login', [
 })
 
 // ROUTE 3: GET LOGGEDIN USER DETAILS POST: "/api/auth/getuser" LOGIN REQUIRE
-router.post('/getuser', fetchuser, async (req, res) => {
+router.post('/getuser', fetchUser, async (req, res) => {
   try {
     const userId = req.user.id
     const user = await User.findById(userId).select('-password')
