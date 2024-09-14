@@ -10,8 +10,8 @@ const Signup = (props) => {
     name: '',
     email: ''
   })
-  // const hostLink = 'http://localhost:8000'
-  const hostLink = 'https://inotebook-backend-delta-seven.vercel.app'
+  const hostLink = 'http://localhost:8000'
+  // const hostLink = 'https://inotebook-backend-delta-seven.vercel.app'
   const handleSubmit = async (e) => {
     e.preventDefault()
     const { name, username, email, password } = credentials

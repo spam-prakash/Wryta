@@ -8,22 +8,20 @@ connectToMongo()
 
 // CORS Configuration
 const allowedOrigins = [
-  'http://localhost:3006', // Local development
-  'https://inotebook-frontend-murex.vercel.app' // Deployed frontend
+  'https://inotebook-frontend-murex.vercel.app', // Deployed frontend URL
+  'http://localhost:3006' // Local development
 ]
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true)
+    if (!origin) return callback(null, true) // Allow requests with no origin, like from mobile apps
     if (allowedOrigins.indexOf(origin) === -1) {
-      // If the origin is not in the allowed list, reject the request
       return callback(new Error('CORS policy does not allow this origin'), false)
     }
     return callback(null, true)
   },
-  credentials: true, // Allow sending cookies and credentials
-  methods: 'GET,POST,PUT,DELETE' // Allowed methods
+  methods: 'GET,POST,PUT,DELETE', // Allowed methods
+  credentials: true // Allow sending cookies and credentials
 }))
 
 // app.use(cors())
@@ -32,7 +30,7 @@ app.use(cors({
 app.use('/api/auth', require('./api/auth'))
 app.use('/api/notes', require('./api/notes'))
 
-app.get('/', (req, res) => {
+app.get('/hii', (req, res) => {
   res.send('Hello World!')
 })
 
