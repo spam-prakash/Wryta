@@ -1,5 +1,4 @@
 {
-    "version": 2,
     "builds": [
       {
         "src": "index.js",
@@ -8,9 +7,10 @@
     ],
     "routes": [
       {
-        "src": "/api/(.*)",
-        "dest": "/api/$1"
+        "src": "/(.*)",
+        "dest": "/index.js"
       }
-    ]
+    ],
+    "ignore": ["node_modules", "tests", "readme.md"]
   }
   
