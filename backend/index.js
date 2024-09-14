@@ -7,19 +7,18 @@ const port = 8000
 connectToMongo()
 
 // CORS Configuration
-const allowedOrigins = [
-  'https://inotebook-frontend-murex.vercel.app', // Deployed frontend URL
-  'http://localhost:3006' // Local development
-]
+// const allowedOrigins = [
+//   'https://inotebook-frontend-murex.vercel.app', // Deployed frontend URL
+//   'http://localhost:3006' // Local development
+// ]
 
-app.use(cors({
-  origin: '*', // Allow requests from any origin (for testing)
-  methods: 'GET,POST,PUT,DELETE', // Allowed methods
-  credentials: true // Allow sending cookies and credentials
-}))
+// app.use(cors({
+//   origin: '*', // Allow requests from any origin (for testing)
+//   methods: 'GET,POST,PUT,DELETE', // Allowed methods
+//   credentials: true // Allow sending cookies and credentials
+// }))
 
-
-// app.use(cors())
+app.use(cors())
 
 // Avilable Routes
 app.use('/api/auth', require('./api/auth'))
