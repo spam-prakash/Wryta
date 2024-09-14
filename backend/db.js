@@ -8,11 +8,11 @@ const mongoURI = 'mongodb+srv://akash_raushan_:akash12345@cluster0.cjsil.mongodb
 const connectToMongo = async () => {
   try {
     await mongoose.connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+      // useNewUrlParser: true,
+      // useUnifiedTopology: true,
       serverSelectionTimeoutMS: 30000,
       connectTimeoutMS: 30000,
-      socketTimeoutMS: 45000        
+      socketTimeoutMS: 45000
     })
     console.log('Connected to Mongoose Successfully')
   } catch (error) {
