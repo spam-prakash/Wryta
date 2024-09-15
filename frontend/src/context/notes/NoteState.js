@@ -5,9 +5,8 @@ import { json } from 'react-router-dom'
 import NoteContext from './NoteContext'
 import { useState } from 'react'
 
-// const hostLink = 'http://localhost:8000'
-const hostLink = 'http://locahost:8000' || 'https://inotebook-backend-opal.vercel.app'
-
+const hostLink = 'http://localhost:8000'
+// const hostLink = 'https://inotebook-backend-opal.vercel.app'
 // console.log(hostLink)
 const NoteState = (props) => {
   const notesInitial = []
