@@ -11,7 +11,8 @@ const Signup = (props) => {
     email: ''
   })
   // const hostLink = 'http://localhost:8000'
-  const hostLink = 'https://inotebook-backend-opal.vercel.app'
+  const hostLink = 'http://locahost:8000' || 'https://inotebook-backend-opal.vercel.app'
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     const { name, username, email, password } = credentials

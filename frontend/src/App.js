@@ -11,7 +11,7 @@ import Signup from './components/Signup'
 import Profile from './components/Profile'
 
 // const hostLink = 'http://locahost:8000'
-const hostLink = 'https://inotebook-backend-opal.vercel.app'
+const hostLink = 'http://locahost:8000' || 'https://inotebook-backend-opal.vercel.app'
 
 function App () {
   const [alert, setAlert] = useState(null)
