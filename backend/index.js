@@ -13,27 +13,23 @@ connectToMongo()
 app.use(express.json())
 
 // CORS Configuration
-const allowedOrigins = [
-  'https://inotebook-frontend-murex.vercel.app', // Deployed frontend URL
-  'http://localhost:3006' // Local development
-]
-
-app.use(cors({
-  origin: function (origin, callback) {
-    if (allowedOrigins.includes(origin) || !origin) { // Allow requests with no origin (like mobile apps, Postman, etc.)
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
-  },
+const corsOptions = {
+  origin: 'https://inotebook-frontend-murex.vercel.app', // Your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true // If you need to include cookies/auth tokens
-}))
+  allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'],
+  credentials: true // If cookies or credentials need to be sent
+}
 
-// Handle preflight requests
-app.options('*', cors())
+app.use(cors(corsOptions))
 
+// You can also handle OPTIONS requests explicitly if needed
+app.options('*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', 'https://inotebook-frontend-murex.vercel.app')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Access-Control-Allow-Origin')
+  res.setHeader('Access-Control-Allow-Credentials', 'true')
+  res.sendStatus(200)
+})
 // Available Routes
 app.use('/api/auth', require('./api/auth'))
 app.use('/api/notes', require('./api/notes'))

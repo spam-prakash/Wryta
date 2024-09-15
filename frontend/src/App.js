@@ -51,7 +51,7 @@ function App () {
         showAlert('Failed to fetch user details', 'danger')
       }
     } catch (error) {
-      showAlert('An error occurred', 'danger')
+      showAlert('An error occurred', '#F8D7DA')
     }
   }
   return (
