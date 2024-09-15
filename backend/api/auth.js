@@ -65,8 +65,8 @@ router.post('/createuser', [
 // ROUTE 2: Authenticate user POST: "api/auth/login" NO LOGIN REQUIRE
 
 router.post('/login', [
-  body('username', 'Enter a valid username').isLength({ min: 5 }),
-  body('password', 'Enter a valid password').isLength({ min: 5 })
+  body('username', 'Enter a valid username').isLength({ min: 3 }),
+  body('password', 'Enter a valid password').isLength({ min: 3 })
 ], async (req, res) => {
   let success = false
   // IF there are errors, return 400 BAD request nad error
