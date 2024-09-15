@@ -17,8 +17,8 @@ router.get('/fetchallnotes', fetchuser, async (req, res) => {
 
 // ROUTE: 2 ADD NOTES POST:"/api/notes/addnote" LOGIN REQUIRED
 router.post('/addnote', [
-  body('title', 'Title Must be atleast 3 characters').isLength({ min: 3 }),
-  body('description', 'Descprition Must be atleast 3 characters').isLength({ min: 3 })
+  body('title', 'Title Must be atleast 3 characters').isLength({ min: 0 }),
+  body('description', 'Descprition Must be atleast 3 characters').isLength({ min: 0 })
 ], fetchuser, async (req, res) => {
   try {
     const { title, description, tag } = req.body
