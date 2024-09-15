@@ -16,7 +16,7 @@ app.use(express.json())
 const corsOptions = {
   origin: 'https://inotebook-frontend-murex.vercel.app', // Your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Origin'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'auth-token', 'Access-Control-Allow-Origin'],
   credentials: true // If cookies or credentials need to be sent
 }
 
