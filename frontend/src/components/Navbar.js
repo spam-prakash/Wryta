@@ -44,42 +44,42 @@ const Navbar = (props) => {
           )}
           {!localStorage.getItem('token')
             ? (
-  <>
-              {location.pathname !== '/login' && (
-                <Link
-                  className='bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md'
-                  to='/login'
-                >
-                  Login
+              <>
+                {location.pathname !== '/login' && (
+                  <Link
+        className='bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md'
+        to='/login'
+      >
+        Login
                 </Link>
-              )}
-              {location.pathname !== '/signup' && (
-                <Link
-                  className='bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md'
-                  to='/signup'
-                >
-                  Signup
+                )}
+                {location.pathname !== '/signup' && (
+                  <Link
+        className='bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md'
+        to='/signup'
+      >
+        Signup
                 </Link>
-              )}
-            </>
+                )}
+              </>
               )
             : (
-  <>
-              {location.pathname !== '/profile' && (
-                <Link
-                  className='bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md'
-                  to='/profile'
-                >
-                  Profile
+              <>
+                {location.pathname !== '/profile' && (
+                  <Link
+        className='bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md'
+        to='/profile'
+      >
+        Profile
                 </Link>
-              )}
-              <button
-                className='bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md'
-                onClick={handleLogout}
-              >
-                Logout
+                )}
+                <button
+                  className='bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md'
+                  onClick={handleLogout}
+                >
+                  Logout
               </button>
-            </>
+              </>
               )}
         </div>
 
@@ -94,7 +94,7 @@ const Navbar = (props) => {
 
         {/* Sidebar Menu */}
         <div
-          className={`fixed inset-0 transform ${isOpen ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 ease-in-out z-40`}
+          className={`fixed inset-0 transform ${isOpen ? 'translate-x-0' : 'translate-x-full'}  transition-transform duration-300 ease-in-out z-40`}
         >
           <div
             className='absolute inset-0 bg-black opacity-50'
@@ -110,36 +110,36 @@ const Navbar = (props) => {
               )}
               {!localStorage.getItem('token')
                 ? (
-  <>
-                  {location.pathname !== '/login' && (
-                    <Link to='/login' onClick={toggleMenu}>
-                      <li className='hover:text-sky-400 transition duration-200'>Login</li>
-                    </Link>
-                  )}
-                  {location.pathname !== '/signup' && (
-                    <Link to='/signup' onClick={toggleMenu}>
-                      <li className='hover:text-sky-400 transition duration-200'>Signup</li>
-                    </Link>
-                  )}
-                </>
+                  <>
+                    {location.pathname !== '/login' && (
+                      <Link to='/login' onClick={toggleMenu}>
+        <li className='hover:text-sky-400 transition duration-200'>Login</li>
+      </Link>
+                    )}
+                    {location.pathname !== '/signup' && (
+                      <Link to='/signup' onClick={toggleMenu}>
+        <li className='hover:text-sky-400 transition duration-200'>Signup</li>
+      </Link>
+                    )}
+                  </>
                   )
                 : (
-  <>
-                  {location.pathname !== '/profile' && (
-                    <Link to='/profile' onClick={toggleMenu}>
-                      <li className='hover:text-sky-400 transition duration-200'>Profile</li>
-                    </Link>
-                  )}
-                  <li
-                    className='hover:text-sky-400 transition duration-200 cursor-pointer'
-                    onClick={() => {
-                      handleLogout()
-                      toggleMenu()
-                    }}
-                  >
-                    Logout
+                  <>
+                    {location.pathname !== '/profile' && (
+                      <Link to='/profile' onClick={toggleMenu}>
+        <li className='hover:text-sky-400 transition duration-200'>Profile</li>
+      </Link>
+                    )}
+                    <li
+                      className='hover:text-sky-400 transition duration-200 cursor-pointer'
+                      onClick={() => {
+        handleLogout()
+        toggleMenu()
+      }}
+                    >
+                      Logout
                   </li>
-                </>
+                  </>
                   )}
             </ul>
           </div>
