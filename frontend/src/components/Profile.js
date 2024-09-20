@@ -1,67 +1,49 @@
-import React, { useEffect } from "react";
-import notes from '../assets/notes.png';
-import { useNavigate } from "react-router-dom";
+import React, { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 const Profile = (props) => {
-  const { name, username, email } = props.user || {};
-  const navigate = useNavigate();
+  const { name, username, email } = props.user || {}
+  const navigate = useNavigate()
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-      if (!token) {
-        navigate("/login");
-      }
-  }, [navigate])
-  
-
-  const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token')
     if (!token) {
-      navigate("/login");
+      navigate('/login')
     }
+  }, [navigate])
 
   return (
-    <div className="flex items-center justify-center min-h-screen text-white">
-      <div className="container mx-auto bg-[#0A1122] bg-opacity-75 rounded-lg shadow-lg py-12 w-auto max-w-full">
-         <div class="px-4 sm:px-6">
-        <h3 class="text-lg leading-6 font-medium text-white">
+    <div className='flex items-center justify-center min-h-screen px-4 md:px-6 text-white'>
+      <div className='container mx-auto bg-[#0A1122] bg-opacity-80 rounded-lg shadow-lg py-6 px-4 md:px-8 max-w-xl'>
+        {/* Header */}
+        <div className='text-center mb-6'>
+          <h3 className='text-2xl md:text-3xl font-bold text-white'>
             Profile Details
-        </h3>
-        <p class="mt-1 max-w-2xl text-sm text-gray-500">
-            Details and informations about you.
-        </p>
-    </div>
+          </h3>
+          <p className='mt-1 text-sm md:text-base text-gray-400'>
+            Details and information about you.
+          </p>
+          <hr className='mt-4 border-gray-600' />
+        </div>
 
-        <div className="mx-6 mt-3 border-t border-red-200">
-            <div className="px-4 py-2 grid sm:grid sm:grid-cols-3 gap-16 sm:px-6">
-                <dt className=" attribute text-lg font-medium ">
-                    Name
-                </dt>
-                <dd className="value text-lg  sm:mt-0 sm:col-span-2">
-                   {name}
-                </dd>
-            </div>
-            <div className="px-4 py-2 grid sm:grid sm:grid-cols-3 gap-16 sm:px-6">
-                <dt className=" attribute text-lg font-medium ">
-                    Username
-                </dt>
-                <dd className="value text-lg  sm:mt-0 sm:col-span-2">
-                    {username}
-                </dd>
-            </div>
-            <div className="px-4 pt-2 pb-0 grid sm:grid sm:grid-cols-3 gap-16 sm:px-6">
-                <dt className=" attribute text-lg font-medium ">
-                    Email
-                </dt>
-                <dd className="value text-lg  sm:mt-0 sm:col-span-2">
-                    {email}
-                </dd>
-            </div>
-
-        </div>    
-          
+        {/* Profile Information */}
+        <div className='space-y-6'>
+          <div className='px-4 sm:px-6 grid grid-cols-2 gap-2'>
+            <dt className='text-sm md:text-base font-medium'>Name</dt>
+            <dd className='text-sm md:text-base'>{name || 'N/A'}</dd>
+          </div>
+          <div className='px-4 sm:px-6 grid grid-cols-2 gap-2'>
+            <dt className='text-sm md:text-base font-medium'>Username</dt>
+            <dd className='text-sm md:text-base'>{username || 'N/A'}</dd>
+          </div>
+          <div className='px-4 sm:px-6 grid grid-cols-2 gap-2'>
+            <dt className='text-sm md:text-base font-medium'>Email</dt>
+            <dd className='text-sm md:text-base'>{email || 'N/A'}</dd>
+          </div>
+        </div>
       </div>
     </div>
-  );
+  )
 };
 
-export default Profile;
+export default Profile
