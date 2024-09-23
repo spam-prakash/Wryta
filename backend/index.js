@@ -12,10 +12,10 @@ connectToMongo()
 // Middleware for parsing JSON
 app.use(express.json())
 
-const allowedOrigins = [
-  'https://inotebook-frontend-murex.vercel.app', // Deployed frontend URL
-  'http://localhost:3006' // Local development
-]
+// const allowedOrigins = [
+//   'https://inotebook-frontend-murex.vercel.app', // Deployed frontend URL
+//   'http://localhost:3006' // Local development
+// ]
 
 // CORS Configuration
 const corsOptions = {

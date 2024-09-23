@@ -47,18 +47,18 @@ const Navbar = (props) => {
               <>
                 {location.pathname !== '/login' && (
                   <Link
-        className='bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md'
-        to='/login'
-      >
-        Login
+                    className='bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md'
+                    to='/login'
+                  >
+                    Login
                 </Link>
                 )}
                 {location.pathname !== '/signup' && (
                   <Link
-        className='bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md'
-        to='/signup'
-      >
-        Signup
+                    className='bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md'
+                    to='/signup'
+                  >
+                    Signup
                 </Link>
                 )}
               </>
@@ -67,10 +67,10 @@ const Navbar = (props) => {
               <>
                 {location.pathname !== '/profile' && (
                   <Link
-        className='bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md'
-        to='/profile'
-      >
-        Profile
+                    className='bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md'
+                    to='/profile'
+                  >
+                    Profile
                 </Link>
                 )}
                 <button
@@ -78,7 +78,7 @@ const Navbar = (props) => {
                   onClick={handleLogout}
                 >
                   Logout
-              </button>
+                </button>
               </>
               )}
         </div>
@@ -103,7 +103,7 @@ const Navbar = (props) => {
           <div className='fixed right-0 top-0 h-full bg-black w-64 text-white flex flex-col items-center py-6'>
             <div className='text-xl font-semibold mb-8'>Menu</div>
             <ul className='flex flex-col items-center gap-6'>
-              {location.pathname !== '/' && (
+              {location.pathname !== '/' && location.pathname !== '/login' && location.pathname !== '/signup' && (
                 <Link to='/' onClick={toggleMenu}>
                   <li className='hover:text-sky-400 transition duration-200'>Home</li>
                 </Link>
@@ -113,13 +113,13 @@ const Navbar = (props) => {
                   <>
                     {location.pathname !== '/login' && (
                       <Link to='/login' onClick={toggleMenu}>
-        <li className='hover:text-sky-400 transition duration-200'>Login</li>
-      </Link>
+                        <li className='hover:text-sky-400 transition duration-200'>Login</li>
+                      </Link>
                     )}
                     {location.pathname !== '/signup' && (
                       <Link to='/signup' onClick={toggleMenu}>
-        <li className='hover:text-sky-400 transition duration-200'>Signup</li>
-      </Link>
+                        <li className='hover:text-sky-400 transition duration-200'>Signup</li>
+                      </Link>
                     )}
                   </>
                   )
@@ -127,18 +127,18 @@ const Navbar = (props) => {
                   <>
                     {location.pathname !== '/profile' && (
                       <Link to='/profile' onClick={toggleMenu}>
-        <li className='hover:text-sky-400 transition duration-200'>Profile</li>
-      </Link>
+                        <li className='hover:text-sky-400 transition duration-200'>Profile</li>
+                      </Link>
                     )}
                     <li
                       className='hover:text-sky-400 transition duration-200 cursor-pointer'
                       onClick={() => {
-        handleLogout()
-        toggleMenu()
-      }}
+                        handleLogout()
+                        toggleMenu()
+                      }}
                     >
                       Logout
-                  </li>
+                    </li>
                   </>
                   )}
             </ul>
