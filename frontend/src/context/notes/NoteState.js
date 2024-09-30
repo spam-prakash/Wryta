@@ -3,7 +3,7 @@
 // import Alert from "../../components/Alert";
 import { json } from 'react-router-dom'
 import NoteContext from './NoteContext'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 
 // const hostLink = 'http://localhost:8000'
 const hostLink = 'https://inotebook-backend-opal.vercel.app'
@@ -14,22 +14,20 @@ const NoteState = (props) => {
   const [notes, setNotes] = useState(notesInitial)
 
   // Get all note
-  const getNotes = async () => {
+  const getNotes = useCallback(async () => {
     // API CALL
     const response = await fetch(`${hostLink}/api/notes/fetchallnotes`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        // "auth-token":'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjY3Y2M5MGE0YjMwZjQ2M2Y5YmM1MTU1In0sImlhdCI6MTcxOTQ1NDE4M30.FMkv7hlK5CBecxroCu4CSgwoWrkJLBaQ8NsO9KiszYE'
         'auth-token': localStorage.getItem('token')
       }
-      // body: JSON.stringify({title,description,tag}),
     })
-
+  
     const json = await response.json()
     setNotes(json)
-  }
+  }, [])
 
   // Add a note
   const addNote = async (title, description, tag) => {
