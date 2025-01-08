@@ -20,7 +20,7 @@ const NoteItem = (props) => {
   const { deleteNote } = context
   return (
     <div className='text-white flex-auto md:basis-1/4 px-2 mb-4'>
-      <div className='max-w-sm p-6 bg-[#0a1122] shadow-2xl border-none rounded-lg group'>
+      <div className='max-w-[40rem] p-6 bg-[#0a1122] shadow-2xl border-none rounded-lg group'>
         <div className='flex justify-between'>
           <h5 className='mb-2 text-2xl font-bold tracking-tight text-white'>{note.title}</h5>
           <div className='flex gap-3'>
