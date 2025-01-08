@@ -17,6 +17,8 @@ const Notes = (props) => {
   }, [getNotes, navigate])
 
   const modalRef = useRef(null)
+  const descriptionRef = useRef(null)
+
   // const refClose = useRef(null);
   const [note, setNote] = useState({ id: '', etitle: '', edescription: '', etag: '' })
 
@@ -33,11 +35,22 @@ const Notes = (props) => {
     editNote(note.id, note.etitle, note.edescription, note.etag)
     modalRef.current.classList.toggle('hidden')
     props.showAlert('Note updated successfully', '#D4EDDA')
+    if (descriptionRef.current) {
+      descriptionRef.current.style.height = 'auto' // Reset the height of the textarea
+      autoResize({ target: descriptionRef.current }) // Call autoResize for the description
+    }
   }
 
   const onChange = (e) => {
     setNote({ ...note, [e.target.name]: e.target.value })
   }
+
+  const autoResize = (e) => {
+    e.target.style.height = 'auto'
+    const maxHeight = e.target.scrollHeight > e.target.clientHeight ? e.target.scrollHeight : e.target.clientHeight
+    e.target.style.height = Math.min(maxHeight, 10 * parseFloat(getComputedStyle(e.target).lineHeight)) + 'px'
+  }
+
   return (
     <>
       {/* Button to toggle modal */}
@@ -81,13 +94,20 @@ const Notes = (props) => {
             >
               Description
             </label>
-            <input
+            <textarea
               id='edescription'
-              name='edescription' value={note.edescription}
-              className='shadow appearance-none border rounded w-full py-2 px-3 text-black leading-tight focus:outline-1 focus:shadow-outline outline-[#0F1729]'
+              name='edescription'
+              className='form-control shadow appearance-none border rounded w-full py-2 px-3 text-black leading-tight focus:outline-1 focus:shadow-outline outline-[#0F1729] overflow-hidden resize-none'
               placeholder='Enter description'
-              onChange={onChange} minLength={5} required
+              value={note.edescription}
+              onChange={(e) => {
+                onChange(e)
+                autoResize(e)
+              }}
+              onInput={autoResize} // Extra precaution to handle dynamic changes
+              ref={descriptionRef} rows='4'
             />
+
           </div>
           <div className='mb-4'>
             <label
@@ -121,7 +141,7 @@ const Notes = (props) => {
               disabled={note.etitle.length < 3 || note.edescription.length < 3}
             >
               Edit Note
-          </button>
+            </button>
           </div>
         </form>
       </div>
