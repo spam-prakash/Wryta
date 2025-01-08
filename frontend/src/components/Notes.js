@@ -1,11 +1,11 @@
-import React, { useContext, useEffect, useState, useRef } from 'react';
-import noteContext from '../context/notes/NoteContext';
-import NoteItem from './NoteItem';
-import { useNavigate } from 'react-router-dom';
-import Addnote from './Addnote';
+import React, { useContext, useEffect, useState, useRef } from 'react'
+import noteContext from '../context/notes/NoteContext'
+import NoteItem from './NoteItem'
+import { useNavigate } from 'react-router-dom'
+import Addnote from './Addnote'
 
 const Notes = (props) => {
-  const { notes, getNotes , editNote } = useContext(noteContext)
+  const { notes, getNotes, editNote } = useContext(noteContext)
   const navigate = useNavigate()
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -20,11 +20,10 @@ const Notes = (props) => {
   // const refClose = useRef(null);
   const [note, setNote] = useState({ id: '', etitle: '', edescription: '', etag: '' })
 
- 
   const toggleModal = (e) => {
     modalRef.current.classList.toggle('hidden')
     // e.preventDefault()
-  };
+  }
   const updateNote = (currentNote) => {
     modalRef.current.classList.toggle('hidden')
     setNote({ id: currentNote._id, etitle: currentNote.title, edescription: currentNote.description, etag: currentNote.tag })
@@ -88,7 +87,7 @@ const Notes = (props) => {
               className='shadow appearance-none border rounded w-full py-2 px-3 text-black leading-tight focus:outline-1 focus:shadow-outline outline-[#0F1729]'
               placeholder='Enter description'
               onChange={onChange} minLength={5} required
-             />
+            />
           </div>
           <div className='mb-4'>
             <label
@@ -112,16 +111,16 @@ const Notes = (props) => {
             {/* <button onClick={handleClick} type="button" className="bg-[#FFD252] mx-3 hover:bg-[#FDC116] text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outlin">Edit Note</button> */}
 
             <button
-            type='button'
-            className={`bg-[#FFD252] hover:bg-[#FDC116] text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
+              type='button'
+              className={`bg-[#FFD252] hover:bg-[#FDC116] text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
               note.etitle.length < 3 || note.edescription.length < 3
                 ? 'disabled cursor-not-allowed opacity-50'
                 : ''
             }`}
-            onClick={handleClick}
-            disabled={note.etitle.length < 3 || note.edescription.length < 3}
-          >
-            Edit Note
+              onClick={handleClick}
+              disabled={note.etitle.length < 3 || note.edescription.length < 3}
+            >
+              Edit Note
           </button>
           </div>
         </form>
@@ -132,11 +131,11 @@ const Notes = (props) => {
       <div className='flex flex-wrap text-white gap-3'>
         {notes.length === 0 && 'No Notes To Display'}
         {notes.map((note) => {
-        return <NoteItem key={note._id} showAlert={props.showAlert} updateNote={updateNote} note={note} />
-      })}
+          return <NoteItem key={note._id} showAlert={props.showAlert} updateNote={updateNote} note={note} />
+        })}
       </div>
     </>
   )
-};
+}
 
 export default Notes

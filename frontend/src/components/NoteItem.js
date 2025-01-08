@@ -4,6 +4,16 @@ import editIcon from '../assets/edit.png'
 import noteContext from '../context/notes/NoteContext'
 
 const NoteItem = (props) => {
+  const formatDate = (dateString) => {
+    const options = { day: 'numeric', month: 'short', year: 'numeric' }
+    return new Date(dateString).toLocaleDateString(undefined, options)
+  }
+
+  const formatTime = (dateString) => {
+    const options = { hour: '2-digit', minute: '2-digit', hour12: true }
+    return new Date(dateString).toLocaleTimeString(undefined, options)
+  }
+
   const context = useContext(noteContext)
   const { note } = props
   const { updateNote } = props
@@ -22,6 +32,8 @@ const NoteItem = (props) => {
           <span className='text-[#FDC116]'># </span>{note.tag}
         </span>
         <p className='mb-0 font-normal text-white'>{note.description}</p>
+        <p className='text-xs mt-2 text-slate-500'>{formatDate(note.date)} at {formatTime(note.date)}</p>
+
         {/* <div className="gap-3 max-h-0  overflow-hidden flex transition-all duration-500 ease-in-out group-hover:max-h-20 group-hover:opacity-100"> */}
       </div>
     </div>

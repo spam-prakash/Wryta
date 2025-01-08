@@ -44,16 +44,18 @@ router.post('/addnote', [
 
 // ROUTE: 3 UPADTE A NOTES PUT:"/api/notes/updatenote" LOGIN REQUIRED
 router.put('/updatenote/:id', [
-  body('title', 'Title Must be atleast 3 characters').isLength({ min: 3 }),
-  body('description', 'Descprition Must be atleast 3 characters').isLength({ min: 3 })
+  body('title', 'Title Must be at least 3 characters').isLength({ min: 3 }),
+  body('description', 'Description Must be at least 3 characters').isLength({ min: 3 })
 ], fetchuser, async (req, res) => {
   const { title, description, tag } = req.body
   // Create a new Note Object
   try {
-    const newNote = {}
-    if (title) { newNote.title = title }
-    if (description) { newNote.description = description }
-    if (tag) { newNote.tag = tag }
+    const newNote = {
+      title,
+      description,
+      tag,
+      date: Date.now() // Update the date to the current date and time
+    }
 
     let note = await Note.findById(req.params.id)
     if (!note) { return res.status(404).send('Not Found') }

@@ -14,20 +14,22 @@ const NoteState = (props) => {
   const [notes, setNotes] = useState(notesInitial)
 
   // Get all note
-  const getNotes = useCallback(async () => {
+  const getNotes = async () => {
     // API CALL
     const response = await fetch(`${hostLink}/api/notes/fetchallnotes`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
         'auth-token': localStorage.getItem('token')
       }
     })
-  
     const json = await response.json()
-    setNotes(json)
-  }, [])
+
+    // Sort notes by date in descending order
+    const sortedNotes = json.sort((a, b) => new Date(b.date) - new Date(a.date))
+
+    setNotes(sortedNotes)
+  }
 
   // Add a note
   const addNote = async (title, description, tag) => {
@@ -41,16 +43,8 @@ const NoteState = (props) => {
       body: JSON.stringify({ title, description, tag })
     })
     const note = await response.json()
-    // const json=await response.json()
-    // const note = {
-    //   _id: "667d359e5cbd3bce10b0e226",
-    //   user: "667cc90a4b30f463f9bc5155",
-    //   title: title,
-    //   tag: tag,
-    //   description: description,
-    //   date: "2024-06-27T09:49:18.378Z",
-    //   __v: 0,
-    // };
+
+    // Add the new note to the local state
     setNotes(notes.concat(note))
   }
 
@@ -81,26 +75,20 @@ const NoteState = (props) => {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'auth-token':
-          localStorage.getItem('token')
+        'auth-token': localStorage.getItem('token')
       },
-      body: JSON.stringify({ title, description, tag })
+      body: JSON.stringify({ title, description, tag, date: Date.now() }) // Include the date field
     })
-    // const json = response.json();
-    const newNotes = JSON.parse(JSON.stringify(notes))
+    const json = await response.json()
 
-    // Logic to edit
-    for (let index = 0; index < newNotes.length; index++) {
-      const element = newNotes[index]
-      if (element._id === id) {
-        newNotes[index].title = title
-        newNotes[index].description = description
-        newNotes[index].tag = tag
-        break
+    // Logic to edit in local state
+    const newNotes = notes.map(note => {
+      if (note._id === id) {
+        return { ...note, title, description, tag, date: json.date } // Update date locally from server response
       }
-    }
+      return note
+    })
     setNotes(newNotes)
-    // showAlert("dgdag","dsggdsg")
   }
 
   return (
