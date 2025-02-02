@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken')
 
 
-const JWT_SCREAT = 'heygoogleremindmrmetowatertheplant'
-// const JWT_SCREAT = process.env.JWTSIGN;
+// const JWT_SCREAT = 'heygoogleremindmrmetowatertheplant'
+const JWT_SCREAT = process.env.JWTSIGN;
 
 const fetchuser = (req, res, next) => {
   const token = req.header('auth-token')

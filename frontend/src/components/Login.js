@@ -1,15 +1,51 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useLocation, Link, useNavigate } from 'react-router-dom'
+import axios from 'axios'
 
 const Login = (props) => {
+  const hostLink = process.env.REACT_APP_HOSTLINK
   const navigate = useNavigate()
   const [credentials, setCredentials] = useState({
     username: '',
     password: ''
   })
 
-  const hostLink = 'https://inotebook-backend-opal.vercel.app'
-  // const hostLink = 'http://localhost:8000'
+  const location = useLocation()
+
+  useEffect(() => {
+    // Check if the token is already in localStorage
+    const storedToken = localStorage.getItem('token')
+    if (storedToken) {
+      console.log('Token already stored in localStorage:', storedToken)
+      navigate('/') // Redirect to home page
+      return // Exit early
+    }
+
+    // Extract the token from the URL
+    const params = new URLSearchParams(location.search)
+    const token = params.get('token')
+    console.log('Query String:', location.search) // Debugging
+    console.log('Token:', token) // Debugging
+
+    if (token) {
+      // Set the token in local storage
+      localStorage.setItem('token', token)
+      console.log('Token stored in localStorage:', localStorage.getItem('token')) // Debugging
+
+      // Clear the token from the URL to prevent duplicate processing
+      const cleanUrl = window.location.origin + window.location.pathname
+      window.history.replaceState({}, document.title, cleanUrl)
+
+      // Redirect to the desired page
+      navigate('/')
+    } else {
+      console.log('No token found')
+    }
+  }, [location.search, navigate]) // Only depend on location.search and navigate
+
+  const logInWithGoogle = () => {
+    window.open(`${hostLink}/auth/google`, '_self')
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -25,7 +61,6 @@ const Login = (props) => {
       })
     })
     const json = await response.json()
-    // console.log("Login Response:", json); // Log the response
 
     if (json.success) {
       localStorage.setItem('token', json.authToken)
@@ -57,10 +92,7 @@ const Login = (props) => {
         <div className='mt-10 sm:mx-auto sm:w-full sm:max-w-sm'>
           <form className='space-y-6' onSubmit={handleSubmit}>
             <div>
-              <label
-                htmlFor='username'
-                className='block text-sm font-medium leading-6 text-white'
-              >
+              <label htmlFor='username' className='block text-sm font-medium leading-6 text-white'>
                 Username
               </label>
               <div className='mt-2'>
@@ -80,10 +112,7 @@ const Login = (props) => {
 
             <div>
               <div className='flex items-center justify-between'>
-                <label
-                  htmlFor='password'
-                  className='block text-sm font-medium leading-6 text-white'
-                >
+                <label htmlFor='password' className='block text-sm font-medium leading-6 text-white'>
                   Password
                 </label>
               </div>
@@ -111,13 +140,17 @@ const Login = (props) => {
               </button>
             </div>
           </form>
+          {/* GOOGLE SIGNIN */}
+          <button
+            className='mt-4 flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
+            onClick={() => logInWithGoogle()}
+          >
+            Sign in with Google 🚀
+          </button>
 
           <p className='mt-8 text-center text-sm text-gray-500'>
             Not a member?{' '}
-            <Link
-              to='/signup'
-              className='font-semibold leading-6 text-indigo-600 hover:text-indigo-500'
-            >
+            <Link to='/signup' className='font-semibold leading-6 text-indigo-600 hover:text-indigo-500'>
               Sign Up
             </Link>
           </p>

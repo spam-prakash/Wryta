@@ -1,5 +1,8 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { GoogleLogin, useGoogleLogin } from '@react-oauth/google'
+import { jwtDecode } from 'jwt-decode'
+import axios from 'axios'
 
 const Signup = (props) => {
   const navigate = useNavigate()
@@ -11,7 +14,24 @@ const Signup = (props) => {
     email: ''
   })
   // const hostLink = 'http://localhost:8000'
-  const hostLink = 'https://inotebook-backend-opal.vercel.app'
+  // const hostLink = 'https://inotebook-backend-opal.vercel.app'
+  const hostLink = process.env.REACT_APP_HOSTLINK
+
+  const login = useGoogleLogin({
+    onSuccess: async (response) => {
+      try {
+        const res = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
+
+          headers: { Authorization: `Bearer ${response.access_token}` }
+        }
+        )
+        console.log(res.data)
+      } catch (error) {
+        console.error('Login failed', error)
+      }
+    }
+  })
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     const { name, username, email, password } = credentials
@@ -170,6 +190,9 @@ const Signup = (props) => {
               </button>
             </div>
           </form>
+
+          {/* GOOGLE SIGNIN */}
+          <button className='mt-4 flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600' onClick={() => login()}>Sign Up with Google 🚀</button>
 
           <p className='mt-10 text-center text-sm text-gray-500'>
             Already have a account?{' '}

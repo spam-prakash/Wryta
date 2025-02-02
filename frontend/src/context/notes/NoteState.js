@@ -6,7 +6,8 @@ import NoteContext from './NoteContext'
 import { useState, useCallback } from 'react'
 
 // const hostLink = 'http://localhost:8000'
-const hostLink = 'https://inotebook-backend-opal.vercel.app'
+// const hostLink = 'https://inotebook-backend-opal.vercel.app'
+const hostLink = process.env.REACT_APP_HOSTLINK
 // console.log(hostLink)
 const NoteState = (props) => {
   const notesInitial = []

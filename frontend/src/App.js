@@ -11,7 +11,8 @@ import Signup from './components/Signup'
 import Profile from './components/Profile'
 
 // const hostLink = 'http://locahost:8000'
-const hostLink = 'https://inotebook-backend-opal.vercel.app'
+// const hostLink = 'https://inotebook-backend-opal.vercel.app'
+const hostLink = process.env.REACT_APP_HOSTLINK
 
 function App () {
   const [alert, setAlert] = useState(null)
@@ -67,6 +68,8 @@ function App () {
               <Route exact path='/login' key='/login' element={<Login showAlert={showAlert} setUser={setUser} />} />
               <Route exact path='/signup' key='/signup' element={<Signup showAlert={showAlert} />} />
               <Route exact path='/profile' key='/profile' element={<Profile user={user} />} />
+              <Route path='*' key='/' element={<Home />} />
+              <Route path='/login-success' element={<Login />} />
             </Routes>
           </div>
         </Router>
