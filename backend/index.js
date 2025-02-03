@@ -17,8 +17,8 @@ connectToMongo()
 
 
 // const liveLink=process.env.REACT_APP_LIVE_LINK
-// const clientID = process.env.REACT_APP_CLINTID
-// const clientSecret = process.env.REACT_APP_CLINT_SECRET
+const clientID = process.env.REACT_APP_CLINTID
+const clientSecret = process.env.REACT_APP_CLINT_SECRET
 const liveLink = process.env.REACT_APP_LIVE_LINK
 const JWT_SECRET = process.env.JWT_SECRET
 const hostLink=process.env.REACT_APP_HOST_LINK

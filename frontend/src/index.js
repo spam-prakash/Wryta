@@ -6,8 +6,8 @@ import { GoogleOAuthProvider } from '@react-oauth/google'
 // import { BrowserRouter } from 'react-router-dom'
 
 const root = ReactDOM.createRoot(document.getElementById('root'))
-// const clientId = process.env.REACT_APP_CLINTID
-// const clientSecret = process.env.REACT_APP_CLINT_SECRET
+const clientId = process.env.REACT_APP_CLINTID
+const clientSecret = process.env.REACT_APP_CLINT_SECRET
 
 // In your configuration file or environment setup
 const environment = process.env.NODE_ENV || 'development'; // Or however you determine environment
