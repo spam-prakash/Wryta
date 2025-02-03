@@ -23,14 +23,14 @@ const JWT_SECRET = process.env.JWT_SECRET
 // Middleware for parsing JSON
 app.use(express.json())
 
-// CORS Configuration
 const corsOptions = {
-  // origin: allowedOrigins, // Your frontend URL
-  origin: '*', // Your frontend URL
+  origin: '*',  // Allow all origins (not recommended for production)
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'auth-token', 'Access-Control-Allow-Origin'],
-  // credentials: true // If cookies or credentials need to be sent
-}
+  credentials: true,
+};
+
+
 
 app.use(cors(corsOptions))
 
