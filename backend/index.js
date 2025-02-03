@@ -27,16 +27,18 @@ console.log('Host Link:', hostLink) // Debugging
 
 const environment = process.env.NODE_ENV || 'development'; // Or however you determine environment
 console.log('Environment:', environment)
-const redirectURL = process.env.REDIRECT_URL || `/auth/google/callback`
+let redirectURL = process.env.REDIRECT_URL || `/auth/google/callback`
 console.log('Redirect URL:', redirectURL)
 
 // let googleClientId;
 if (environment === 'production') {
    clientID = process.env.REACT_APP_CLINTID_PRODUCTION;
    clientSecret = process.env.REACT_APP_CLINT_SECRET_PRODUCTION;
+   redirectURL = `${hostLink}/auth/google/callback`
 } else {
    clientID = process.env.REACT_APP_CLINTID_DEVELOPMENT;
    clientSecret = process.env.REACT_APP_CLINT_SECRET_DEVELOPMENT;
+    redirectURL = `/auth/google/callback`
 }
 
 
