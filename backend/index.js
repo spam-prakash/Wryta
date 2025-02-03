@@ -17,17 +17,31 @@ connectToMongo()
 
 
 // const liveLink=process.env.REACT_APP_LIVE_LINK
-const clientID = process.env.REACT_APP_CLINTID
-const clientSecret = process.env.REACT_APP_CLINT_SECRET
+// const clientID = process.env.REACT_APP_CLINTID
+// const clientSecret = process.env.REACT_APP_CLINT_SECRET
 const liveLink = process.env.REACT_APP_LIVE_LINK
 const JWT_SECRET = process.env.JWT_SECRET
 const hostLink=process.env.REACT_APP_HOST_LINK
+
+
+const environment = process.env.NODE_ENV || 'development'; // Or however you determine environment
+console.log('Environment:', environment)
+
+// let googleClientId;
+if (environment === 'production') {
+   clientID = process.env.REACT_APP_CLINTID_PRODUCTION;
+   clientSecret = process.env.REACT_APP_CLINT_SECRET_PRODUCTION;
+} else {
+   clientID = process.env.REACT_APP_CLINTID_DEVELOPMENT;
+   clientSecret = process.env.REACT_APP_CLINT_SECRET_DEVELOPMENT;
+}
+
 
 // Middleware for parsing JSON
 app.use(express.json())
 
 const corsOptions = {
-  // origin: allowedOrigins, // Your f rontend URL
+  // origin: allowedOrigins, // Your frontend URL
   origin: '*', // Your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'auth-token', 'Access-Control-Allow-Origin'],
@@ -54,7 +68,7 @@ passport.use(
     {
       clientID,
       clientSecret,
-      callbackURL: `${hostLink}/auth/google/callback`,
+      callbackURL: `/auth/google/callback`,
       passReqToCallback: true
     },
     async (request, accessToken, refreshToken, profile, done) => {
