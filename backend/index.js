@@ -24,15 +24,24 @@ const JWT_SECRET = process.env.JWT_SECRET
 app.use(express.json())
 
 const corsOptions = {
-  origin: '*',  // Allow all origins (not recommended for production)
+  // origin: allowedOrigins, // Your frontend URL
+  origin: '*', // Your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'auth-token', 'Access-Control-Allow-Origin'],
-  credentials: true,
-};
-
-
+  credentials: true // If cookies or credentials need to be sent
+}
 
 app.use(cors(corsOptions))
+
+
+app.options('*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', 'https://inotebook-frontend-murex.vercel.app')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Access-Control-Allow-Origin')
+  res.setHeader('Access-Control-Allow-Credentials', 'true')
+  res.sendStatus(200)
+})
+
 
 app.use(passport.initialize()) // Initialize passport without session
 
