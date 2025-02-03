@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+// import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useLocation, Link, useNavigate } from 'react-router-dom'
+// import { Link, useNavigate } from 'react-router-dom'
 import { GoogleLogin, useGoogleLogin } from '@react-oauth/google'
 import { jwtDecode } from 'jwt-decode'
 import axios from 'axios'
@@ -16,21 +18,43 @@ const Signup = (props) => {
   // const hostLink = 'http://localhost:8000'
   // const hostLink = 'https://inotebook-backend-opal.vercel.app'
   const hostLink = process.env.REACT_APP_HOSTLINK
+  const location = useLocation()
 
-  const login = useGoogleLogin({
-    onSuccess: async (response) => {
-      try {
-        const res = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
 
-          headers: { Authorization: `Bearer ${response.access_token}` }
-        }
-        )
-        console.log(res.data)
-      } catch (error) {
-        console.error('Login failed', error)
-      }
+  useEffect(() => {
+    // Check if the token is already in localStorage
+    const storedToken = localStorage.getItem('token')
+    if (storedToken) {
+      console.log('Token already stored in localStorage:', storedToken)
+      navigate('/') // Redirect to home page
+      return // Exit early
     }
-  })
+
+    // Extract the token from the URL
+    const params = new URLSearchParams(location.search)
+    const token = params.get('token')
+    console.log('Query String:', location.search) // Debugging
+    console.log('Token:', token) // Debugging
+
+    if (token) {
+      // Set the token in local storage
+      localStorage.setItem('token', token)
+      console.log('Token stored in localStorage:', localStorage.getItem('token')) // Debugging
+
+      // Clear the token from the URL to prevent duplicate processing
+      const cleanUrl = window.location.origin + window.location.pathname
+      window.history.replaceState({}, document.title, cleanUrl)
+
+      // Redirect to the desired page
+      navigate('/')
+    } else {
+      console.log('No token found')
+    }
+  }, [location.search, navigate]) // Only depend on location.search and navigate
+
+  const logInWithGoogle = () => {
+    window.open(`${hostLink}/auth/google`, '_self')
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -192,7 +216,7 @@ const Signup = (props) => {
           </form>
 
           {/* GOOGLE SIGNIN */}
-          <button className='mt-4 flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600' onClick={() => login()}>Sign Up with Google 🚀</button>
+          <button className='mt-4 flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600' onClick={() => logInWithGoogle()}>Sign Up with Google 🚀</button>
 
           <p className='mt-10 text-center text-sm text-gray-500'>
             Already have a account?{' '}

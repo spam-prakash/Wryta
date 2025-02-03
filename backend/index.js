@@ -53,16 +53,24 @@ passport.use(
             googleId: profile.id,
             name: profile.displayName,
             email: profile.emails[0].value,
-            image: profile.photos[0].value
+            image: profile.photos[0].value,
+            username: profile.emails[0].value.split('@')[0]
           })
           await user.save()
         }
 
         // Generate JWT Token
-        const token = jwt.sign({ id: user._id }, JWT_SECRET, {
+        // In your server.js or Google auth route
+        const token = jwt.sign({
+          user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            username: user.username || user.email.split('@')[0]
+          }
+        }, JWT_SECRET, {
           expiresIn: '7d'
         })
-
         // Attach user and token to done callback
         return done(null, { user, token })
       } catch (error) {
