@@ -21,6 +21,7 @@ const clientID = process.env.REACT_APP_CLINTID
 const clientSecret = process.env.REACT_APP_CLINT_SECRET
 const liveLink = process.env.REACT_APP_LIVE_LINK
 const JWT_SECRET = process.env.JWT_SECRET
+const hostLink=process.env.REACT_APP_HOST_LINK
 
 // Middleware for parsing JSON
 app.use(express.json())
@@ -53,7 +54,7 @@ passport.use(
     {
       clientID,
       clientSecret,
-      callbackURL: `${liveLink}/auth/google/callback`,
+      callbackURL: `${hostLink}/auth/google/callback`,
       passReqToCallback: true
     },
     async (request, accessToken, refreshToken, profile, done) => {
