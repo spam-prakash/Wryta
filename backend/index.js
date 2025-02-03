@@ -15,6 +15,8 @@ const port = process.env.PORT || 8000
 // Connect to MongoDB
 connectToMongo()
 
+
+// const liveLink=process.env.REACT_APP_LIVE_LINK
 const clientID = process.env.REACT_APP_CLINTID
 const clientSecret = process.env.REACT_APP_CLINT_SECRET
 const liveLink = process.env.REACT_APP_LIVE_LINK
@@ -51,7 +53,7 @@ passport.use(
     {
       clientID,
       clientSecret,
-      callbackURL: '/auth/google/callback',
+      callbackURL: `${liveLink}/auth/google/callback`,
       passReqToCallback: true
     },
     async (request, accessToken, refreshToken, profile, done) => {
