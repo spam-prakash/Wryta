@@ -5,7 +5,7 @@ const { body, validationResult } = require('express-validator')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 // const fetchuser = require('../middleware/fetchUser')
-const fetchUser = require('../middleware/fetchUser');
+const fetchUser = require('../middleware/fetchuser');
 //  ngjfn
 
 const JWT_SCREAT = process.env.JWTSIGN
