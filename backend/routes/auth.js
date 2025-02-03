@@ -4,7 +4,9 @@ const router = express.Router()
 const { body, validationResult } = require('express-validator')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
-const fetchuser = require('../middleware/fetchUser')
+// const fetchuser = require('../middleware/fetchUser')
+const fetchUser = require('../middleware/fetchUser');
+
 
 const JWT_SCREAT = process.env.JWTSIGN
 // const JWT_SCREAT = 'heygoogleremindmrmetowatertheplant'
