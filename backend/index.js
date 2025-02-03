@@ -27,7 +27,7 @@ const hostLink=process.env.REACT_APP_HOST_LINK
 app.use(express.json())
 
 const corsOptions = {
-  // origin: allowedOrigins, // Your frontend URL
+  // origin: allowedOrigins, // Your f rontend URL
   origin: '*', // Your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'auth-token', 'Access-Control-Allow-Origin'],
