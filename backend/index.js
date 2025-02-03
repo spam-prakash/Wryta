@@ -27,6 +27,8 @@ console.log('Host Link:', hostLink) // Debugging
 
 const environment = process.env.NODE_ENV || 'development'; // Or however you determine environment
 console.log('Environment:', environment)
+const redirectURL = process.env.REDIRECT_URL || `/auth/google/callback`
+console.log('Redirect URL:', redirectURL)
 
 // let googleClientId;
 if (environment === 'production') {
@@ -69,7 +71,7 @@ passport.use(
     {
       clientID,
       clientSecret,
-      callbackURL: `/auth/google/callback`,
+      callbackURL: `${redirectURL}`,
       passReqToCallback: true
     },
     async (request, accessToken, refreshToken, profile, done) => {
