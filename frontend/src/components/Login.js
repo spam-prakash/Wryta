@@ -4,6 +4,7 @@ import axios from 'axios'
 
 const Login = (props) => {
   const hostLink = process.env.REACT_APP_HOSTLINK
+  console.log('Host Link:', hostLink) // Debugging
   const navigate = useNavigate()
   const [credentials, setCredentials] = useState({
     username: '',

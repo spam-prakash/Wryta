@@ -21,7 +21,8 @@ connectToMongo()
 // const clientSecret = process.env.REACT_APP_CLINT_SECRET
 const liveLink = process.env.REACT_APP_LIVE_LINK
 const JWT_SECRET = process.env.JWT_SECRET
-const hostLink=process.env.REACT_APP_HOST_LINK
+const hostLink=process.env.REACT_APP_HOSTLINK
+console.log('Host Link:', hostLink) // Debugging
 
 
 const environment = process.env.NODE_ENV || 'development'; // Or however you determine environment
