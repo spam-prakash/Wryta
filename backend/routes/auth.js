@@ -6,7 +6,7 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 // const fetchuser = require('../middleware/fetchUser')
 const fetchUser = require('../middleware/fetchUser');
-
+//  ngjfn
 
 const JWT_SCREAT = process.env.JWTSIGN
 // const JWT_SCREAT = 'heygoogleremindmrmetowatertheplant'
