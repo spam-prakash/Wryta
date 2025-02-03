@@ -27,7 +27,7 @@ const Signup = (props) => {
     if (storedToken) {
       console.log('Token already stored in localStorage:', storedToken)
       navigate('/') // Redirect to home page
-      return // Exit early
+      return // Exit earl y
     }
 
     // Extract the token from the URL
