@@ -25,10 +25,11 @@ app.use(express.json())
 
 // CORS Configuration
 const corsOptions = {
+  // origin: allowedOrigins, // Your frontend URL
   origin: '*', // Your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'auth-token', 'Access-Control-Allow-Origin'],
-  credentials: true // If cookies or credentials need to be sent
+  // credentials: true // If cookies or credentials need to be sent
 }
 
 app.use(cors(corsOptions))
