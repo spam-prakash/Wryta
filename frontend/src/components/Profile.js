@@ -35,7 +35,7 @@ const Profile = (props) => {
       </div>
   
       {/* Profile Section */}
-      <div className="lg:flex lg:items-center space-x-6">
+      <div className="lg:flex lg:items-center lg:space-x-6">
         {image && (
           <div className="flex-shrink-0 flex items-center justify-center pb-8 lg:pb-0">
             <a href={image} target='_blank'>
