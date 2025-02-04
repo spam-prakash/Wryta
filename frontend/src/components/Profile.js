@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const Profile = (props) => {
@@ -12,6 +12,16 @@ const Profile = (props) => {
       navigate('/login')
     }
   }, [navigate])
+
+  const [copiedText, setCopiedText] = useState("");
+  const [copiedElement, setCopiedElement]=useState("")
+  const copyToClipboard = (element,text) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(text); // Set state to show copied text
+    setCopiedElement(element)
+    props.showAlert(`${element} copied successfully`, '#D4EDDA')
+    setTimeout(() => setCopiedText(""), 1500); // Clear message after 1.5 sec
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen px-4 md:px-6 text-white">
@@ -27,7 +37,7 @@ const Profile = (props) => {
       {/* Profile Section */}
       <div className="lg:flex lg:items-center space-x-6">
         {image && (
-          <div className="flex-shrink-0 flex items-center justify-center">
+          <div className="flex-shrink-0 flex items-center justify-center pb-8 lg:pb-0">
             <a href={image} target='_blank'>
               <img className="size-40 lg:size-40 md:size-40 rounded-full cursor-pointer" src={image} alt="Profile" />
             </a>
@@ -35,20 +45,35 @@ const Profile = (props) => {
         )}
   
         {/* Details Section */}
-        <div className="flex-1 space-y-4 w-full flex flex-col justify-center h-full">
+        {/* <div className="flex-1 space-y-4 w-full flex flex-col justify-center h-full">
           <div className='grid grid-cols-2 gap-4'>
             <dt className='text-sm md:text-base font-medium'>Name</dt>
-            <dd className='text-sm md:text-base'>{name || 'N/A'}</dd>
+            <dd className='text-sm md:text-base text-ellipsis overflow-hidden whitespace-nowrap'>{name || 'N/A'}</dd>
           </div>
           <div className='grid grid-cols-2 gap-4'>
             <dt className='text-sm md:text-base font-medium'>Username</dt>
-            <dd className='text-sm md:text-base'>{username || 'N/A'}</dd>
+            <dd className='text-sm md:text-base text-ellipsis overflow-hidden whitespace-nowrap'>{username || 'N/A'}</dd>
           </div>
           <div className='grid grid-cols-2 gap-4'>
             <dt className='text-sm md:text-base font-medium'>Email</dt>
-            <dd className='text-sm md:text-base'>{email || 'N/A'}</dd>
+            <dd className='text-sm md:text-base text-ellipsis overflow-hidden whitespace-nowrap' onClick={() => copyToClipboard(item.value || "N/A")}>{email || 'N/A'}</dd>
           </div>
-        </div>
+        </div> */}
+        <div className="flex-1 space-y-4 w-full flex flex-col justify-center h-full">
+            {[
+              { label: "Name", value: name },
+              { label: "Username", value: username },
+              { label: "Email", value: email },
+            ].map((item, index) => (
+              <div key={index} className="grid grid-cols-2 gap-4">
+                <dt className="text-sm md:text-base font-medium">{item.label}</dt>
+                <dd className="text-sm md:text-base cursor-pointer hover:text-gray-300 transition text-ellipsis overflow-hidden whitespace-nowrap" onClick={() => copyToClipboard(item.label || 'N/A',item.value || "N/A")}
+                >
+                  {item.value || 'N/A'}
+                </dd>
+              </div>
+            ))}
+          </div>
       </div>
   
     </div>
