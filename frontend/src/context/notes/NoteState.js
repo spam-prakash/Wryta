@@ -15,7 +15,7 @@ const NoteState = (props) => {
   const [notes, setNotes] = useState(notesInitial)
 
   // Get all note
-  const getNotes = async () => {
+  const getNotes = useCallback(async () => {
     // API CALL
     const response = await fetch(`${hostLink}/api/notes/fetchallnotes`, {
       method: 'GET',
@@ -30,7 +30,7 @@ const NoteState = (props) => {
     const sortedNotes = json.sort((a, b) => new Date(b.date) - new Date(a.date))
 
     setNotes(sortedNotes)
-  }
+  },[])
 
   // Add a note
   const addNote = async (title, description, tag) => {
