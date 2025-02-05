@@ -4,7 +4,7 @@ import axios from 'axios'
 
 const Login = (props) => {
   const hostLink = process.env.REACT_APP_HOSTLINK
-  console.log('Host Link:', hostLink) // Debugging
+  // console.log('Host Link:', hostLink) // Debugging
   const navigate = useNavigate()
   const [credentials, setCredentials] = useState({
     username: '',
@@ -17,7 +17,7 @@ const Login = (props) => {
     // Check if the token is already in localStorage
     const storedToken = localStorage.getItem('token')
     if (storedToken) {
-      console.log('Token already stored in localStorage:', storedToken)
+      // console.log('Token already stored in localStorage:', storedToken)
       navigate('/') // Redirect to home page
       return // Exit early
     }
@@ -25,13 +25,13 @@ const Login = (props) => {
     // Extract the token from the URL
     const params = new URLSearchParams(location.search)
     const token = params.get('token')
-    console.log('Query String:', location.search) // Debugging
-    console.log('Token:', token) // Debugging
+    // console.log('Query String:', location.search) // Debugging
+    // console.log('Token:', token) // Debugging
 
     if (token) {
       // Set the token in local storage
       localStorage.setItem('token', token)
-      console.log('Token stored in localStorage:', localStorage.getItem('token')) // Debugging
+      // console.log('Token stored in localStorage:', localStorage.getItem('token')) // Debugging
 
       // Clear the token from the URL to prevent duplicate processing
       const cleanUrl = window.location.origin + window.location.pathname
@@ -40,7 +40,7 @@ const Login = (props) => {
       // Redirect to the desired page
       navigate('/')
     } else {
-      console.log('No token found')
+      // console.log('No token found')
     }
   }, [location.search, navigate]) // Only depend on location.search and navigate
 

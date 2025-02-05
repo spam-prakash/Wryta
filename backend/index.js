@@ -22,13 +22,13 @@ connectToMongo()
 const liveLink = process.env.REACT_APP_LIVE_LINK
 const JWT_SECRET = process.env.JWT_SECRET
 const hostLink=process.env.REACT_APP_HOSTLINK
-console.log('Host Link:', hostLink) // Debugging
+// console.log('Host Link:', hostLink) // Debugging
 
 
 const environment = process.env.NODE_ENV || 'development'; // Or however you determine environment
-console.log('Environment:', environment)
+// console.log('Environment:', environment)
 let redirectURL = process.env.REDIRECT_URL || `/auth/google/callback`
-console.log('Redirect URL:', redirectURL)
+// console.log('Redirect URL:', redirectURL)
 
 // let googleClientId;
 if (environment === 'production') {
@@ -118,7 +118,7 @@ app.get('/auth/google', passport.authenticate('google', { scope: ['email', 'prof
 app.get('/auth/google/callback',
   passport.authenticate('google', { session: false }),
   (req, res) => {
-    console.log('User Object from Passport:', req.user) // Debugging
+    // console.log('User Object from Passport:', req.user) // Debugging
 
     if (!req.user || !req.user.token) {
       return res.redirect(`${liveLink}/login?error=token_missing`)
@@ -126,7 +126,7 @@ app.get('/auth/google/callback',
 
     // Send JWT token to frontend
     res.redirect(`${liveLink}/login-success?token=${req.user.token}`) // Change this to frontend URL
-    console.log(`Redirecting to: ${liveLink}/login-success?token=${req.user.token}`)
+    // console.log(`Redirecting to: ${liveLink}/login-success?token=${req.user.token}`)
   }
 )
 

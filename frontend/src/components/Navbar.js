@@ -1,183 +1,135 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { FiUser, FiLogOut, FiHome, FiInfo, FiLogIn, FiUserPlus } from "react-icons/fi"; // Icons
+import defaultUserIcon from '../assets/user.png'
 import notebook from "../assets/notes.png";
 
 const Navbar = (props) => {
-  const [isOpen, setIsOpen] = useState(false);
+  // const {image}=props.user|| defaultUserIcon;
+  const image = props.user?.image || defaultUserIcon;
+  // console.log(defaultUserIcon)
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const profileRef = useRef(null);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
     props.showAlert("Logged Out", "#D4EDDA");
+    setIsProfileOpen(false);
   };
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
+  const toggleProfileMenu = () => {
+    setIsProfileOpen(!isProfileOpen);
   };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const isLoggedIn = !!localStorage.getItem("token");
+  // const userImgURL = "/path-to-user-image.jpg"; // Replace with actual image URL
 
   return (
     <nav className="z-30 flex bg-black py-3 justify-between fixed w-full items-center px-4 md:px-8">
       {/* Logo */}
       <div className="flex gap-3 items-center">
         <Link to="/">
-          <img className="size-11 cursor-pointer" src={notebook} alt="" />
+          <img className="md:size-11 size-7 cursor-pointer" src={notebook} alt="Logo" />
         </Link>
         <Link to="/">
-          <span className="text-3xl font-bold font-serif cursor-pointer text-white">
+          <span className="md:text-3xl text-xl font-bold font-serif cursor-pointer text-white">
             iNote<span className="text-[#FDC116]">Book</span>
           </span>
         </Link>
       </div>
 
-      {/* Desktop Menu */}
-      <div className="hidden md:flex gap-3 items-center">
+      {/* Navigation Buttons */}
+      <div className="flex gap-3 items-center">
         {isLoggedIn && location.pathname !== "/" && (
           <Link
             to="/"
-            className="bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md"
+            className="text-white flex items-center lg:gap-2 lg:px-3 gap-2 py-1 rounded-md hover:text-sky-400 transition-all duration-300"
           >
-            Home
+            <FiHome size={22} />
+            <span className="hidden md:inline font-bold">Home</span>
           </Link>
         )}
         {location.pathname !== "/about" && (
           <Link
             to="/about"
-            className="bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md"
+            className="text-white flex items-center lg:gap-2 lg:px-3 gap-2 py-1 rounded-md hover:text-sky-400 transition-all duration-300"
           >
-            About
+            <FiInfo size={22} />
+            <span className="hidden md:inline font-bold">About</span>
           </Link>
         )}
+
         {!isLoggedIn ? (
           <>
             {location.pathname !== "/login" && (
               <Link
-                className="bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md"
                 to="/login"
+                className="text-white flex items-center lg:gap-2 lg:px-3 gap-2 py-1 rounded-md hover:text-sky-400 transition-all duration-300"
               >
-                Login
+                <FiLogIn size={22} />
+                <span className="hidden md:inline font-bold">Login</span>
               </Link>
             )}
             {location.pathname !== "/signup" && (
               <Link
-                className="bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md"
                 to="/signup"
+                className="text-white flex items-center gap-2 px-3 py-1 rounded-md hover:text-sky-400 transition-all duration-300"
               >
-                Signup
+                <FiUserPlus size={22} />
+                <span className="hidden md:inline font-bold">Signup</span>
               </Link>
             )}
           </>
         ) : (
-          <>
-            {location.pathname !== "/profile" && (
-              <Link
-                className="bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md"
-                to="/profile"
-              >
-                Profile
-              </Link>
+          <div ref={profileRef} className="relative">
+            {/* Profile Icon */}
+            <img
+              src={image}
+              alt="User"
+              className="w-10 h-10 rounded-full cursor-pointer"
+              onClick={toggleProfileMenu}
+            />
+
+            {/* Profile Dropdown */}
+            {isProfileOpen && (
+              <div className="absolute right-0 mt-2 w-36 bg-[#0000005e] rounded-lg shadow-md z-50">
+                <Link
+                  to="/profile"
+                  className="flex items-center text-white hover:bg-[#28254a5e] px-4 py-2"
+                  onClick={() => setIsProfileOpen(false)}
+                >
+                  <FiUser className="mr-2" />
+                  <span className="">My Profile</span>
+                </Link>
+                <button
+                  className="flex items-center w-full text-left text-white hover:bg-[#28254a5e] px-4 py-2"
+                  onClick={handleLogout}
+                >
+                  <FiLogOut className="mr-2" />
+                  <span className="">Log Out</span>
+                </button>
+              </div>
             )}
-            <button
-              className="bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md"
-              onClick={handleLogout}
-            >
-              Logout
-            </button>
-          </>
+          </div>
         )}
       </div>
-
-      {/* Hamburger Icon for Mobile */}
-      <div className="md:hidden flex items-center">
-        <button onClick={toggleMenu} className="text-white focus:outline-none">
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M4 6h16M4 12h16m-7 6h7"
-            />
-          </svg>
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden absolute top-14 left-0 right-0 bg-black z-20">
-          <ul className="flex flex-col items-center gap-3 py-4">
-            {isLoggedIn && location.pathname !== "/" && (
-              <Link
-                to="/"
-                onClick={toggleMenu}
-                className="bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md"
-              >
-                Home
-              </Link>
-            )}
-            {location.pathname !== "/about" && (
-              <Link
-                to="/about"
-                onClick={toggleMenu}
-                className="bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md"
-              >
-                About
-              </Link>
-            )}
-            {!isLoggedIn ? (
-              <>
-                {location.pathname !== "/login" && (
-                  <Link
-                    className="bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md"
-                    to="/login"
-                    onClick={toggleMenu}
-                  >
-                    Login
-                  </Link>
-                )}
-                {location.pathname !== "/signup" && (
-                  <Link
-                    className="bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md"
-                    to="/signup"
-                    onClick={toggleMenu}
-                  >
-                    Signup
-                  </Link>
-                )}
-              </>
-            ) : (
-              <>
-                {location.pathname !== "/profile" && (
-                  <Link
-                    className="bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md"
-                    to="/profile"
-                    onClick={toggleMenu}
-                  >
-                    Profile
-                  </Link>
-                )}
-                <button
-                  className="bg-sky-600 hover:bg-sky-400 transition-all duration-300 py-1 px-3 font-bold text-white text-sm rounded-md"
-                  onClick={() => {
-                    handleLogout();
-                    toggleMenu();
-                  }}
-                >
-                  Logout
-                </button>
-              </>
-            )}
-          </ul>
-        </div>
-      )}
     </nav>
   );
 };

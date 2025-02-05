@@ -59,7 +59,7 @@ function App () {
     <>
       <NoteState>
         <Router>
-          <Navbar showAlert={showAlert} />
+          <Navbar showAlert={showAlert} user={user} />
           <Alert alert={alert} />
           <div className='container'>
             <Routes>
