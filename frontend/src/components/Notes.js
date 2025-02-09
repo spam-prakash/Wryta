@@ -97,7 +97,7 @@ const Notes = (props) => {
             <textarea
               id='edescription'
               name='edescription'
-              className='form-control shadow appearance-none border rounded w-full py-2 px-3 text-black leading-tight focus:outline-1 focus:shadow-outline outline-[#0F1729] overflow-hidden resize-none'
+              className='form-control shadow appearance-none border rounded w-full py-2 px-3 text-black leading-tight focus:outline-1 focus:shadow-outline outline-[#0F1729] overflow-y-auto  resize-none [&::-webkit-scrollbar]:w-2   [&::-webkit-scrollbar-track]:rounded-full  [&::-webkit-scrollbar-track]:bg-gray-100  [&::-webkit-scrollbar-thumb]:rounded-full dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500 [&::-webkit-scrollbar-thumb]:cursor-pointer'
               placeholder='Enter description'
               value={note.edescription}
               onChange={(e) => {
@@ -132,11 +132,10 @@ const Notes = (props) => {
 
             <button
               type='button'
-              className={`bg-[#FFD252] hover:bg-[#FDC116] text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
-              note.etitle.length < 3 || note.edescription.length < 3
-                ? 'disabled cursor-not-allowed opacity-50'
-                : ''
-            }`}
+              className={`bg-[#FFD252] hover:bg-[#FDC116] text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${note.etitle.length < 3 || note.edescription.length < 3
+                  ? 'disabled cursor-not-allowed opacity-50'
+                  : ''
+                }`}
               onClick={handleClick}
               disabled={note.etitle.length < 3 || note.edescription.length < 3}
             >
