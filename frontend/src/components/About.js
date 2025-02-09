@@ -5,8 +5,8 @@ const About = () => {
     <div className="min-h-screen bg-[#0A1122] text-white">
       <div className="container mx-auto px-6 py-24">
         <h1 className="text-3xl font-bold font-serif text-center text-white mb-8">About <span className="text-3xl font-bold font-serif cursor-pointer text-white">
-            iNote<span className="text-[#FDC116]">Book</span>
-          </span></h1>
+          iNote<span className="text-[#FDC116]">Book</span>
+        </span></h1>
         <div className="bg-[#1E3E62] rounded-lg p-8 shadow-lg">
           <p className="text-lg leading-8 mb-6">
             Welcome to iNotebook, a secure and feature-rich platform to manage your notes effortlessly. This web app is powered by React.js, Node.js, Express.js, and MongoDB, showcasing the seamless integration of a modern tech stack. iNotebook is your personal digital notebook, ensuring data security and accessibility wherever you go.
@@ -22,7 +22,7 @@ const About = () => {
               CodeWithHarry
             </a>.
           </p>
-        </div>
+        </div> 
 
         <div className="mt-12 bg-[#1E3E62] rounded-lg p-8 shadow-lg">
           <h2 className="text-2xl font-semibold text-[#FF6500] mb-4">About the Developer</h2>
