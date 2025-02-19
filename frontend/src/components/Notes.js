@@ -28,25 +28,28 @@ const Notes = (props) => {
   }
 
   const determineCategory = (tag) => {
-    if (['Note', 'Task', 'Ideas'].includes(tag)) return 'General'
-    if (['Work', 'Meetings', 'Projects'].includes(tag)) return 'Work'
-    if (['Reading', 'Poem', 'Shayari'].includes(tag)) return 'Personal'
-    if (['Future Plans', 'Goals', 'Budgeting'].includes(tag)) return 'Future'
-    return ''
-  }
+    for (const [category, tags] of Object.entries(categories)) {
+      if (tags.includes(tag)) return category; // Return the correct category
+    }
+    return null; // Return `null` instead of an empty string or "✨ All"
+  };
+
+
+
 
   const updateNote = (currentNote) => {
+    const category = determineCategory(currentNote.tag);
     setNote({
       id: currentNote._id,
       etitle: currentNote.title,
       edescription: currentNote.description,
-      etag: currentNote.tag, // ✅ Ensure Tag is set
-      ecategory: Object.keys(categories).find((category) =>
-        categories[category].includes(currentNote.tag)
-      ) || "✨ All" // ✅ Find category based on the tag
-    })
-    modalRef.current.classList.toggle('hidden')
-  }
+      etag: currentNote.tag,
+      ecategory: category || "📚 General", // ✅ Set a default category instead of "✨ All"
+    });
+
+    modalRef.current.classList.toggle('hidden');
+  };
+
 
 
   const handleClick = () => {
@@ -74,10 +77,10 @@ const Notes = (props) => {
   // Category & Tag Data
   const categories = {
     "✨ All": [],
-    "📂 Work": ["Meetings", "Projects", "Tasks"],
-    "🏡 Personal": ["Ideas", "Reading", "Poem", "Shayari"],
-    "💰 Finance": ["Budgeting", "Future Plans"],
-    "🎯 Productivity": ["Goals", "Notes"],
+    "📚 General": ["General", "Note", "Task", "Ideas"],
+    "📂 Work": ["Meetings", "Projects", "Work"],
+    "🏡 Personal": ["Reading", "Poem", "Shayari", "Thought"],
+    "💰 Future": ["Budgeting", "Future Plans", "Goals"]
   };
 
   return (
@@ -141,16 +144,18 @@ const Notes = (props) => {
               id="ecategory"
               name="ecategory"
               className="shadow border rounded w-full py-2 px-3 text-black focus:outline-none"
-              value={note.ecategory}
+              value={note.ecategory || "📚 General"} // ✅ Set a fallback category
               onChange={onChange}
             >
-              <option value="">Select Category</option>
-              {Object.keys(categories).map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
+              {Object.keys(categories)
+                .filter(category => category !== "✨ All") // ✅ Remove "✨ All" from options
+                .map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
             </select>
+
           </div>
 
           {/* Tag Selector */}
@@ -216,7 +221,7 @@ const Notes = (props) => {
         <h1 className="text-white text-3xl font-semibold mb-2">Your Notes</h1>
 
         {/* Category Selection */}
-        <div className="flex gap-1 mb-3 overflow-x-auto whitespace-nowrap scrollbar-hide px-0">
+        <div className="flex gap-1 md:gap-3 mb-3 overflow-x-auto whitespace-nowrap scrollbar-hide px-0">
           {Object.keys(categories).map((category) => (
             <button
               key={category}
@@ -225,8 +230,8 @@ const Notes = (props) => {
                 setSelectedTag(""); // Reset tag when category changes
               }}
               className={`px-4 py-2 text-sm rounded-full border transition-all duration-300 ${selectedCategory === category
-                  ? "bg-[#FFD252] text-black border-[#FFD252] shadow-md"
-                  : "bg-[#1E293B] text-white border-gray-600 hover:border-white hover:bg-[#374151]"
+                ? "bg-[#FFD252] text-black border-[#FFD252] shadow-md"
+                : "bg-[#1E293B] text-white border-gray-600 hover:border-white hover:bg-[#374151]"
                 }`}
             >
               {category}
@@ -237,7 +242,7 @@ const Notes = (props) => {
 
         {/* Tag Selection (Subcategories) */}
         {categories[selectedCategory].length > 0 && (
-          <div className="flex gap-2 mb-3 overflow-x-auto whitespace-nowrap scrollbar-hide">
+          <div className="flex gap-2  mb-3 overflow-x-auto whitespace-nowrap scrollbar-hide">
             {categories[selectedCategory].map((tag) => (
               <button
                 key={tag}
