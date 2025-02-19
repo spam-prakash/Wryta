@@ -147,6 +147,7 @@ const Notes = (props) => {
               value={note.ecategory || "📚 General"} // ✅ Set a fallback category
               onChange={onChange}
             >
+              <option value="" disabled>Select Category</option>
               {Object.keys(categories)
                 .filter(category => category !== "✨ All") // ✅ Remove "✨ All" from options
                 .map((category) => (
