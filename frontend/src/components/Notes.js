@@ -85,6 +85,7 @@ const Notes = (props) => {
 
   return (
     <>
+    {/* <a href="https://freeimage.host/i/39S0mlV"><img src="https://iili.io/39S0mlV.md.jpg" alt="39S0mlV.md.jpg" border="0"/></a> */}
       <Addnote showAlert={props.showAlert} />
 
 
@@ -222,40 +223,46 @@ const Notes = (props) => {
         <h1 className="text-white text-3xl font-semibold mb-2">Your Notes</h1>
 
         {/* Category Selection */}
-        <div className="flex gap-1 md:gap-3 mb-3 overflow-x-auto whitespace-nowrap scrollbar-hide px-0">
-          {Object.keys(categories).map((category) => (
-            <button
-              key={category}
-              onClick={() => {
-                setSelectedCategory(category);
-                setSelectedTag(""); // Reset tag when category changes
-              }}
-              className={`px-4 py-2 text-sm rounded-full border transition-all duration-300 ${selectedCategory === category
-                ? "bg-[#FFD252] text-black border-[#FFD252] shadow-md"
-                : "bg-[#1E293B] text-white border-gray-600 hover:border-white hover:bg-[#374151]"
-                }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
+        {notes.length > 1 && (
+          <div className="flex gap-2 mb-3 overflow-x-auto whitespace-nowrap scrollbar-hide px-0">
+            {Object.keys(categories)
+              .filter(category => category === "✨ All" || notes.some(note => categories[category].includes(note.tag)))
+              .map((category) => (
+                <button
+                  key={category}
+                  onClick={() => {
+                    setSelectedCategory(category);
+                    setSelectedTag(""); // Reset tag when category changes
+                  }}
+                  className={`px-4 py-2 text-sm rounded-full border transition-all duration-300 ${selectedCategory === category
+                    ? "bg-[#FFD252] text-black border-[#FFD252] shadow-md"
+                    : "bg-[#1E293B] text-white border-gray-600 hover:border-white hover:bg-[#374151]"
+                    }`}
+                >
+                  {category}
+                </button>
+              ))}
+          </div>
+        )}
 
 
         {/* Tag Selection (Subcategories) */}
-        {categories[selectedCategory].length > 0 && (
-          <div className="flex gap-2  mb-3 overflow-x-auto whitespace-nowrap scrollbar-hide">
-            {categories[selectedCategory].map((tag) => (
-              <button
-                key={tag}
-                onClick={() => setSelectedTag(tag)}
-                className={`px-3 py-1 text-sm rounded-full border transition-all duration-300 ${selectedTag === tag
-                  ? "bg-[#FFD252] text-black border-[#FFD252] shadow-md"
-                  : "bg-[#1E293B] text-white border-gray-600 hover:border-white hover:bg-[#374151]"
-                  }`}
-              >
-                {tag}
-              </button>
-            ))}
+        {categories[selectedCategory]?.length > 1 && notes.some(note => categories[selectedCategory].includes(note.tag)) && (
+          <div className="flex gap-2 mb-3 overflow-x-auto whitespace-nowrap scrollbar-hide">
+            {categories[selectedCategory]
+              .filter(tag => notes.some(note => note.tag === tag))
+              .map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => setSelectedTag(tag)}
+                  className={`px-3 py-1 text-sm rounded-full border transition-all duration-300 ${selectedTag === tag
+                    ? "bg-[#FFD252] text-black border-[#FFD252] shadow-md"
+                    : "bg-[#1E293B] text-white border-gray-600 hover:border-white hover:bg-[#374151]"
+                    }`}
+                >
+                  {tag}
+                </button>
+              ))}
           </div>
         )}
       </div>

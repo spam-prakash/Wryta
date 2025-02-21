@@ -4,7 +4,7 @@ import Notes from "./Notes";
 const Home = (props) => {
   return (
     <>
-      <div className="mx-auto p-4">
+      <div className="mx-auto py-4 sm:px-2 lg:px-4">
 
       <Notes showAlert={props.showAlert}/>
       </div>

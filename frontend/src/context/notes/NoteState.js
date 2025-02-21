@@ -16,21 +16,32 @@ const NoteState = (props) => {
 
   // Get all note
   const getNotes = useCallback(async () => {
-    // API CALL
-    const response = await fetch(`${hostLink}/api/notes/fetchallnotes`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'auth-token': localStorage.getItem('token')
+    try {
+      // API CALL
+      const response = await fetch(`${hostLink}/api/notes/fetchallnotes`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'auth-token': localStorage.getItem('token')
+        }
+      })
+      const json = await response.json()
+
+      // Log the response to debug
+      console.log('API Response:', json)
+
+      // Check if the response is an array before sorting
+      if (Array.isArray(json)) {
+        // Sort notes by date in descending order
+        const sortedNotes = json.sort((a, b) => new Date(b.date) - new Date(a.date))
+        setNotes(sortedNotes)
+      } else {
+        console.error('Expected an array but got:', json)
       }
-    })
-    const json = await response.json()
-
-    // Sort notes by date in descending order
-    const sortedNotes = json.sort((a, b) => new Date(b.date) - new Date(a.date))
-
-    setNotes(sortedNotes)
-  },[])
+    } catch (error) {
+      console.error('Failed to fetch notes:', error)
+    }
+  }, [])
 
   // Add a note
   const addNote = async (title, description, tag) => {
