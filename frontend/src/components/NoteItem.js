@@ -24,7 +24,7 @@ const NoteItem = (props) => {
         <div className='flex justify-between'>
           <h5 className='mb-2 text-2xl font-bold tracking-tight text-white'>{note.title}</h5>
           <div className='flex gap-3'>
-            <img onClick={() => { deleteNote(note._id); props.showAlert('Note deleted', '#D4EDDA') }} src={deleteIcon} className='size-6  cursor-pointer' alt='Delete' />
+            <img onClick={() => { deleteNote(note._id); props.showAlert('Note deleted !', '#D4EDDA') }} src={deleteIcon} className='size-6  cursor-pointer' alt='Delete' />
             <img onClick={() => { updateNote(note) }} src={editIcon} className='size-6  cursor-pointer' alt='Edit' />
           </div>
         </div>

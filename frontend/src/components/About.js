@@ -38,7 +38,7 @@ const About = () => {
           </p>
           <div className="flex flex-wrap gap-4 items-center justify-center">
             <a
-              href="https://prakashkumar1167.vercel.app/"
+              href="https://theprakash.tech/"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-[#FF6500] hover:bg-opacity-90 text-white px-6 py-2 rounded-md transition-all"
@@ -46,7 +46,7 @@ const About = () => {
               Portfolio
             </a>
             <a
-              href="https://x.com/_akash_raushan"
+              href="https://x.com/spam_prakash"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-sky-600 hover:bg-opacity-90 text-white px-6 py-2 rounded-md transition-all"
@@ -54,7 +54,7 @@ const About = () => {
               X (Twitter)
             </a>
             <a
-              href="https://www.linkedin.com/in/prakashkumar1167/"
+              href="https://www.linkedin.com/in/spam-prakash/"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-blue-700 hover:bg-opacity-90 text-white px-6 py-2 rounded-md transition-all"
@@ -62,7 +62,7 @@ const About = () => {
               LinkedIn
             </a>
             <a
-              href="https://github.com/akash-raushan"
+              href="https://github.com/spam-prakash"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-gray-800 hover:bg-opacity-90 text-white px-6 py-2 rounded-md transition-all"

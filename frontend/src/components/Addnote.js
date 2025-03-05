@@ -22,6 +22,7 @@ const Addnote = (props) => {
     e.preventDefault();
     addNote(note.title, note.description, note.tag);
     setNote({ title: '', description: '', tag: '' });
+    props.showAlert('Successfully added !', '#D4EDDA')
     setSelectedCategory('');
 
     if (descriptionRef.current) {

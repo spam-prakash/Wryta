@@ -19,7 +19,7 @@ const Profile = (props) => {
     navigator.clipboard.writeText(text);
     setCopiedText(text); // Set state to show copied text
     setCopiedElement(element)
-    props.showAlert(`${element} copied successfully`, '#D4EDDA')
+    props.showAlert(`${element} Successfully copied !`, '#D4EDDA')
     setTimeout(() => setCopiedText(""), 1500); // Clear message after 1.5 sec
   };
 

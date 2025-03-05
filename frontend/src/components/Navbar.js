@@ -16,7 +16,7 @@ const Navbar = (props) => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
-    props.showAlert("Logged Out", "#D4EDDA");
+    props.showAlert("Logged Out !", "#D4EDDA");
     setIsProfileOpen(false);
   };
 

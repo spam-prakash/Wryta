@@ -71,9 +71,9 @@ const Login = (props) => {
         name: json.name
       })
       navigate('/')
-      props.showAlert('Logged in successfully', '#D4EDDA')
+      props.showAlert('Logged in successfully !', '#D4EDDA')
     } else {
-      props.showAlert('Invalid Credentials', '#F8D7DA')
+      props.showAlert('Invalid Credentials !', '#F8D7DA')
     }
   }
 

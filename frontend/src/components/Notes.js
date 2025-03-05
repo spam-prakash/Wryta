@@ -55,7 +55,7 @@ const Notes = (props) => {
   const handleClick = () => {
     editNote(note.id, note.etitle, note.edescription, note.etag)
     modalRef.current.classList.toggle('hidden')
-    props.showAlert('Note updated successfully', '#D4EDDA')
+    props.showAlert('Note updated successfully !', '#D4EDDA')
   }
 
   const onChange = (e) => {
