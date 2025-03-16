@@ -32,7 +32,11 @@ const NoteItem = (props) => {
           <span className='text-[#FDC116]'># </span>{note.tag}
         </span>
         <p className='mb-0 font-normal text-white whitespace-pre-wrap'>{note.description}</p>
-        <p className='text-xs mt-2 text-slate-500'>{formatDate(note.date)} at {formatTime(note.date)}</p>
+
+        {note.modifiedDate && (
+          <p className='text-xs mt-2 text-slate-500'>Modified: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}</p>
+        )}
+        <p className='text-xs mt-2 text-slate-500'>Created: {formatDate(note.date)} at {formatTime(note.date)}</p>
 
         {/* <div className="gap-3 max-h-0  overflow-hidden flex transition-all duration-500 ease-in-out group-hover:max-h-20 group-hover:opacity-100"> */}
       </div>

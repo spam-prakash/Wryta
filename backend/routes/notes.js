@@ -45,28 +45,33 @@ router.put('/updatenote/:id', [
   const { title, description, tag } = req.body
 
   try {
-    // Create a new note object with the current date
+    // Create a new Note object
     const newNote = {
       title,
       description,
       tag,
-      date: Date.now() // Update the date to the current time
-    }
+      modifiedDate: Date.now() // Update the date to the current date and time
+    };
 
-    // Find the note to update
-    let note = await Note.findById(req.params.id)
+    // Find the note to be updated
+    let note = await Note.findById(req.params.id);
     if (!note) {
-      return res.status(404).send('Not Found')
+      return res.status(404).send('Not Found');
     }
 
-    // Ensure the user owns the note
+    // Allow update only if user owns this note
     if (note.user.toString() !== req.user.id) {
-      return res.status(401).send('Not Allowed')
+      return res.status(401).send('Not Allowed');
     }
 
-    // Update the note in the database
-    note = await Note.findByIdAndUpdate(req.params.id, { $set: newNote }, { new: true })
-    res.json(note)
+    // Update the note
+    note = await Note.findByIdAndUpdate(
+      req.params.id,
+      { $set: newNote },
+      { new: true }
+    );
+
+    res.json(note);
   } catch (error) {
     console.error(error.message)
     res.status(500).send('Internal Server Error')
