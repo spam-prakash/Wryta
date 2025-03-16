@@ -21,15 +21,15 @@ const NoteModal = ({ note, onClose }) => {
 
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside)
-    document.body.style.overflow = 'hidden' // Disable background scrolling
+    // document.body.style.overflow = 'hidden' // Disable background scrolling
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
-      document.body.style.overflow = 'auto' // Enable background scrolling
+      // document.body.style.overflow = 'auto' // Enable background scrolling
     }
   }, [])
 
   return (
-    <div className='fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center my-20 mx-4 md:my-0 md:mt-16 md:mx-0'>
+    <div className='fixed inset-0 bg-opacity-50 flex justify-center items-center my-20 mx-4 md:my-0 md:mt-16 md:mx-0'>
       <div ref={modalRef} className='bg-[#0a1122] p-6 rounded-lg shadow-2xl w-full max-w-lg max-h-full overflow-y-auto'>
         <div className='flex justify-between items-center mb-4'>
           <h5 className='text-2xl font-bold text-white'>{note.title}</h5>
