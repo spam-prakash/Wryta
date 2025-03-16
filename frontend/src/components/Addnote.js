@@ -73,7 +73,7 @@ const Addnote = (props) => {
           <textarea
             id='description'
             name='description'
-            className='form-control shadow appearance-none border rounded w-full py-2 px-3 text-black leading-tight focus:outline-1 focus:shadow-outline outline-[#0F1729] overflow-hidden resize-none'
+            className='form-control shadow appearance-none border rounded w-full py-2 px-3 text-black leading-tight focus:outline-1 focus:shadow-outline outline-[#0F1729] overflow-y-auto resize-none'
             placeholder='Enter description'
             value={note.description}
             onChange={onChange}
