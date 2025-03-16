@@ -1,20 +1,15 @@
-// import { useState } from "react";
-// import { json } from "react-router-dom";
-// import Alert from "../../components/Alert";
 import { json } from 'react-router-dom'
 import NoteContext from './NoteContext'
 import { useState, useCallback } from 'react'
 
-// const hostLink = 'http://localhost:8000'
-// const hostLink = 'https://inotebook-backend-opal.vercel.app'
 const hostLink = process.env.REACT_APP_HOSTLINK
-// console.log(hostLink)
+
 const NoteState = (props) => {
   const notesInitial = []
 
   const [notes, setNotes] = useState(notesInitial)
 
-  // Get all note
+  // Get all notes
   const getNotes = useCallback(async () => {
     try {
       // API CALL
@@ -32,8 +27,12 @@ const NoteState = (props) => {
 
       // Check if the response is an array before sorting
       if (Array.isArray(json)) {
-        // Sort notes by date in descending order
-        const sortedNotes = json.sort((a, b) => new Date(b.date) - new Date(a.date))
+        // Sort notes by modifiedDate or date in descending order
+        const sortedNotes = json.sort((a, b) => {
+          const dateA = new Date(a.modifiedDate || a.date)
+          const dateB = new Date(b.modifiedDate || b.date)
+          return dateB - dateA
+        })
         setNotes(sortedNotes)
       } else {
         console.error('Expected an array but got:', json)
@@ -67,8 +66,7 @@ const NoteState = (props) => {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        'auth-token':
-          localStorage.getItem('token')
+        'auth-token': localStorage.getItem('token')
       }
     })
     // const json = response.json();

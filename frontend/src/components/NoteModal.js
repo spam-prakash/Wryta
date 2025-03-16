@@ -29,8 +29,8 @@ const NoteModal = ({ note, onClose }) => {
   }, [])
 
   return (
-    <div className='fixed inset-0 bg-opacity-50 flex justify-center items-center my-20 mx-4 md:my-0 md:mt-16 md:mx-0'>
-      <div ref={modalRef} className='bg-[#0a1122] p-6 rounded-lg shadow-2xl w-full max-w-lg max-h-full overflow-y-auto'>
+    <div className='fixed inset-0 bg-opacity-50 backdrop-blur-sm flex justify-center items-center my-20 mx-4 md:my-0 md:mt-16 md:mx-0'>
+      <div ref={modalRef} className='bg-[#0a1122] p-6 rounded-lg shadow-2xl w-full max-w-lg max-h-full overflow-y-auto relative'>
         <div className='flex justify-between items-center mb-4'>
           <h5 className='text-2xl font-bold text-white'>{note.title}</h5>
           <button onClick={onClose} className='text-white text-xl'>&times;</button>
