@@ -23,7 +23,7 @@ const NoteState = (props) => {
       const json = await response.json()
 
       // Log the response to debug
-      console.log('API Response:', json)
+      // console.log('API Response:', json)
 
       // Check if the response is an array before sorting
       if (Array.isArray(json)) {
