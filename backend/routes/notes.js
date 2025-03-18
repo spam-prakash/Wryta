@@ -97,4 +97,40 @@ router.delete('/deletenote/:id', fetchuser, async (req, res) => {
     res.status(500).send('Internal Server Error')
   }
 })
+
+
+
+
+
+// ROUTE 5: Update Note Visibility (PUT /api/notes/visibility/:id)
+router.put('/visibility/:id', fetchuser, async (req, res) => {
+  try {
+      const { isPublic } = req.body;
+      const noteId = req.params.id;
+
+      // Ensure the note exists and belongs to the user
+      let note = await Note.findById(noteId);
+      if (!note) {
+          return res.status(404).json({ error: 'Note not found' });
+      }
+      if (note.user.toString() !== req.user.id) {
+          return res.status(401).json({ error: 'Not authorized' });
+      }
+
+      // Update only the isPublic field without modifying modifiedDate
+      await Note.findByIdAndUpdate(
+          noteId,
+          { $set: { isPublic } }, // Only update isPublic
+          { new: true, timestamps: false } // Prevents modifiedDate from updating
+      );
+
+      res.json({ success: true, message: 'Visibility updated successfully' });
+  } catch (error) {
+      console.error(error.message);
+      res.status(500).send('Internal Server Error');
+  }
+});
+
+
+
 module.exports = router

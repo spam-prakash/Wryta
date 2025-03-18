@@ -1,5 +1,5 @@
 import './App.css'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route,useParams } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Home from './components/Home'
 import About from './components/About'
@@ -70,7 +70,7 @@ function App () {
               <Route exact path='/signup' key='/signup' element={<Signup showAlert={showAlert} />} />
               <Route exact path='/profile' key='/profile' element={<Profile showAlert={showAlert} user={user} />} />
               <Route path='*' key='/' element={<Home />} />
-              <Route path="/:username" element={<OthersProfile />} />
+              <Route path="/:username" element={<OtherProfileWrapper />} />
               <Route path='/login-success' element={<Login />} />
             </Routes>
           </div>
@@ -79,5 +79,16 @@ function App () {
     </>
   )
 }
+
+const OtherProfileWrapper = () => {
+  const { username } = useParams();
+  const reservedRoutes = ['dashboard', 'settings', 'profile']; // Add existing routes here
+
+  if (reservedRoutes.includes(username)) {
+      return <h1 className="text-center text-red-500 mt-20">Page not found</h1>;
+  }
+
+  return <OthersProfile />;
+};
 
 export default App

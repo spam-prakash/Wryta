@@ -1,5 +1,6 @@
 const express = require('express')
 const User = require('../models/User')
+const Note = require("../models/Note"); // Ensure the correct path
 const router = express.Router()
 const { body, validationResult } = require('express-validator')
 const bcrypt = require('bcryptjs')
@@ -125,27 +126,51 @@ router.post('/getuser', fetchuser, async (req, res) => {
   }
 })
 
-// ROUTE 5: GET OTHER USER DETAIL 
+// ROUTE 4: GET OTHER USER DETAIL 
 router.get("/:username", async (req, res) => {
   try {
-    // console.log("Fetching user:", req.params.username); // Debugging log
+    const { username } = req.params;
 
-    const user = await User.findOne({ username: req.params.username });
+    // Find user by username
+    const user = await User.findOne({ username });
 
     if (!user) {
-      console.log("User not found:", req.params.username);
+      console.log(`User not found: ${username}`);
       return res.status(404).json({ error: "User not found" });
     }
 
-    res.json({
+    // Fetch notes of the user
+    const notes = await Note.find({ user: user._id });
+
+    // Fetch only public notes
+    const publicNotes = notes.filter((note) => note.isPublic);
+
+    // Prepare user data response
+    const userData = {
       name: user.name,
       email: user.email,
-      profilePic: user.profilePic && user.profilePic.trim() !== "" ? user.profilePic : null, // Ensures an empty string is converted to null
-    });
+      profilePic: user.image?.trim() ? user.image : null,
+      totalNotes: notes.length,
+      publicNotesCount: publicNotes.length,
+      publicNotes: publicNotes.map((note) => ({
+        _id: note._id,
+        title: note.title,
+        description: note.description,
+        createdAt: note.date,
+        modifiedAt: note.modifiedDate, // ✅ Include modifiedAt
+      })),
+    };
+    console.log("User data:", userData);
+
+    res.json(userData);
   } catch (error) {
     console.error("Error fetching user:", error);
-    res.status(500).json({ error: "Server Error" });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+
+
+
 
 module.exports = router

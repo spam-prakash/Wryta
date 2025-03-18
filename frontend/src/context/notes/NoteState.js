@@ -101,8 +101,34 @@ const NoteState = (props) => {
     setNotes(newNotes)
   }
 
+  // Function to update visibility
+  const updateVisibility = async (noteId, isPublic) => {
+    try {
+      const response = await fetch(`${hostLink}/api/notes/visibility/${noteId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "auth-token": localStorage.getItem("token"),
+        },
+        body: JSON.stringify({ isPublic }),
+      });
+  
+      const json = await response.json();
+      if (json.success) {
+        setNotes((prevNotes) =>
+          prevNotes.map((note) =>
+            note._id === noteId ? { ...note, isPublic } : note
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error updating visibility:", error);
+    }
+  };
+  
+
   return (
-    <NoteContext.Provider value={{ notes, addNote, editNote, deleteNote, getNotes }}>
+    <NoteContext.Provider value={{ notes, addNote, editNote, deleteNote, getNotes,updateVisibility  }}>
       {props.children}
     </NoteContext.Provider>
   )

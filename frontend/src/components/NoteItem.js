@@ -18,9 +18,10 @@ const NoteItem = (props) => {
   const context = useContext(noteContext)
   const { note } = props
   const { updateNote } = props
-  const { deleteNote } = context
+  const { deleteNote, updateVisibility } = context // Add updateVisibility from context
 
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isVisibilityModalOpen, setIsVisibilityModalOpen] = useState(false) // Visibility modal state
   const [isOverflowing, setIsOverflowing] = useState(false)
   const contentRef = useRef(null)
 
@@ -28,11 +29,20 @@ const NoteItem = (props) => {
     setIsModalOpen(!isModalOpen)
   }
 
+  const toggleVisibilityModal = () => {
+    setIsVisibilityModalOpen(!isVisibilityModalOpen)
+  }
+
   useEffect(() => {
     if (contentRef.current) {
       setIsOverflowing(contentRef.current.scrollHeight > contentRef.current.clientHeight)
     }
   }, [note.description])
+
+  const handleVisibilityChange = async (newVisibility) => {
+    await updateVisibility(note._id, newVisibility)
+    setIsVisibilityModalOpen(false) // Close modal after update
+  }
 
   return (
     <>
@@ -57,11 +67,49 @@ const NoteItem = (props) => {
               <p className='text-xs mt-2 text-slate-500'>Modified: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}</p>
             )}
             <p className='text-xs mt-2 text-slate-500'>Created: {formatDate(note.date)} at {formatTime(note.date)}</p>
+
+            {/* Visibility Toggle Button */}
+            <button
+              onClick={toggleVisibilityModal}
+              className={`text-xs px-2 py-1 mt-2 rounded ${
+                note.isPublic ? 'bg-green-600' : 'bg-red-600'
+              }`}
+            >
+              {note.isPublic ? 'Public' : 'Private'}
+            </button>
           </div>
         </div>
       </div>
 
+      {/* Read More Modal */}
       {isModalOpen && <NoteModal note={note} onClose={toggleModal} />}
+
+      {/* Visibility Modal */}
+      {isVisibilityModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-[#0a1122] p-5 rounded-lg shadow-lg">
+            <h3 className="text-white text-lg mb-3">Change Visibility</h3>
+            <button
+              className="bg-green-600 px-3 py-1 rounded mr-2"
+              onClick={() => handleVisibilityChange(true)}
+            >
+              Public
+            </button>
+            <button
+              className="bg-red-600 px-3 py-1 rounded"
+              onClick={() => handleVisibilityChange(false)}
+            >
+              Private
+            </button>
+            <button
+              className="mt-3 block text-white underline"
+              onClick={toggleVisibilityModal}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </>
   )
 }

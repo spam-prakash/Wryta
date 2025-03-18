@@ -22,9 +22,13 @@ const NotesSchema = new Schema({
     type: Date,
     default: Date.now
   },
-  modifiedDate:{
+  modifiedDate: {
     type: Date
-  }
+  }, 
+  isPublic: { 
+    type: Boolean, 
+    default: false 
+  }, // Visibility Field
 })
 
 module.exports = mongoose.model('notes', NotesSchema)

@@ -1,9 +1,10 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import defaultUser from "../assets/user.png"; // Importing the default image
+import defaultUser from "../assets/user.png"; // Default user image
+import OtherProfileNoteItem from "./OtherProfileNoteItem";
 
 const OthersProfile = () => {
-  const { username } = useParams(); // Extract username from URL
+  const { username } = useParams();
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
   const hostLink = process.env.REACT_APP_HOSTLINK;
@@ -11,20 +12,15 @@ const OthersProfile = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        console.log("Fetching user from:", `${hostLink}/api/auth/${username}`);
-
         const response = await fetch(`${hostLink}/api/auth/${username}`);
         const data = await response.json();
 
         if (response.ok) {
-          console.log("User found:", data);
           setUser(data);
         } else {
-          console.log("User not found:", data.error);
           setError("User not found");
         }
       } catch (error) {
-        console.error("Fetch error:", error);
         setError("An error occurred while fetching the user profile.");
       }
     };
@@ -37,51 +33,64 @@ const OthersProfile = () => {
   if (error) return <p className="text-red-500">{error}</p>;
   if (!user) return <p>Loading...</p>;
 
-  const profilePic = user.profilePic || defaultUser; // ✅ Use imported default image
-  console.log(profilePic)
+  const profilePic = user.profilePic || defaultUser;
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return isNaN(date) ? "Invalid Date" : date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4 md:px-6 text-white">
-      <div className="bg-[#0A1122] bg-opacity-80 rounded-lg shadow-lg py-6 px-6 sm:px-10 w-full max-w-lg sm:max-w-xl md:max-w-2xl lg:max-w-3xl">
-      
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h3 className="text-2xl md:text-3xl font-bold text-white">Profile Details</h3>
-          <p className="mt-1 text-sm md:text-base text-gray-400">Details and information about this user.</p>
-          <hr className="mt-4 border-gray-600" />
-        </div>
-
-        {/* Profile Section */}
-        <div className="lg:flex lg:items-center lg:space-x-6">
-          <div className="flex-shrink-0 flex items-center justify-center pb-8 lg:pb-0">
-            <a href={profilePic} target="_blank" rel="noopener noreferrer">
-              <img
-                className="size-40 lg:size-40 md:size-40 rounded-full cursor-pointer"
-                src={profilePic}
-                alt="Profile"
-              />
-            </a>
+    <>
+      <div className="flex flex-col items-center  text-white px-4">
+        {/* ✅ Profile Section */}
+        <div className="flex flex-col md:flex-row items-center w-full max-w-2xl py-6 mt-20">
+          <img
+            className="size-40 rounded-full border-4 border-gray-400"
+            src={profilePic}
+            alt="Profile"
+          />
+          <div className="mx-6">
+            <h2 className="text-2xl font-semibold mt-2">{user.name}</h2>
+            <p className="text-gray-400">@{username}</p>
+            <p className="text-gray-300 text-sm">{user.email}</p>
           </div>
 
-          {/* User Details */}
-          <div className="flex-1 space-y-4 w-full flex flex-col justify-center h-full">
-            {[
-              { label: "Name", value: user.name },
-              { label: "Username", value: username },
-              { label: "Email", value: user.email },
-            ].map((item, index) => (
-              <div key={index} className="grid grid-cols-2 gap-4">
-                <dt className="text-sm md:text-base font-medium">{item.label}</dt>
-                <dd className="text-sm md:text-base cursor-pointer hover:text-gray-300 transition text-ellipsis overflow-hidden whitespace-nowrap">
-                  {item.value || "N/A"}
-                </dd>
-              </div>
-            ))}
+          <div className="mt-4 flex space-x-6 text-center">
+            <div>
+              <p className="text-xl font-bold">{user.totalNotes}</p>
+              <p className="text-gray-400 text-sm">Total Notes</p>
+            </div>
+            <div>
+              <p className="text-xl font-bold">{user.publicNotesCount}</p>
+              <p className="text-gray-400 text-sm">Public Notes</p>
+            </div>
           </div>
         </div>
-
       </div>
-    </div>
+
+      {/* ✅ Public Notes Section */}
+      <div className="w-full flex flex-wrap text-white gap-3 mt-4">
+        {user.publicNotes.length > 0 ? (
+          user.publicNotes.map((note) => (
+            <OtherProfileNoteItem
+              key={note._id}
+              title={note.title}
+              description={note.description}
+              createdAt={formatDate(note.createdAt)}
+              modifiedAt={formatDate(note.modifiedAt)}
+            />
+          ))
+        ) : (
+          <p className="text-center text-gray-400">No public notes available.</p>
+        )}
+      </div>
+    </>
   );
 };
 
