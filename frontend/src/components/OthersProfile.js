@@ -30,6 +30,14 @@ const OthersProfile = () => {
     }
   }, [username]);
 
+  useEffect(() => {
+    // Set the document title based on the user data
+    if (user) {
+      document.title = `${username}  || iNoteBook`;
+    }
+  }, [user]);
+
+
   if (error) return <p className="text-red-500">{error}</p>;
   if (!user) return <p>Loading...</p>;
 
@@ -82,8 +90,9 @@ const OthersProfile = () => {
               key={note._id}
               title={note.title}
               description={note.description}
-              createdAt={formatDate(note.createdAt)}
-              modifiedAt={formatDate(note.modifiedAt)}
+              createdAt={(note.createdAt)}
+              modifiedAt={(note.modifiedAt)}
+              tag={note.tag}
             />
           ))
         ) : (

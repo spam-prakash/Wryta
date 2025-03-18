@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import NoteModal from "./NoteModal";
 
-const OtherProfileNoteItem = ({ title, description, createdAt, modifiedAt }) => {
-  console.log("Props received in OtherProfileNoteItem:", { title, description, createdAt, modifiedAt });
+const OtherProfileNoteItem = ({ title,tag, description, createdAt, modifiedAt }) => {
+  // console.log("Props received in OtherProfileNoteItem:", { title, description,tag,createdAt, modifiedAt });
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -26,6 +26,9 @@ const OtherProfileNoteItem = ({ title, description, createdAt, modifiedAt }) => 
     }
   }, [description]); // ✅ Watch `description` changes
 
+
+
+
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
@@ -36,7 +39,10 @@ const OtherProfileNoteItem = ({ title, description, createdAt, modifiedAt }) => 
         <div className="max-w-[40rem] p-6 bg-[#0a1122] shadow-2xl border-none rounded-lg group h-64 flex flex-col justify-between">
           <div className="flex-grow overflow-hidden" ref={contentRef}>
             <h5 className="mb-2 text-2xl font-bold tracking-tight text-white">{title}</h5>
-            <p className="mb-0 font-normal text-white whitespace-pre-wrap">{description}</p>
+            <span className='text-white cursor-text bg-transparent font-medium rounded-lg text-base mb-0'>
+              <span className='text-[#FDC116]'># </span>{tag}
+            </span>
+            <p className="mb-0 mt-2 font-normal text-white whitespace-pre-wrap">{description}</p>
           </div>
           <div className="mt-2">
             {isOverflowing && (
@@ -58,7 +64,7 @@ const OtherProfileNoteItem = ({ title, description, createdAt, modifiedAt }) => 
 
       {/* Read More Modal */}
       {isModalOpen && (
-        <NoteModal note={{ title, description, createdAt, modifiedAt }} onClose={toggleModal} />
+        <NoteModal note={{ title, description, createdAt, modifiedAt,tag }} onClose={toggleModal} />
       )}
     </>
   );

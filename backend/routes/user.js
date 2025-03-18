@@ -37,6 +37,7 @@ router.get("/:username", async (req, res) => {
             publicNotes: publicNotes.map((note) => ({
                 _id: note._id,
                 title: note.title,
+                tag: note.tag,
                 description: note.description,
                 createdAt: note.date,
                 modifiedAt: note.modifiedDate, // ✅ Include modifiedAt

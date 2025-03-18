@@ -1,5 +1,7 @@
 import React from 'react';
 
+document.title = 'About | iNoteBook';
+
 const About = () => {
   return (
     <div className="min-h-screen bg-[#0A1122] text-white">

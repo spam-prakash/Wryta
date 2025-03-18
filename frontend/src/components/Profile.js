@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+
 const Profile = (props) => {
   const { name, username, email, image } = props.user || {}
   // console.log(image)
@@ -12,6 +13,13 @@ const Profile = (props) => {
       navigate('/login')
     }
   }, [navigate])
+
+  useEffect(() => {
+    // Set the document title based on the user data
+    // if () {
+      document.title = `${username} || InoteBook`;
+    // }
+  }, []);
 
   const [copiedText, setCopiedText] = useState("");
   const [copiedElement, setCopiedElement]=useState("")

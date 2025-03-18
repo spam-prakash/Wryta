@@ -1,6 +1,7 @@
 import React from "react";
 import Notes from "./Notes";
 
+document.title = 'iNotebook - Yours notes secured in the cloud'
 const Home = (props) => {
   return (
     <>
