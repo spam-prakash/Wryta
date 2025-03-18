@@ -37,7 +37,6 @@ const OthersProfile = () => {
     }
   }, [user]);
 
-
   if (error) return <p className="text-red-500">{error}</p>;
   if (!user) return <p>Loading...</p>;
 
@@ -53,9 +52,16 @@ const OthersProfile = () => {
     });
   };
 
+  // Sort the notes by modified date in descending order
+   const sortedNotes = user.publicNotes.sort((a, b) => {
+          const dateA = new Date(a.modifiedDate || a.date)
+          const dateB = new Date(b.modifiedDate || b.date)
+          return dateB - dateA
+        })
+
   return (
     <>
-      <div className="flex flex-col items-center  text-white px-4">
+      <div className="flex flex-col items-center text-white px-4">
         {/* ✅ Profile Section */}
         <div className="flex flex-col md:flex-row items-center w-full max-w-2xl py-6 mt-20">
           <img
@@ -84,14 +90,14 @@ const OthersProfile = () => {
 
       {/* ✅ Public Notes Section */}
       <div className="w-full flex flex-wrap text-white gap-3 mt-4">
-        {user.publicNotes.length > 0 ? (
-          user.publicNotes.map((note) => (
+        {sortedNotes.length > 0 ? (
+          sortedNotes.map((note) => (
             <OtherProfileNoteItem
               key={note._id}
               title={note.title}
               description={note.description}
-              date={(note.date)}
-              modifiedDate={(note.modifiedDate)}
+              date={note.date}
+              modifiedDate={note.modifiedDate}
               tag={note.tag}
             />
           ))
