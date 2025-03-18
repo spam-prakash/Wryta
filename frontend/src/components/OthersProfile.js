@@ -12,7 +12,7 @@ const OthersProfile = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
-        const response = await fetch(`${hostLink}/api/auth/${username}`);
+        const response = await fetch(`${hostLink}/api/user/${username}`);
         const data = await response.json();
 
         if (response.ok) {

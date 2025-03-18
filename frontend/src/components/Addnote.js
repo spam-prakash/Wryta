@@ -3,47 +3,53 @@ import noteContext from '../context/notes/NoteContext';
 
 const Addnote = (props) => {
   const context = useContext(noteContext);
-  // eslint-disable-next-line
   const { addNote } = context;
 
-  const [note, setNote] = useState({ title: '', description: '', tag: '' });
+  const [note, setNote] = useState({ title: '', description: '', tag: '', isPublic: false });
   const [selectedCategory, setSelectedCategory] = useState('');
   const descriptionRef = useRef(null);
 
-  // Category and Tag Mapping
   const categories = {
-    "General Productivity": ["General","Note", "Task", "Ideas"],
+    "General Productivity": ["General", "Note", "Task", "Ideas"],
     "Work & Study": ["Work", "Meetings", "Projects"],
-    "Personal & Creative": ["Reading","Thought", "Poem", "Shayari"],
+    "Personal & Creative": ["Reading", "Thought", "Poem", "Shayari"],
     "Future & Planning": ["Future Plans", "Goals", "Budgeting"],
   };
 
-  const handleClick = (e) => {
-    e.preventDefault();
-    addNote(note.title, note.description, note.tag);
-    setNote({ title: '', description: '', tag: '' });
-    props.showAlert('Successfully added !', '#D4EDDA')
-    setSelectedCategory('');
-
-    if (descriptionRef.current) {
-      descriptionRef.current.style.height = 'auto';
-    }
-  };
-
   const onChange = (e) => {
-    setNote({ ...note, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === 'isPublic') {
+      setNote({ ...note, [name]: value === 'true' }); // Convert string to boolean
+    } else {
+      setNote({ ...note, [name]: value });
+    }
   };
 
   const handleCategoryChange = (e) => {
     const selected = e.target.value;
     setSelectedCategory(selected);
-    setNote({ ...note, tag: '' }); // Reset tag when category changes
+    setNote({ ...note, tag: '' });
   };
 
   const autoResize = (e) => {
     e.target.style.height = 'auto';
     const maxHeight = e.target.scrollHeight > e.target.clientHeight ? e.target.scrollHeight : e.target.clientHeight;
     e.target.style.height = Math.min(maxHeight, 10 * parseFloat(getComputedStyle(e.target).lineHeight)) + 'px';
+  };
+
+  const handleClick = (e) => {
+    e.preventDefault();
+    const isPublic = note.isPublic === true;
+
+    addNote(note.title, note.description, note.tag, isPublic);
+
+    setNote({ title: '', description: '', tag: '', isPublic: false });
+    props.showAlert('Successfully added !', '#D4EDDA');
+    setSelectedCategory('');
+
+    if (descriptionRef.current) {
+      descriptionRef.current.style.height = 'auto';
+    }
   };
 
   return (
@@ -83,10 +89,8 @@ const Addnote = (props) => {
           />
         </div>
 
-        {/* CATEGORY & TAG ON SAME LINE */}
         <div className="md:flex gap-4 mb-4">
-          {/* CATEGORY DROPDOWN */}
-          <div className="md:w-1/2">
+          <div className="md:w-1/3">
             <label className='block text-white text-sm font-bold mb-2' htmlFor='category'>
               Category
             </label>
@@ -103,8 +107,7 @@ const Addnote = (props) => {
             </select>
           </div>
 
-          {/* TAG DROPDOWN */}
-          <div className="md:w-1/2">
+          <div className="md:w-1/3">
             <label className='block text-white text-sm font-bold mb-2' htmlFor='tag'>
               Tag
             </label>
@@ -115,7 +118,7 @@ const Addnote = (props) => {
               onChange={onChange}
               className={`shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-1 focus:shadow-outline outline-[#0F1729] ${!selectedCategory ? 'bg-gray-300 text-gray-600 cursor-not-allowed' : 'text-black'
                 }`}
-              disabled={!selectedCategory} // Disabled until a category is selected
+              disabled={!selectedCategory}
             >
               <option value="" disabled>Select Tag</option>
               {selectedCategory
@@ -125,6 +128,21 @@ const Addnote = (props) => {
                 : Object.values(categories).flat().map((tag) => (
                   <option key={tag} disabled>{tag}</option>
                 ))}
+            </select>
+          </div>
+
+          <div className="md:w-1/3">
+            <label className="block text-white text-sm font-bold mb-2" htmlFor="isPublic">
+              Visibility
+            </label>
+            <select
+              name="isPublic"
+              value={note.isPublic.toString()} // Convert boolean to string for select options
+              onChange={onChange}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-black leading-tight focus:outline-1 focus:shadow-outline outline-[#0F1729]"
+            >
+              <option value="false">Private</option>
+              <option value="true">Public</option>
             </select>
           </div>
         </div>

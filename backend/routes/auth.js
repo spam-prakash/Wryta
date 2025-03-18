@@ -127,47 +127,47 @@ router.post('/getuser', fetchuser, async (req, res) => {
 })
 
 // ROUTE 4: GET OTHER USER DETAIL 
-router.get("/:username", async (req, res) => {
-  try {
-    const { username } = req.params;
+// router.get("/:username", async (req, res) => {
+//   try {
+//     const { username } = req.params;
 
-    // Find user by username
-    const user = await User.findOne({ username });
+//     // Find user by username
+//     const user = await User.findOne({ username });
 
-    if (!user) {
-      console.log(`User not found: ${username}`);
-      return res.status(404).json({ error: "User not found" });
-    }
+//     if (!user) {
+//       console.log(`User not found: ${username}`);
+//       return res.status(404).json({ error: "User not found" });
+//     }
 
-    // Fetch notes of the user
-    const notes = await Note.find({ user: user._id });
+//     // Fetch notes of the user
+//     const notes = await Note.find({ user: user._id });
 
-    // Fetch only public notes
-    const publicNotes = notes.filter((note) => note.isPublic);
+//     // Fetch only public notes
+//     const publicNotes = notes.filter((note) => note.isPublic);
 
-    // Prepare user data response
-    const userData = {
-      name: user.name,
-      email: user.email,
-      profilePic: user.image?.trim() ? user.image : null,
-      totalNotes: notes.length,
-      publicNotesCount: publicNotes.length,
-      publicNotes: publicNotes.map((note) => ({
-        _id: note._id,
-        title: note.title,
-        description: note.description,
-        createdAt: note.date,
-        modifiedAt: note.modifiedDate, // ✅ Include modifiedAt
-      })),
-    };
-    console.log("User data:", userData);
+//     // Prepare user data response
+//     const userData = {
+//       name: user.name,
+//       email: user.email,
+//       profilePic: user.image?.trim() ? user.image : null,
+//       totalNotes: notes.length,
+//       publicNotesCount: publicNotes.length,
+//       publicNotes: publicNotes.map((note) => ({
+//         _id: note._id,
+//         title: note.title,
+//         description: note.description,
+//         createdAt: note.date,
+//         modifiedAt: note.modifiedDate, // ✅ Include modifiedAt
+//       })),
+//     };
+//     console.log("User data:", userData);
 
-    res.json(userData);
-  } catch (error) {
-    console.error("Error fetching user:", error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
+//     res.json(userData);
+//   } catch (error) {
+//     console.error("Error fetching user:", error);
+//     res.status(500).json({ error: "Internal Server Error" });
+//   }
+// });
 
 
 
