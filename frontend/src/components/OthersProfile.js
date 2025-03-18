@@ -90,8 +90,8 @@ const OthersProfile = () => {
               key={note._id}
               title={note.title}
               description={note.description}
-              createdAt={(note.createdAt)}
-              modifiedAt={(note.modifiedAt)}
+              date={(note.date)}
+              modifiedDate={(note.modifiedDate)}
               tag={note.tag}
             />
           ))

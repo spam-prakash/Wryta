@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import NoteModal from "./NoteModal";
 
-const OtherProfileNoteItem = ({ title,tag, description, createdAt, modifiedAt }) => {
-  // console.log("Props received in OtherProfileNoteItem:", { title, description,tag,createdAt, modifiedAt });
+const OtherProfileNoteItem = ({ title,tag, description, date, modifiedDate }) => {
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -50,13 +49,13 @@ const OtherProfileNoteItem = ({ title,tag, description, createdAt, modifiedAt })
                 Read More
               </button>
             )}
-            {modifiedAt && (
+            {modifiedDate && (
               <p className="text-xs mt-2 text-slate-500">
-                Modified: {formatDate(modifiedAt)} at {formatTime(modifiedAt)}
+                Modified: {formatDate(modifiedDate)} at {formatTime(modifiedDate)}
               </p>
             )}
             <p className="text-xs mt-2 text-slate-500">
-              Created: {formatDate(createdAt)} at {formatTime(createdAt)}
+              Created: {formatDate(date)} at {formatTime(date)}
             </p>
           </div>
         </div>
@@ -64,7 +63,7 @@ const OtherProfileNoteItem = ({ title,tag, description, createdAt, modifiedAt })
 
       {/* Read More Modal */}
       {isModalOpen && (
-        <NoteModal note={{ title, description, createdAt, modifiedAt,tag }} onClose={toggleModal} />
+        <NoteModal note={{ title, description, date, modifiedDate,tag }} onClose={toggleModal} />
       )}
     </>
   );
