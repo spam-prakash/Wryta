@@ -133,6 +133,8 @@ app.get('/auth/google/callback',
 // Available Routes
 app.use('/api/auth', require('./routes/auth'))
 app.use('/api/notes', require('./routes/notes'))
+// app.use("/api", require("./routes/username")); // Ensure this line exists
+
 
 // Test Route (Optional)
 app.get('/', (req, res) => {

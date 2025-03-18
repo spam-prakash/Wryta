@@ -125,4 +125,27 @@ router.post('/getuser', fetchuser, async (req, res) => {
   }
 })
 
+// ROUTE 5: GET OTHER USER DETAIL 
+router.get("/:username", async (req, res) => {
+  try {
+    // console.log("Fetching user:", req.params.username); // Debugging log
+
+    const user = await User.findOne({ username: req.params.username });
+
+    if (!user) {
+      console.log("User not found:", req.params.username);
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json({
+      name: user.name,
+      email: user.email,
+      profilePic: user.profilePic && user.profilePic.trim() !== "" ? user.profilePic : null, // Ensures an empty string is converted to null
+    });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ error: "Server Error" });
+  }
+});
+
 module.exports = router

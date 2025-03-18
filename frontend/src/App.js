@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react'
 import Login from './components/Login'
 import Signup from './components/Signup'
 import Profile from './components/Profile'
+import OthersProfile from './components/OthersProfile'
 
 // const hostLink = 'http://locahost:8000'
 // const hostLink = 'https://inotebook-backend-opal.vercel.app'
@@ -69,6 +70,7 @@ function App () {
               <Route exact path='/signup' key='/signup' element={<Signup showAlert={showAlert} />} />
               <Route exact path='/profile' key='/profile' element={<Profile showAlert={showAlert} user={user} />} />
               <Route path='*' key='/' element={<Home />} />
+              <Route path="/:username" element={<OthersProfile />} />
               <Route path='/login-success' element={<Login />} />
             </Routes>
           </div>
