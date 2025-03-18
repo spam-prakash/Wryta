@@ -19,9 +19,13 @@ const Signup = (props) => {
   // const hostLink = 'https://inotebook-backend-opal.vercel.app'
   const hostLink = process.env.REACT_APP_HOSTLINK
   const location = useLocation()
-
-
   useEffect(() => {
+    document.title = 'Signup | iNoteBook'
+  }, [])
+
+
+
+  useEffect(() => {    
     // Check if the token is already in localStorage
     const storedToken = localStorage.getItem('token')
     if (storedToken) {
@@ -29,7 +33,8 @@ const Signup = (props) => {
       navigate('/') // Redirect to home page
       return // Exit earl y
     }
-
+    
+  
     // Extract the token from the URL
     const params = new URLSearchParams(location.search)
     const token = params.get('token')

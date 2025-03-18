@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { useLocation, Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
-document.title = 'Login | iNoteBook'
 
-const Login = (props) => {
+const Login = (props) => {  
+    useEffect(() => { document.title = 'Login | iNoteBook' }, []);
   const hostLink = process.env.REACT_APP_HOSTLINK
   // console.log('Host Link:', hostLink) // Debugging
   const navigate = useNavigate()

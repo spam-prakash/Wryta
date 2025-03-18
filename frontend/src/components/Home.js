@@ -1,8 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Notes from "./Notes";
 
-document.title = 'iNotebook - Yours notes secured in the cloud'
 const Home = (props) => {
+
+  useEffect(() => {
+    document.title = 'iNotebook - Your notes secured in the cloud';
+  }, []);
+
   return (
     <>
       <div className="mx-auto py-4 sm:px-2 lg:px-4">

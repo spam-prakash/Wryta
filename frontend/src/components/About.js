@@ -1,8 +1,7 @@
-import React from 'react';
-
-document.title = 'About | iNoteBook';
+import React, { useEffect } from 'react';
 
 const About = () => {
+  useEffect(() => { document.title = 'About | iNoteBook' }, []);
   return (
     <div className="min-h-screen bg-[#0A1122] text-white">
       <div className="container mx-auto px-6 py-24">
@@ -24,7 +23,7 @@ const About = () => {
               CodeWithHarry
             </a>.
           </p>
-        </div> 
+        </div>
 
         <div className="mt-12 bg-[#1E3E62] rounded-lg p-8 shadow-lg">
           <h2 className="text-2xl font-semibold text-[#FF6500] mb-4">About the Developer</h2>
