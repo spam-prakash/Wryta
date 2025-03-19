@@ -39,8 +39,8 @@ const NoteItem = (props) => {
     }
   }, [note.description])
 
-  const handleVisibilityChange = async (newVisibility) => {
-    await updateVisibility(note._id, newVisibility)
+  const handleVisibilityChange =  (newVisibility) => {
+     updateVisibility(note._id, newVisibility)
     setIsVisibilityModalOpen(false) // Close modal after update
   }
 
