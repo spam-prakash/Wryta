@@ -7,6 +7,8 @@ const OthersProfile = () => {
   const { username } = useParams();
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
+  const [sortCriteria, setSortCriteria] = useState("modifiedDate");
+  const [sortOrder, setSortOrder] = useState("desc");
   const hostLink = process.env.REACT_APP_HOSTLINK;
 
   useEffect(() => {
@@ -52,17 +54,17 @@ const OthersProfile = () => {
     });
   };
 
-  // Sort the notes by modified date in descending order
-   const sortedNotes = user.publicNotes.sort((a, b) => {
-          const dateA = new Date(a.modifiedDate || a.date)
-          const dateB = new Date(b.modifiedDate || b.date)
-          return dateB - dateA
-        })
+  // Sort the notes based on the selected criteria and order
+  const sortedNotes = user.publicNotes.sort((a, b) => {
+    const dateA = new Date(a[sortCriteria] || a.date);
+    const dateB = new Date(b[sortCriteria] || b.date);
+    return sortOrder === "old" ? dateA - dateB : dateB - dateA;
+  });
 
   return (
     <>
       <div className="flex flex-col items-center text-white px-4">
-        {/* ✅ Profile Section */}
+        {/* Profile Section */}
         <div className="flex flex-col md:flex-row items-center w-full max-w-2xl py-6 mt-20">
           <img
             className="size-40 rounded-full border-4 border-gray-400"
@@ -88,7 +90,27 @@ const OthersProfile = () => {
         </div>
       </div>
 
-      {/* ✅ Public Notes Section */}
+      {/* Sorting Options */}
+      <div className="flex gap-2 mb-3">
+        <select
+          value={sortCriteria}
+          onChange={(e) => setSortCriteria(e.target.value)}
+          className="px-4 py-2 text-sm rounded-full border bg-[#1E293B] text-white border-gray-600 hover:border-white hover:bg-[#374151]"
+        >
+          <option value="modifiedDate">Modified Date</option>
+          <option value="date">Created Date</option>
+        </select>
+        <select
+          value={sortOrder}
+          onChange={(e) => setSortOrder(e.target.value)}
+          className="px-4 py-2 text-sm rounded-full border bg-[#1E293B] text-white border-gray-600 hover:border-white hover:bg-[#374151]"
+        >
+          <option value="new">Newest</option>
+          <option value="old">Oldest</option>
+        </select>
+      </div>
+
+      {/* Public Notes Section */}
       <div className="w-full flex flex-wrap text-white gap-3 mt-4">
         {sortedNotes.length > 0 ? (
           sortedNotes.map((note) => (

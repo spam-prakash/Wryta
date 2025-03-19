@@ -8,39 +8,42 @@ const NoteState = (props) => {
   const notesInitial = []
 
   const [notes, setNotes] = useState(notesInitial)
+  const [sortCriteria, setSortCriteria] = useState("modifiedDate");
+  const [sortOrder, setSortOrder] = useState("desc");
 
-  // Get all notes
-  const getNotes = useCallback(async () => {
-    try {
-      // API CALL
-      const response = await fetch(`${hostLink}/api/notes/fetchallnotes`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'auth-token': localStorage.getItem('token')
-        }
-      })
-      const json = await response.json()
 
-      // Log the response to debug
-      // console.log('API Response:', json)
-
-      // Check if the response is an array before sorting
-      if (Array.isArray(json)) {
-        // Sort notes by modifiedDate or date in descending order
-        const sortedNotes = json.sort((a, b) => {
-          const dateA = new Date(a.modifiedDate || a.date)
-          const dateB = new Date(b.modifiedDate || b.date)
-          return dateB - dateA
-        })
-        setNotes(sortedNotes)
-      } else {
-        console.error('Expected an array but got:', json)
+ // Get all notes
+ const getNotes = useCallback(async () => {
+  try {
+    // API CALL
+    const response = await fetch(`${hostLink}/api/notes/fetchallnotes`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'auth-token': localStorage.getItem('token')
       }
-    } catch (error) {
-      console.error('Failed to fetch notes:', error)
+    });
+    const json = await response.json();
+
+    // Log the response to debug
+    // console.log('API Response:', json);
+
+    // Check if the response is an array before sorting
+    if (Array.isArray(json)) {
+      // Sort notes by modifiedDate or date based on the selected criteria and order
+      const sortedNotes = json.sort((a, b) => {
+        const dateA = new Date(a[sortCriteria] || a.date);
+        const dateB = new Date(b[sortCriteria] || b.date);
+        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+      });
+      setNotes(sortedNotes);
+    } else {
+      console.error('Expected an array but got:', json);
     }
-  }, [])
+  } catch (error) {
+    console.error('Failed to fetch notes:', error);
+  }
+}, [sortCriteria, sortOrder]);
 
   // Add a note
   const addNote = async (title, description, tag,isPublic) => {
@@ -128,7 +131,7 @@ const NoteState = (props) => {
   
 
   return (
-    <NoteContext.Provider value={{ notes, addNote, editNote, deleteNote, getNotes,updateVisibility  }}>
+    <NoteContext.Provider value={{ notes, addNote, editNote, deleteNote, getNotes,updateVisibility, setSortCriteria, setSortOrder }}>
       {props.children}
     </NoteContext.Provider>
   )
