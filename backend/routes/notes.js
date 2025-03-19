@@ -27,17 +27,19 @@ router.post('/addnote', [
     console.log('Received isPublic:', isPublic);
 
     // Convert isPublic to a boolean
-    const visibility = isPublic === 'true';  // Ensure 'true' string becomes boolean
+    // const visibility = isPublic === 'true';  // Ensure 'true' string becomes boolean
 
     // Create new note
     const note = new Note({
       title,
       description,
       tag,
-      isPublic: visibility, // Store as boolean
+      isPublic: isPublic, // Store as boolean
       user: req.user.id,
       date: Date.now()
     });
+
+    console.log('Note:', note);
 
     // Save note in database
     const savedNote = await note.save();

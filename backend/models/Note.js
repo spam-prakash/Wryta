@@ -27,7 +27,7 @@ const NotesSchema = new Schema({
   }, 
   isPublic: { 
     type: Boolean, 
-    default: false 
+    // default: false 
   }, // Visibility Field
 })
 
