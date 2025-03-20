@@ -199,7 +199,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
       </div>
 
       {/* Conditionally render the Add Note button */}
-      {loggedInUser && loggedInUser.username === username && (
+      {loggedInUser && (
         <button
           onClick={toggleAddNoteModal}
           className="fixed bottom-10 right-10 bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 focus:outline-none"

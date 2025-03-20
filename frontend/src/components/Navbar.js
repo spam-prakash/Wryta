@@ -20,6 +20,8 @@ const Navbar = (props) => {
     navigate("/login");
     props.showAlert("Logged Out !", "#D4EDDA");
     setIsProfileOpen(false);
+    props.setIsAuthenticated(false); // Reset authentication stateconst handleLogout = () => {
+    props.setUser(null); // Reset user state    
   };
 
   const toggleProfileMenu = () => {
