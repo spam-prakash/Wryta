@@ -17,7 +17,7 @@ router.get("/:username", async (req, res) => {
         const user = await User.findOne({ username });
 
         if (!user) {
-            console.log(`User not found: ${username}`);
+            // console.log(`User not found: ${username}`);
             return res.status(404).json({ error: "User not found" });
         }
 
@@ -43,7 +43,7 @@ router.get("/:username", async (req, res) => {
                 modifiedDate: note.modifiedDate, // ✅ Include modifiedAt
             })),
         };
-        console.log("User data:", userData);
+        // console.log("User data:", userData);
 
         res.json(userData);
     } catch (error) {

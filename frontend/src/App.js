@@ -56,6 +56,7 @@ function App () {
       showAlert('An error occurred !', '#F8D7DA')
     }
   }
+  // console.log(user)
   return (
     <>
       <NoteState>
@@ -70,7 +71,7 @@ function App () {
               <Route exact path='/signup' key='/signup' element={<Signup showAlert={showAlert} />} />
               <Route exact path='/profile' key='/profile' element={<Profile showAlert={showAlert} user={user} />} />
               <Route path='*' key='/' element={<Home />} />
-              <Route path="/:username" element={<OtherProfileWrapper />} />
+              <Route path="/:username" element={<OtherProfileWrapper loggedInUser={user} showAlert={showAlert}/>} />
               <Route path='/login-success' element={<Login />} />
             </Routes>
           </div>
@@ -80,7 +81,7 @@ function App () {
   )
 }
 
-const OtherProfileWrapper = () => {
+const OtherProfileWrapper = ({loggedInUser,showAlert}) => {
   const { username } = useParams();
   const reservedRoutes = ['dashboard', 'settings', 'profile']; // Add existing routes here
 
@@ -88,7 +89,7 @@ const OtherProfileWrapper = () => {
       return <h1 className="text-center text-red-500 mt-20">Page not found</h1>;
   }
 
-  return <OthersProfile />;
+  return <OthersProfile loggedInUser={loggedInUser} showAlert={showAlert} />;
 };
 
 export default App

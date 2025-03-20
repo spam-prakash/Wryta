@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import NoteModal from "./NoteModal";
 
-const OtherProfileNoteItem = ({ title,tag, description, date, modifiedDate }) => {
+const HomeNoteItem = ({ title,tag, description, date, modifiedDate,user }) => {
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
@@ -36,6 +36,12 @@ const OtherProfileNoteItem = ({ title,tag, description, date, modifiedDate }) =>
     <>
       <div className="text-white flex-auto md:basis-1/4 px-2 mb-4">
         <div className="max-w-[40rem] p-6 bg-[#0a1122] shadow-2xl border-none rounded-lg group h-64 flex flex-col justify-between">
+        {/* <p>{user.name}</p> */}
+          {modifiedDate && (
+              <p className="text-xs mt-2 text-slate-500">
+                Modified: {formatDate(modifiedDate)} at {formatTime(modifiedDate)}
+              </p>
+            )}
           <div className="flex-grow overflow-hidden" ref={contentRef}>
             <h5 className="mb-2 text-xl font-bold tracking-tight text-white">{title}</h5>
             <span className='text-white cursor-text bg-transparent font-medium rounded-lg text-base mb-0'>
@@ -69,4 +75,4 @@ const OtherProfileNoteItem = ({ title,tag, description, date, modifiedDate }) =>
   );
 };
 
-export default OtherProfileNoteItem;
+export default HomeNoteItem;

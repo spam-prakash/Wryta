@@ -12,6 +12,8 @@ const Navbar = (props) => {
   const navigate = useNavigate();
   const location = useLocation();
   const profileRef = useRef(null);
+  const user= props.user;
+  // console.log(user)
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -37,6 +39,16 @@ const Navbar = (props) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+
+  const handleProfileClick = () => {
+    if (user && user.username) {
+      navigate(`/${user.username}`);
+    } else {
+      // showAlert('User not logged in!', 'danger');
+      // navigate('/login');
+    }
+  };
 
   const isLoggedIn = !!localStorage.getItem("token");
   // const userImgURL = "/path-to-user-image.jpg"; // Replace with actual image URL
@@ -110,14 +122,14 @@ const Navbar = (props) => {
             {/* Profile Dropdown */}
             {isProfileOpen && (
               <div className="absolute right-0 mt-2 w-36 bg-[#0000005e] rounded-lg shadow-md z-50">
-                <Link
-                  to="/profile"
-                  className="flex items-center text-white hover:bg-[#28254a5e] px-4 py-2"
-                  onClick={() => setIsProfileOpen(false)}
+                <span 
+                  // to="/profile"
+                  className="flex cursor-pointer items-center text-white hover:bg-[#28254a5e] px-4 py-2"
+                  onClick={() => {setIsProfileOpen(false);handleProfileClick();}}
                 >
                   <FiUser className="mr-2" />
-                  <span className="">My Profile</span>
-                </Link>
+                  <span className="" >My Profile</span>
+                </span>
                 <button
                   className="flex items-center w-full text-left text-white hover:bg-[#28254a5e] px-4 py-2"
                   onClick={handleLogout}

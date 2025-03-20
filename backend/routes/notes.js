@@ -24,7 +24,7 @@ router.post('/addnote', [
     const { title, description, tag, isPublic } = req.body;
 
     // Debugging: log incoming isPublic
-    console.log('Received isPublic:', isPublic);
+    // console.log('Received isPublic:', isPublic);
 
     // Convert isPublic to a boolean
     // const visibility = isPublic === 'true';  // Ensure 'true' string becomes boolean
@@ -39,7 +39,7 @@ router.post('/addnote', [
       date: Date.now()
     });
 
-    console.log('Note:', note);
+    // console.log('Note:', note);
 
     // Save note in database
     const savedNote = await note.save();
@@ -137,6 +137,17 @@ router.put('/visibility/:id', fetchuser, async (req, res) => {
     );
 
     res.json({ success: true, message: 'Visibility updated successfully' });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// ROUTE 6: Get Public Notes (GET /api/notes/public)
+router.get('/public', async (req, res) => {
+  try {
+    const publicNotes = await Note.find({ isPublic: true });
+    res.json(publicNotes);
   } catch (error) {
     console.error(error.message);
     res.status(500).send('Internal Server Error');
