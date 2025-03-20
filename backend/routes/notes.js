@@ -146,8 +146,28 @@ router.put('/visibility/:id', fetchuser, async (req, res) => {
 // ROUTE 6: Get Public Notes (GET /api/notes/public)
 router.get('/public', async (req, res) => {
   try {
-    const publicNotes = await Note.find({ isPublic: true });
-    res.json(publicNotes);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const publicNotes = await Note.aggregate([
+      { $match: { isPublic: true } },
+      {
+        $addFields: {
+          sortDate: {
+            $ifNull: ["$modifiedDate", "$createdDate"] // Prioritize modifiedDate, fallback to createdDate
+          }
+        }
+      },
+      { $sort: { sortDate: -1, _id: -1 } }, // Sort by latest date and then by ID for consistency
+      { $skip: skip },
+      { $limit: limit }
+    ]);
+
+    const totalNotes = await Note.countDocuments({ isPublic: true });
+    const hasMore = skip + limit < totalNotes;
+
+    res.json({ notes: publicNotes, hasMore });
   } catch (error) {
     console.error(error.message);
     res.status(500).send('Internal Server Error');

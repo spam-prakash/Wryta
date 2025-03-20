@@ -1,40 +1,61 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import HomeNoteItem from "./HomeNoteItem";
 import Addnote from "./Addnote";
 
 const Home = (props) => {
   const [publicNotes, setPublicNotes] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("✨ All");
   const [selectedTag, setSelectedTag] = useState("");
   const hostLink = process.env.REACT_APP_HOSTLINK;
   const addNoteModalRef = useRef(null);
+  const observer = useRef();
 
   useEffect(() => {
     document.title = 'iNotebook - Your notes secured in the cloud';
+    fetchPublicNotes(page);
+  }, [page]);
 
-    const fetchPublicNotes = async () => {
-      try {
-        const response = await fetch(`${hostLink}/api/notes/public`);
-        const data = await response.json();
+  const fetchPublicNotes = async (page) => {
+    setLoading(true);
+    try {
+      const response = await fetch(`${hostLink}/api/notes/public?page=${page}&limit=10`);
+      const data = await response.json();
 
-        if (response.ok) {
-          // Sort the notes by modifiedDate in descending order
-          const sortedNotes = data.sort((a, b) => {
-            const dateA = new Date(a.modifiedDate || a.date);
-            const dateB = new Date(b.modifiedDate || b.date);
-            return dateB - dateA; // Descending order
-          });
-          setPublicNotes(sortedNotes);
-        } else {
-          props.showAlert("Failed to fetch public notes!", "danger");
-        }
-      } catch (error) {
-        props.showAlert("An error occurred while fetching public notes!", "danger");
+      if (response.ok) {
+        // Sort the notes by modifiedDate in descending order
+        const sortedNotes = data.notes.sort((a, b) => {
+          const dateA = new Date(a.modifiedDate || a.date);
+          const dateB = new Date(b.modifiedDate || b.date);
+          return dateB - dateA; // Descending order
+        });
+        setPublicNotes((prevNotes) => {
+          // Filter out any duplicate notes
+          const newNotes = sortedNotes.filter(note => !prevNotes.some(prevNote => prevNote._id === note._id));
+          return [...prevNotes, ...newNotes];
+        });
+        setHasMore(data.hasMore);
+      } else {
+        props.showAlert("Failed to fetch public notes!", "#F8D7DA");
       }
-    };
+    } catch (error) {
+      props.showAlert("An error occurred while fetching public notes!", "#F8D7DA");
+    }
+    setLoading(false);
+  };
 
-    fetchPublicNotes();
-  }, [hostLink, props]);
+  const lastNoteElementRef = useCallback((node) => {
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore) {
+        setPage((prevPage) => prevPage + 1);
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [loading, hasMore]);
 
   const toggleAddNoteModal = () => {
     if (addNoteModalRef.current) {
@@ -117,20 +138,37 @@ const Home = (props) => {
 
         <div className="w-full flex flex-wrap text-white gap-3 mt-4">
           {filteredNotes.length > 0 ? (
-            filteredNotes.map((note) => (
-              <HomeNoteItem
-                key={note._id}
-                title={note.title}
-                description={note.description}
-                date={note.date}
-                modifiedDate={note.modifiedDate}
-                tag={note.tag}
-              />
-            ))
+            filteredNotes.map((note, index) => {
+              if (filteredNotes.length === index + 1) {
+                return (
+                  <div ref={lastNoteElementRef} key={note._id}>
+                    <HomeNoteItem
+                      title={note.title}
+                      description={note.description}
+                      date={note.date}
+                      modifiedDate={note.modifiedDate}
+                      tag={note.tag}
+                    />
+                  </div>
+                );
+              } else {
+                return (
+                  <HomeNoteItem
+                    key={note._id}
+                    title={note.title}
+                    description={note.description}
+                    date={note.date}
+                    modifiedDate={note.modifiedDate}
+                    tag={note.tag}
+                  />
+                );
+              }
+            })
           ) : (
             <p className="text-center text-gray-400">No public notes available.</p>
           )}
         </div>
+        {loading && <p className="text-center text-gray-400">Loading...</p>}
       </div>
 
       {/* Add Note Icon */}
