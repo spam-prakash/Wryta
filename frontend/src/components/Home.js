@@ -171,21 +171,23 @@ const Home = (props) => {
         {loading && <p className="text-center text-gray-400">Loading...</p>}
       </div>
 
-      {/* Add Note Icon */}
-      <button
-        onClick={toggleAddNoteModal}
-        className="fixed bottom-10 right-10 bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 focus:outline-none"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+      {/* Conditionally render the Add Note button */}
+      {props.isAuthenticated && (
+        <button
+          onClick={toggleAddNoteModal}
+          className="fixed bottom-10 right-10 bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 focus:outline-none"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-        </svg>
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+      )}
     </>
   );
 };
