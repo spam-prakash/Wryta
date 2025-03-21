@@ -82,8 +82,7 @@ function App () {
               <Route exact path='/signup' key='/signup' element={<Signup showAlert={showAlert} />} />
               <Route exact path='/profile' key='/profile' element={<Profile showAlert={showAlert} user={user} />} />
               <Route path='*' key='/' element={<Home />} />
-              {/* <Route path='/:username' element={<OtherProfileWrapper loggedInUser={user} showAlert={showAlert} />} /> */}
-              <Route path='/:username' element={isAuthenticated ? <OtherProfileWrapper loggedInUser={user} showAlert={showAlert} /> : <Navigate to='/login' />} />
+              <Route path='/:username' element={<OtherProfileWrapper loggedInUser={user} showAlert={showAlert} />} />
 
               <Route path='/login-success' element={<Login />} />
             </Routes>
