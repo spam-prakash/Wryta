@@ -1,72 +1,73 @@
-import React, { useState, useRef, useEffect } from "react";
-import NoteModal from "./NoteModal";
+import React, { useState, useRef, useEffect } from 'react'
+import NoteModal from './NoteModal'
 
-const OtherProfileNoteItem = ({ title,tag, description, date, modifiedDate }) => {
-
+const OtherProfileNoteItem = ({ title, tag, description, date, modifiedDate }) => {
   const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const options = { day: "numeric", month: "short", year: "numeric" };
-    return new Date(dateString).toLocaleDateString(undefined, options);
-  };
+    if (!dateString) return 'N/A'
+    const options = { day: 'numeric', month: 'short', year: 'numeric' }
+    return new Date(dateString).toLocaleDateString(undefined, options)
+  }
 
   const formatTime = (dateString) => {
-    if (!dateString) return "N/A";
-    const options = { hour: "2-digit", minute: "2-digit", hour12: false };
-    return new Date(dateString).toLocaleTimeString(undefined, options);
-  };
+    if (!dateString) return 'N/A'
+    const options = { hour: '2-digit', minute: '2-digit', hour12: false }
+    return new Date(dateString).toLocaleTimeString(undefined, options)
+  }
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isOverflowing, setIsOverflowing] = useState(false);
-  const contentRef = useRef(null);
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isOverflowing, setIsOverflowing] = useState(false)
+  const contentRef = useRef(null)
 
   useEffect(() => {
     if (contentRef.current) {
-      setIsOverflowing(contentRef.current.scrollHeight > contentRef.current.clientHeight);
+      setIsOverflowing(contentRef.current.scrollHeight > contentRef.current.clientHeight)
     }
-  }, [description]); // ✅ Watch `description` changes
-
-
-
+  }, [description])
 
   const toggleModal = () => {
-    setIsModalOpen(!isModalOpen);
-  };
+    setIsModalOpen(!isModalOpen)
+  }
 
   return (
     <>
-      <div className="text-white flex-auto md:basis-1/4 px-2 mb-4">
-        <div className="max-w-[40rem] p-6 bg-[#0a1122] shadow-2xl border-none rounded-lg group h-64 flex flex-col justify-between">
-          <div className="flex-grow overflow-hidden" ref={contentRef}>
-            <h5 className="mb-2 text-xl font-bold tracking-tight text-white">{title}</h5>
-            <span className='text-white cursor-text bg-transparent font-medium rounded-lg text-base mb-0'>
-              <span className='text-[#FDC116]'># </span>{tag}
-            </span>
-            <p className="mb-0 mt-2 font-normal text-white whitespace-pre-wrap">{description}</p>
-          </div>
-          <div className="mt-2">
+      <div className='w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 text-white flex flex-col'>
+        {/* Note Content */}
+        <div className='p-4 flex-grow'>
+          <h5 className='text-lg font-bold'>{title}</h5>
+          <span className='text-[#FDC116] font-medium text-sm'># {tag}</span>
+          <div className='relative'>
+            <p
+              ref={contentRef}
+              className='mb-0 mt-2 font-normal text-white whitespace-pre-wrap line-clamp-3 overflow-hidden'
+            >
+              {description}
+            </p>
             {isOverflowing && (
-              <button onClick={toggleModal} className="text-xs text-blue-500">
+              <button onClick={toggleModal} className='text-sm text-blue-400 hover:underline mt-2'>
                 Read More
               </button>
             )}
-            {modifiedDate && (
-              <p className="text-xs mt-2 text-slate-500">
-                Modified: {formatDate(modifiedDate)} at {formatTime(modifiedDate)}
-              </p>
-            )}
-            <p className="text-xs mt-2 text-slate-500">
-              Created: {formatDate(date)} at {formatTime(date)}
-            </p>
           </div>
         </div>
+
+        {/* Timestamp - Shows Both Created & Modified Dates */}
+        <div className='text-gray-400 text-xs px-4 pb-3'>
+          {modifiedDate && (
+            <p>Modified: {formatDate(modifiedDate)} at {formatTime(modifiedDate)}</p>
+          )}
+          <p>Created: {formatDate(date)} at {formatTime(date)}</p>
+        </div>
+
+        {/* Interaction Buttons (Optional - Uncomment if needed) */}
+        {/* <InteractionButtons className='border-t border-gray-700 mt-auto' /> */}
       </div>
 
       {/* Read More Modal */}
       {isModalOpen && (
-        <NoteModal note={{ title, description, date, modifiedDate,tag }} onClose={toggleModal} />
+        <NoteModal note={{ title, description, date, modifiedDate, tag }} onClose={toggleModal} />
       )}
     </>
-  );
-};
+  )
+}
 
-export default OtherProfileNoteItem;
+export default OtherProfileNoteItem

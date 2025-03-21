@@ -72,11 +72,11 @@ function App () {
           <Alert alert={alert} />
           <div className='container'>
             <Routes>
-              <Route
+              {/* <Route
                 exact path='/'
                 element={isAuthenticated ? <Home showAlert={showAlert} isAuthenticated={isAuthenticated} /> : <Navigate to='/login' />}
-              />
-              {/* <Route exact path='/' element={<Home showAlert={showAlert} isAuthenticated={isAuthenticated} />} /> */}
+              /> */}
+              <Route exact path='/' element={<Home showAlert={showAlert} isAuthenticated={isAuthenticated} />} />
               <Route exact path='/about' key='/about' element={<About />} />
               <Route exact path='/login' key='/login' element={<Login showAlert={showAlert} setUser={setUser} />} />
               <Route exact path='/signup' key='/signup' element={<Signup showAlert={showAlert} />} />
