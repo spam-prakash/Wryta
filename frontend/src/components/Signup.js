@@ -1,12 +1,8 @@
-// import React, { useState } from 'react'
 import React, { useState, useEffect } from 'react'
 import { useLocation, Link, useNavigate } from 'react-router-dom'
-// import { Link, useNavigate } from 'react-router-dom'
-import { GoogleLogin, useGoogleLogin } from '@react-oauth/google'
-import { jwtDecode } from 'jwt-decode'
-import axios from 'axios'
 
 const Signup = (props) => {
+  useEffect(() => { document.title = 'Signup | iNoteBook' }, [])
   const navigate = useNavigate()
   const [credentials, setCredentials] = useState({
     username: '',
@@ -19,22 +15,16 @@ const Signup = (props) => {
   // const hostLink = 'https://inotebook-backend-opal.vercel.app'
   const hostLink = process.env.REACT_APP_HOSTLINK
   const location = useLocation()
+
   useEffect(() => {
-    document.title = 'Signup | iNoteBook'
-  }, [])
-
-
-
-  useEffect(() => {    
     // Check if the token is already in localStorage
     const storedToken = localStorage.getItem('token')
     if (storedToken) {
       console.log('Token already stored in localStorage:', storedToken)
       navigate('/') // Redirect to home page
-      return // Exit earl y
+      return // Exit early
     }
-    
-  
+
     // Extract the token from the URL
     const params = new URLSearchParams(location.search)
     const token = params.get('token')
@@ -74,19 +64,20 @@ const Signup = (props) => {
     const json = await response.json()
     // console.log(json);
     if (json.success) {
-      localStorage.setItem('token', json.authtoken)
-      navigate('/login')
-      props.showAlert('New Account Created Successfully !', '#D4EDDA')
+      // localStorage.setItem('token', json.authToken) // Store the authToken in local storage
+      props.showAlert('New Account Created Successfully', '#D4EDDA')
+      navigate('/login') // Redirect to login page
     } else {
-      props.showAlert('username or email already exists !', '#F8D7DA')
+      props.showAlert('Username or email already exists', '#F8D7DA')
     }
   }
+
   const onChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value })
   }
+
   return (
     <>
-      {' '}
       <div className='flex min-h-full flex-1 flex-col justify-center px-6 lg:px-8'>
         <div className='sm:mx-auto sm:w-full mt-24 sm:max-w-sm'>
           <h2 className='mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white'>

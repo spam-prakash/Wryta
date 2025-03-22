@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FiUser, FiLogOut, FiHome, FiInfo, FiLogIn, FiUserPlus } from 'react-icons/fi'; // Icons
+import React, { useState, useEffect, useRef } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { FiUser, FiLogOut, FiHome, FiInfo, FiLogIn, FiUserPlus } from 'react-icons/fi' // Icons
 import defaultUserIcon from '../assets/user.png'
-import notebook from '../assets/notes.png';
+import notebook from '../assets/notes.png'
 
 const Navbar = (props) => {
   // const {image}=props.user|| defaultUserIcon;
@@ -17,16 +17,17 @@ const Navbar = (props) => {
 
   const handleLogout = () => {
     localStorage.removeItem('token')
+    localStorage.removeItem('user')
     navigate('/login')
     props.showAlert('Logged Out !', '#D4EDDA')
     setIsProfileOpen(false)
     props.setIsAuthenticated(false) // Reset authentication stateconst handleLogout = () => {
-    props.setUser(null) // Reset user state    
-  };
+    props.setUser(null) // Reset user state
+  }
 
   const toggleProfileMenu = () => {
     setIsProfileOpen(!isProfileOpen)
-  };
+  }
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -39,9 +40,8 @@ const Navbar = (props) => {
     document.addEventListener('mousedown', handleClickOutside)
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
-    };
+    }
   }, [])
-
 
   const handleProfileClick = () => {
     if (user && user.username) {
@@ -127,7 +127,7 @@ const Navbar = (props) => {
                 <span
                   // to="/profile"
                   className='flex cursor-pointer items-center text-white hover:bg-[#28254a5e] px-4 py-2'
-                  onClick={() => { setIsProfileOpen(false); handleProfileClick()}}
+                  onClick={() => { setIsProfileOpen(false); handleProfileClick() }}
                 >
                   <FiUser className='mr-2' />
                   <span className=''>My Profile</span>
@@ -146,6 +146,6 @@ const Navbar = (props) => {
       </div>
     </nav>
   )
-};
+}
 
 export default Navbar
