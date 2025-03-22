@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import NoteModal from './NoteModal'
 import InteractionButtons from './InteractionButtons'
-const OtherProfileNoteItem = ({ title, tag, description, date, modifiedDate }) => {
+const OtherProfileNoteItem = ({ title, tag, description, date, modifiedDate, showAlert }) => {
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A'
     const options = { day: 'numeric', month: 'short', year: 'numeric' }
@@ -59,7 +59,7 @@ const OtherProfileNoteItem = ({ title, tag, description, date, modifiedDate }) =
         </div>
 
         {/* Interaction Buttons (Optional - Uncomment if needed) */}
-        <InteractionButtons className='border-t border-gray-700 mt-auto' />
+        <InteractionButtons className='border-t border-gray-700 mt-auto' title={title} tag={tag} description={description} showAlert={showAlert} />
         {/* <InteractionButtons className='border-t border-gray-700 mt-auto' /> */}
       </div>
 

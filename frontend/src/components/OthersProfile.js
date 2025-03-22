@@ -6,6 +6,7 @@ import noteContext from '../context/notes/NoteContext'
 import NoteItem from './NoteItem'
 import NoteUpdateModal from './NoteUpdateModal'
 import Addnote from './Addnote'
+import { Plus } from 'lucide-react'
 
 const OthersProfile = ({ loggedInUser, showAlert }) => {
   const { notes, getNotes, editNote } = useContext(noteContext)
@@ -15,6 +16,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   const [sortCriteria, setSortCriteria] = useState('modifiedDate')
   const [sortOrder, setSortOrder] = useState('desc')
   const hostLink = process.env.REACT_APP_HOSTLINK
+  // showAlert('Note Successfully copied!', '#D4EDDA')
 
   const modalRef = useRef(null)
   const [currentNote, setCurrentNote] = useState(null)
@@ -196,6 +198,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
                       date={note.date}
                       modifiedDate={note.modifiedDate}
                       tag={note.tag}
+                      showAlert={showAlert}
                     />
                     )
               ))
@@ -209,17 +212,9 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
       {loggedInUser && (
         <button
           onClick={toggleAddNoteModal}
-          className='fixed bottom-10 right-10 bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 focus:outline-none'
+          className='fixed bottom-10 right-10 bg-blue-500 text-white rounded-full p-2 shadow-lg hover:bg-blue-600 focus:outline-none'
         >
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            className='h-6 w-6'
-            fill='none'
-            viewBox='0 0 24 24'
-            stroke='currentColor'
-          >
-            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M12 4v16m8-8H4' />
-          </svg>
+          <Plus size={50} />
         </button>
       )}
     </>

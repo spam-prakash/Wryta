@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 import HomeNoteItem from './HomeNoteItem'
 import Addnote from './Addnote'
+import { Plus } from 'lucide-react'
 
 const Home = (props) => {
   const [publicNotes, setPublicNotes] = useState([])
@@ -155,6 +156,7 @@ const Home = (props) => {
                           name={note.userDetails.name}
                           username={note.userDetails.username}
                           image={note.userDetails.image}
+                          showAlert={props.showAlert}
                         />
                       </div>
                     )
@@ -170,6 +172,7 @@ const Home = (props) => {
                         name={note.userDetails.name}
                         username={note.userDetails.username}
                         image={note.userDetails.image}
+                        showAlert={props.showAlert}
                       />
                     )
                   }
@@ -186,9 +189,9 @@ const Home = (props) => {
       {props.isAuthenticated && (
         <button
           onClick={toggleAddNoteModal}
-          className='fixed bottom-10 right-10 bg-blue-500 text-white rounded-full p-4 shadow-lg hover:bg-blue-600 focus:outline-none'
+          className='fixed bottom-10 right-10 bg-blue-500 text-white rounded-full p-2 shadow-lg hover:bg-blue-600 focus:outline-none'
         >
-          <svg
+          {/* <svg
             xmlns='http://www.w3.org/2000/svg'
             className='h-6 w-6'
             fill='none'
@@ -196,7 +199,8 @@ const Home = (props) => {
             stroke='currentColor'
           >
             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M12 4v16m8-8H4' />
-          </svg>
+          </svg> */}
+          <Plus size={50} />
         </button>
       )}
     </>

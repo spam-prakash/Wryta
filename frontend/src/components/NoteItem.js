@@ -3,7 +3,8 @@ import deleteIcon from '../assets/delete.png'
 import editIcon from '../assets/edit.png'
 import noteContext from '../context/notes/NoteContext'
 import NoteModal from './NoteModal'
-import { Lock, LockOpen, X } from 'lucide-react'
+// import { useNavigate } from 'react-router-dom'
+import { Lock, LockOpen, X, Copy } from 'lucide-react'
 
 const NoteItem = (props) => {
   const formatDate = (dateString) => {
@@ -20,6 +21,18 @@ const NoteItem = (props) => {
   const { note } = props
   const { updateNote } = props
   const { deleteNote, updateVisibility } = context
+  const [liked, setLiked] = useState(false)
+  const [copiedText, setCopiedText] = useState('')
+  const [copiedElement, setCopiedElement] = useState('')
+
+  const copyToClipboard = (element, text) => {
+    const textToCopy = `Title: ${note.title}\nTag: ${note.tag}\n\nDescription:\n${note.description}`
+    navigator.clipboard.writeText(textToCopy)
+    setCopiedText(textToCopy) // Set state to show copied text
+    // setCopiedElement(element)
+    props.showAlert('Note Successfully copied!', '#D4EDDA')
+    setTimeout(() => setCopiedText(''), 1500) // Clear message after 1.5 sec
+  }
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isVisibilityModalOpen, setIsVisibilityModalOpen] = useState(false)
@@ -108,14 +121,22 @@ const NoteItem = (props) => {
             )}
             <p>Created: {formatDate(note.date)} at {formatTime(note.date)}</p>
           </div>
-          <button
-            onClick={toggleVisibilityModal}
-            className={`text-xs p-2 rounded-full transition ${
+          <div className='flex gap-3 left-icons'>
+            <button
+              onClick={(e) => copyToClipboard(e.currentTarget, `Title: ${note.title}\nTag: ${note.tag}\nDescription: ${note.description}`)}
+              className='flex items-center space-x-2'
+            >
+              <Copy />
+            </button>
+            <button
+              onClick={toggleVisibilityModal}
+              className={`text-xs p-2 rounded-full transition ${
               note.isPublic ? 'bg-green-600' : 'bg-red-600'
             }`}
-          >
-            {note.isPublic ? <LockOpen size={18} /> : <Lock size={18} />}
-          </button>
+            >
+              {note.isPublic ? <LockOpen size={18} /> : <Lock size={18} />}
+            </button>
+          </div>
         </div>
       </div>
 

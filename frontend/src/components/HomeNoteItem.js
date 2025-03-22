@@ -3,7 +3,7 @@ import NoteModal from './NoteModal'
 import { Link } from 'react-router-dom'
 import InteractionButtons from './InteractionButtons'
 
-const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, username, image }) => {
+const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, username, image, showAlert }) => {
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A'
     const options = { day: 'numeric', month: 'short', year: 'numeric' }
@@ -85,7 +85,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
         </div>
 
         {/* Like, Comment, Share - Stick to Bottom */}
-        <InteractionButtons className='border-t border-gray-700 mt-auto' />
+        <InteractionButtons className='border-t border-gray-700 mt-auto' title={title} tag={tag} description={description} showAlert={showAlert} />
       </div>
 
       {/* Read More Modal */}
