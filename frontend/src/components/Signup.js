@@ -13,6 +13,7 @@ const Signup = (props) => {
     otp: ''
   })
   const [otpSent, setOtpSent] = useState(false)
+  const [step, setStep] = useState(1) // Step 1: Collect details, Step 2: Validate OTP
   const hostLink = process.env.REACT_APP_HOSTLINK
   const location = useLocation()
 
@@ -20,7 +21,7 @@ const Signup = (props) => {
     const storedToken = localStorage.getItem('token')
     if (storedToken) {
       navigate('/')
-      return;
+      return
     }
 
     const params = new URLSearchParams(location.search)
@@ -36,7 +37,7 @@ const Signup = (props) => {
 
   const logInWithGoogle = () => {
     window.open(`${hostLink}/auth/google`, '_self')
-  };
+  }
 
   const handleGenerateOtp = async () => {
     const response = await fetch(`${hostLink}/api/auth/generateotp`, {
@@ -50,6 +51,7 @@ const Signup = (props) => {
     if (json.success) {
       setOtpSent(true)
       props.showAlert('OTP sent to your email', '#D4EDDA')
+      setStep(2) // Move to the next step
     } else {
       props.showAlert('Failed to send OTP', '#F8D7DA')
     }
@@ -76,19 +78,19 @@ const Signup = (props) => {
 
   const onChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value })
-  };
+  }
 
   return (
-    <>
-      <div className='flex min-h-full flex-1 flex-col justify-center px-6 lg:px-8'>
-        <div className='sm:mx-auto sm:w-full mt-24 sm:max-w-sm'>
-          <h2 className='mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white'>
-            Sign Up to new account
-          </h2>
-        </div>
+    <div className='flex min-h-full flex-1 flex-col justify-center px-6 lg:px-8'>
+      <div className='sm:mx-auto sm:w-full mt-16 md:mt-24 sm:max-w-sm'>
+        <h2 className='mt-8 text-center text-xl md:text-2xl font-bold leading-9 tracking-tight text-white'>
+          Sign Up to new account
+        </h2>
+      </div>
 
-        <div className='mt-10 sm:mx-auto sm:w-full sm:max-w-sm'>
-          <form className='space-y-2' onSubmit={handleSubmit}>
+      <div className='mt-4 md:mt-10 sm:mx-auto sm:w-full sm:max-w-sm'>
+        {step === 1 && (
+          <form className='space-y-1 md:space-y-2'>
             <div>
               <label
                 htmlFor='name'
@@ -96,7 +98,7 @@ const Signup = (props) => {
               >
                 Name
               </label>
-              <div className='mt-2'>
+              <div className='mt-1 md:mt-2'>
                 <input
                   id='name'
                   name='name'
@@ -118,7 +120,7 @@ const Signup = (props) => {
               >
                 Username
               </label>
-              <div className='mt-2'>
+              <div className='mt-1 md:mt-2'>
                 <input
                   id='username'
                   name='username'
@@ -140,7 +142,7 @@ const Signup = (props) => {
               >
                 Email
               </label>
-              <div className='mt-2'>
+              <div className='mt-1 md:mt-2'>
                 <input
                   id='email'
                   name='email'
@@ -162,7 +164,7 @@ const Signup = (props) => {
               >
                 Password
               </label>
-              <div className='mt-2'>
+              <div className='mt-1 md:mt-2'>
                 <input
                   id='password'
                   name='password'
@@ -184,7 +186,7 @@ const Signup = (props) => {
               >
                 Confirm Password
               </label>
-              <div className='mt-2'>
+              <div className='mt-1 md:mt-2'>
                 <input
                   id='cpassword'
                   name='cpassword'
@@ -199,6 +201,21 @@ const Signup = (props) => {
               </div>
             </div>
 
+            <div>
+              <button
+                type='button'
+                className='mt-3 flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
+                onClick={handleGenerateOtp}
+                disabled={otpSent}
+              >
+                {otpSent ? 'OTP Sent' : 'Generate OTP'}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {step === 2 && (
+          <form className='space-y-2' onSubmit={handleSubmit}>
             <div>
               <label
                 htmlFor='otp'
@@ -223,17 +240,6 @@ const Signup = (props) => {
 
             <div>
               <button
-                type='button'
-                className='flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
-                onClick={handleGenerateOtp}
-                disabled={otpSent}
-              >
-                {otpSent ? 'OTP Sent' : 'Generate OTP'}
-              </button>
-            </div>
-
-            <div>
-              <button
                 type='submit'
                 className='flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
               >
@@ -241,22 +247,22 @@ const Signup = (props) => {
               </button>
             </div>
           </form>
+        )}
 
-          <button className='mt-4 flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600' onClick={logInWithGoogle}>Sign Up with Google 🚀</button>
+        <button className='mt-4 flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600' onClick={logInWithGoogle}>Sign Up with Google 🚀</button>
 
-          <p className='mt-10 text-center text-sm text-gray-500'>
-            Already have an account?{' '}
-            <Link
-              to='/login'
-              className='font-semibold leading-6 text-indigo-600 hover:text-indigo-500'
-            >
-              Sign in
-            </Link>
-          </p>
-        </div>
+        <p className='mt-4 md:mt-10 text-center text-sm text-gray-500'>
+          Already have an account?{' '}
+          <Link
+            to='/login'
+            className='font-semibold leading-6 text-indigo-600 hover:text-indigo-500'
+          >
+            Sign in
+          </Link>
+        </p>
       </div>
-    </>
+    </div>
   )
-};
+}
 
 export default Signup

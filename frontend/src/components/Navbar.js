@@ -123,7 +123,7 @@ const Navbar = (props) => {
 
             {/* Profile Dropdown */}
             {isProfileOpen && (
-              <div className='absolute right-0 mt-2 w-36 bg-[#0000005e] rounded-lg shadow-md z-90'>
+              <div className='absolute right-0 mt-2 w-36 bg-[#0a1122] rounded-lg shadow-md z-90'>
                 <span
                   // to="/profile"
                   className='flex cursor-pointer items-center text-white hover:bg-[#28254a5e] px-4 py-2'

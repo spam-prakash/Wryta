@@ -18,7 +18,7 @@ const Login = (props) => {
     const storedToken = localStorage.getItem('token')
     if (storedToken) {
       navigate('/') // Redirect to home page
-      return; // Exit early
+      return // Exit early
     }
 
     // Extract the token from the URL
@@ -40,7 +40,7 @@ const Login = (props) => {
 
   const logInWithGoogle = () => {
     window.open(`${hostLink}/auth/google`, '_self')
-  };
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -72,13 +72,13 @@ const Login = (props) => {
 
   const onChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value })
-  };
+  }
 
   return (
     <>
-      <div className='flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8'>
-        <div className='sm:mx-auto sm:w-full sm:max-w-sm mt-24'>
-          <h2 className='mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white'>
+      <div className='flex min-h-full flex-1 flex-col justify-center px-6 py-8 lg:px-8'>
+        <div className='sm:mx-auto sm:w-full sm:max-w-sm mt-16'>
+          <h2 className='mt-5 text-center text-xl md:text-2xl  font-bold leading-9 tracking-tight text-white'>
             Sign in to your account
           </h2>
         </div>
@@ -134,6 +134,38 @@ const Login = (props) => {
               </button>
             </div>
           </form>
+
+          <div className='flex flex-col text-center mt-4 gap-2 md:hidden'>
+            <Link
+              to='/request-reset-password'
+              className='text-sm font-semibold leading-6  text-white hover:text-red-400'
+            >
+              Forgot Password?
+            </Link>
+
+            <Link
+              to='/signup'
+              className='text-sm font-semibold leading-6 text-white hover:text-indigo-500'
+            >
+              Don't have an account? <span className='text-indigo-600 hover:text-indigo-500'>Sign Up</span>
+            </Link>
+          </div>
+
+          <div className='mt-4 justify-between hidden md:flex'>
+            <Link
+              to='/signup'
+              className='text-sm font-semibold leading-6 text-white hover:text-indigo-500'
+            >
+              Don't have an account? <span className='text-indigo-600 hover:text-indigo-500'>Sign Up</span>
+            </Link>
+            <Link
+              to='/request-reset-password'
+              className='text-sm font-semibold leading-6  text-white hover:text-red-400'
+            >
+              Forgot Password?
+            </Link>
+          </div>
+
           {/* GOOGLE SIGNIN */}
           <button
             className='mt-4 flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
@@ -141,25 +173,10 @@ const Login = (props) => {
           >
             Sign in with Google 🚀
           </button>
-
-          <div className='mt-4 flex justify-between'>
-            <Link
-              to='/signup'
-              className='text-sm font-semibold leading-6 text-indigo-600 hover:text-indigo-500'
-            >
-              Don't have an account? Sign Up
-            </Link>
-            <Link
-              to='/request-reset-password'
-              className='text-sm font-semibold leading-6 text-indigo-600 hover:text-indigo-500'
-            >
-              Forgot Password?
-            </Link>
-          </div>
         </div>
       </div>
     </>
   )
-};
+}
 
 export default Login

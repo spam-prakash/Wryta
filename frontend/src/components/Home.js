@@ -83,7 +83,7 @@ const Home = (props) => {
     return true
   })
 
-  console.log('Public Notes:', publicNotes)
+  // console.log('Public Notes:', publicNotes)
 
   return (
     <>
