@@ -8,6 +8,7 @@ const app = express()
 const userdb = require('./models/User')
 const passport = require('passport')
 const GoogleStrategy = require('passport-google-oauth2').Strategy
+const sendMail = require('./routes/mailer') // Import the mailer module
 
 // Dynamic Port for Production/Local
 const port = process.env.PORT || 8000
@@ -15,32 +16,29 @@ const port = process.env.PORT || 8000
 // Connect to MongoDB
 connectToMongo()
 
-
 // const liveLink=process.env.REACT_APP_LIVE_LINK
 // const clientID = process.env.REACT_APP_CLINTID
 // const clientSecret = process.env.REACT_APP_CLINT_SECRET
 const liveLink = process.env.REACT_APP_LIVE_LINK
 const JWT_SECRET = process.env.JWT_SECRET
-const hostLink=process.env.REACT_APP_HOSTLINK
+const hostLink = process.env.REACT_APP_HOSTLINK
 // console.log('Host Link:', hostLink) // Debugging
 
-
-const environment = process.env.NODE_ENV || 'development'; // Or however you determine environment
+const environment = process.env.NODE_ENV || 'development' // Or however you determine environment
 // console.log('Environment:', environment)
-let redirectURL = process.env.REDIRECT_URL || `/auth/google/callback`
+let redirectURL = process.env.REDIRECT_URL || '/auth/google/callback'
 // console.log('Redirect URL:', redirectURL)
 
 // let googleClientId;
 if (environment === 'production') {
-   clientID = process.env.REACT_APP_CLINTID_PRODUCTION;
-   clientSecret = process.env.REACT_APP_CLINT_SECRET_PRODUCTION;
-   redirectURL = `${hostLink}/auth/google/callback`
+  clientID = process.env.REACT_APP_CLINTID_PRODUCTION
+  clientSecret = process.env.REACT_APP_CLINT_SECRET_PRODUCTION
+  redirectURL = `${hostLink}/auth/google/callback`
 } else {
-   clientID = process.env.REACT_APP_CLINTID_DEVELOPMENT;
-   clientSecret = process.env.REACT_APP_CLINT_SECRET_DEVELOPMENT;
-    redirectURL = `/auth/google/callback`
+  clientID = process.env.REACT_APP_CLINTID_DEVELOPMENT
+  clientSecret = process.env.REACT_APP_CLINT_SECRET_DEVELOPMENT
+  redirectURL = '/auth/google/callback'
 }
-
 
 // Middleware for parsing JSON
 app.use(express.json())
@@ -55,7 +53,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions))
 
-
 app.options('*', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', 'https://inotebook-frontend-murex.vercel.app')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
@@ -63,7 +60,6 @@ app.options('*', (req, res) => {
   res.setHeader('Access-Control-Allow-Credentials', 'true')
   res.sendStatus(200)
 })
-
 
 app.use(passport.initialize()) // Initialize passport without session
 
@@ -89,10 +85,15 @@ passport.use(
             username: profile.emails[0].value.split('@')[0]
           })
           await user.save()
+
+          // Send welcome email
+          const subject = 'Welcome to iNotebook'
+          const text = `Hello ${user.name},\n\nThank you for signing up for iNotebook. We are excited to have you on board!\n\nBest regards,\nThe iNotebook Team`
+          const html = `<p>Hello ${user.name},</p><p>Thank you for signing up for iNotebook. We are excited to have you on board!</p><p>Best regards,<br>The iNotebook Team</p>`
+          await sendMail(user.email, subject, text, html)
         }
 
         // Generate JWT Token
-        // In your server.js or Google auth route
         const token = jwt.sign({
           user: {
             id: user._id,
@@ -103,6 +104,7 @@ passport.use(
         }, JWT_SECRET, {
           expiresIn: '7d'
         })
+
         // Attach user and token to done callback
         return done(null, { user, token })
       } catch (error) {
@@ -126,15 +128,14 @@ app.get('/auth/google/callback',
 
     // Send JWT token to frontend
     res.redirect(`${liveLink}/login-success?token=${req.user.token}`) // Change this to frontend URL
-    // console.log(`Redirecting to: ${liveLink}/login-success?token=${req.user.token}`)
+    // console.log(`Redirecting to: ${liveLink}/login-success?token=${req.user.token}`);
   }
 )
 
 // Available Routes
 app.use('/api/auth', require('./routes/auth'))
 app.use('/api/notes', require('./routes/notes'))
-app.use("/api/user", require("./routes/user")); // Ensure this line exists
-
+app.use('/api/user', require('./routes/user')) // Ensure this line exists
 
 // Test Route (Optional)
 app.get('/', (req, res) => {

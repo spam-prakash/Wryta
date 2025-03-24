@@ -9,72 +9,74 @@ const Signup = (props) => {
     password: '',
     cpassword: '',
     name: '',
-    email: ''
+    email: '',
+    otp: ''
   })
-  // const hostLink = 'http://localhost:8000'
-  // const hostLink = 'https://inotebook-backend-opal.vercel.app'
+  const [otpSent, setOtpSent] = useState(false)
   const hostLink = process.env.REACT_APP_HOSTLINK
   const location = useLocation()
 
   useEffect(() => {
-    // Check if the token is already in localStorage
     const storedToken = localStorage.getItem('token')
     if (storedToken) {
-      console.log('Token already stored in localStorage:', storedToken)
-      navigate('/') // Redirect to home page
-      return // Exit early
+      navigate('/')
+      return;
     }
 
-    // Extract the token from the URL
     const params = new URLSearchParams(location.search)
     const token = params.get('token')
-    console.log('Query String:', location.search) // Debugging
-    console.log('Token:', token) // Debugging
 
     if (token) {
-      // Set the token in local storage
       localStorage.setItem('token', token)
-      console.log('Token stored in localStorage:', localStorage.getItem('token')) // Debugging
-
-      // Clear the token from the URL to prevent duplicate processing
       const cleanUrl = window.location.origin + window.location.pathname
       window.history.replaceState({}, document.title, cleanUrl)
-
-      // Redirect to the desired page
       navigate('/')
-    } else {
-      console.log('No token found')
     }
-  }, [location.search, navigate]) // Only depend on location.search and navigate
+  }, [location.search, navigate])
 
   const logInWithGoogle = () => {
     window.open(`${hostLink}/auth/google`, '_self')
+  };
+
+  const handleGenerateOtp = async () => {
+    const response = await fetch(`${hostLink}/api/auth/generateotp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email: credentials.email })
+    })
+    const json = await response.json()
+    if (json.success) {
+      setOtpSent(true)
+      props.showAlert('OTP sent to your email', '#D4EDDA')
+    } else {
+      props.showAlert('Failed to send OTP', '#F8D7DA')
+    }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const { name, username, email, password } = credentials
+    const { name, username, email, password, otp } = credentials
     const response = await fetch(`${hostLink}/api/auth/createuser`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ name, username, email, password })
+      body: JSON.stringify({ name, username, email, password, otp })
     })
     const json = await response.json()
-    // console.log(json);
     if (json.success) {
-      // localStorage.setItem('token', json.authToken) // Store the authToken in local storage
       props.showAlert('New Account Created Successfully', '#D4EDDA')
-      navigate('/login') // Redirect to login page
+      navigate('/login')
     } else {
-      props.showAlert('Username or email already exists', '#F8D7DA')
+      props.showAlert(json.error || 'Signup failed', '#F8D7DA')
     }
   }
 
   const onChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value })
-  }
+  };
 
   return (
     <>
@@ -99,7 +101,7 @@ const Signup = (props) => {
                   id='name'
                   name='name'
                   type='text'
-                  autoComplete='email'
+                  autoComplete='name'
                   required
                   value={credentials.name}
                   placeholder='Enter your Name here'
@@ -121,7 +123,7 @@ const Signup = (props) => {
                   id='username'
                   name='username'
                   type='text'
-                  autoComplete='email'
+                  autoComplete='username'
                   required
                   value={credentials.username}
                   placeholder='Enter your username here'
@@ -133,7 +135,7 @@ const Signup = (props) => {
 
             <div>
               <label
-                htmlFor='username'
+                htmlFor='email'
                 className='block text-sm font-medium leading-6 text-white'
               >
                 Email
@@ -154,14 +156,12 @@ const Signup = (props) => {
             </div>
 
             <div>
-              <div className='flex items-center justify-between'>
-                <label
-                  htmlFor='password'
-                  className='block text-sm font-medium leading-6 text-white'
-                >
-                  Password
-                </label>
-              </div>
+              <label
+                htmlFor='password'
+                className='block text-sm font-medium leading-6 text-white'
+              >
+                Password
+              </label>
               <div className='mt-2'>
                 <input
                   id='password'
@@ -178,14 +178,12 @@ const Signup = (props) => {
             </div>
 
             <div>
-              <div className='flex items-center justify-between'>
-                <label
-                  htmlFor='password'
-                  className='block text-sm font-medium leading-6 text-white'
-                >
-                  Confirm Password
-                </label>
-              </div>
+              <label
+                htmlFor='cpassword'
+                className='block text-sm font-medium leading-6 text-white'
+              >
+                Confirm Password
+              </label>
               <div className='mt-2'>
                 <input
                   id='cpassword'
@@ -202,6 +200,39 @@ const Signup = (props) => {
             </div>
 
             <div>
+              <label
+                htmlFor='otp'
+                className='block text-sm font-medium leading-6 text-white'
+              >
+                OTP
+              </label>
+              <div className='mt-2'>
+                <input
+                  id='otp'
+                  name='otp'
+                  type='text'
+                  autoComplete='one-time-code'
+                  required
+                  value={credentials.otp}
+                  placeholder='Enter the OTP sent to your email'
+                  className='block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
+                  onChange={onChange}
+                />
+              </div>
+            </div>
+
+            <div>
+              <button
+                type='button'
+                className='flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
+                onClick={handleGenerateOtp}
+                disabled={otpSent}
+              >
+                {otpSent ? 'OTP Sent' : 'Generate OTP'}
+              </button>
+            </div>
+
+            <div>
               <button
                 type='submit'
                 className='flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
@@ -211,22 +242,21 @@ const Signup = (props) => {
             </div>
           </form>
 
-          {/* GOOGLE SIGNIN */}
-          <button className='mt-4 flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600' onClick={() => logInWithGoogle()}>Sign Up with Google 🚀</button>
+          <button className='mt-4 flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600' onClick={logInWithGoogle}>Sign Up with Google 🚀</button>
 
           <p className='mt-10 text-center text-sm text-gray-500'>
-            Already have a account?{' '}
+            Already have an account?{' '}
             <Link
               to='/login'
               className='font-semibold leading-6 text-indigo-600 hover:text-indigo-500'
             >
-              Signin
+              Sign in
             </Link>
           </p>
         </div>
       </div>
     </>
   )
-}
+};
 
 export default Signup
