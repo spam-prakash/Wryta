@@ -178,7 +178,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
       {/* Edit Profile Modal */}
       <div
         ref={editProfileModalRef}
-        className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-10'
+        className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-10 p-4 sm:p-0'
       >
         <div className='bg-[#1E293B] rounded-lg p-6 w-full max-w-md'>
           <h2 className='text-xl font-bold mb-4 text-white'>Edit Profile</h2>
@@ -268,7 +268,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
                 setEditProfileData({ username: user.username, name: user.name })
                 toggleEditProfileModal()
               }}
-              className='ml-4 p-2 bg-gray-800 rounded-full hover:bg-gray-700 focus:outline-none'
+              className='ml-4 p-2 bg-gray-800 rounded-full hover:bg-gray-700 focus:outline-none sm:ml-0 sm:mt-4'
             >
               <Edit3 size={24} />
             </button>
@@ -304,22 +304,22 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
                 loggedInUser?.username === username
                   ? (
                     <NoteItem
-    key={note._id}
-    note={note}
-    updateNote={updateNote}
-    showAlert={showAlert}
-  />
+                      key={note._id}
+                      note={note}
+                      updateNote={updateNote}
+                      showAlert={showAlert}
+                    />
                     )
                   : (
                     <OtherProfileNoteItem
-    key={note._id}
-    title={note.title}
-    description={note.description}
-    date={note.date}
-    modifiedDate={note.modifiedDate}
-    tag={note.tag}
-    showAlert={showAlert}
-  />
+                      key={note._id}
+                      title={note.title}
+                      description={note.description}
+                      date={note.date}
+                      modifiedDate={note.modifiedDate}
+                      tag={note.tag}
+                      showAlert={showAlert}
+                    />
                     )
               )
             )
