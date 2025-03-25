@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useEffect, useState, useContext, useRef } from 'react'
 import defaultUser from '../assets/user.png' // Default user image
 import OtherProfileNoteItem from './OtherProfileNoteItem'
@@ -6,22 +6,29 @@ import noteContext from '../context/notes/NoteContext'
 import NoteItem from './NoteItem'
 import NoteUpdateModal from './NoteUpdateModal'
 import Addnote from './Addnote'
-import { Plus } from 'lucide-react'
+import { Plus, Edit3 } from 'lucide-react'
 
 const OthersProfile = ({ loggedInUser, showAlert }) => {
   const { notes, getNotes, editNote } = useContext(noteContext)
-  const { username } = useParams()
+  const { username: initialUsername } = useParams()
+  const navigate = useNavigate()
+  const [username, setUsername] = useState(initialUsername)
   const [user, setUser] = useState(null)
   const [error, setError] = useState(null)
   const [sortCriteria, setSortCriteria] = useState('modifiedDate')
   const [sortOrder, setSortOrder] = useState('desc')
   const hostLink = process.env.REACT_APP_HOSTLINK
-  // showAlert('Note Successfully copied!', '#D4EDDA')
 
   const modalRef = useRef(null)
   const [currentNote, setCurrentNote] = useState(null)
 
   const addNoteModalRef = useRef(null)
+  const editProfileModalRef = useRef(null)
+
+  const [editProfileData, setEditProfileData] = useState({
+    username: '',
+    name: ''
+  })
 
   const toggleAddNoteModal = () => {
     if (addNoteModalRef.current) {
@@ -29,24 +36,30 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     }
   }
 
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const response = await fetch(`${hostLink}/api/user/${username}`)
-        const data = await response.json()
-
-        if (response.ok) {
-          setUser(data)
-        } else {
-          setError('User not found')
-        }
-      } catch (error) {
-        setError('An error occurred while fetching the user profile.')
-      }
+  const toggleEditProfileModal = () => {
+    if (editProfileModalRef.current) {
+      editProfileModalRef.current.classList.toggle('hidden')
     }
+  }
 
+  const fetchUserProfile = async (usernameToFetch) => {
+    try {
+      const response = await fetch(`${hostLink}/api/user/${usernameToFetch}`)
+      const data = await response.json()
+
+      if (response.ok) {
+        setUser(data)
+      } else {
+        setError('User not found')
+      }
+    } catch (error) {
+      setError('An error occurred while fetching the user profile.')
+    }
+  }
+
+  useEffect(() => {
     if (username) {
-      fetchUserProfile()
+      fetchUserProfile(username)
     }
   }, [username])
 
@@ -82,9 +95,8 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   }
 
   // If the logged-in user is viewing their own profile, include private notes
-  const notesToDisplay = loggedInUser?.username === username
-    ? notes
-    : user.publicNotes
+  const notesToDisplay =
+    loggedInUser?.username === username ? notes : user.publicNotes || []
 
   // Sort the notes based on the selected criteria and order
   const sortedNotesToDisplay = notesToDisplay.sort((a, b) => {
@@ -100,6 +112,42 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   const updateNote = (note) => {
     setCurrentNote(note)
     toggleModal()
+  }
+
+  const handleEditProfileChange = (e) => {
+    setEditProfileData({ ...editProfileData, [e.target.name]: e.target.value })
+  }
+
+  const handleEditProfileSubmit = async (e) => {
+    e.preventDefault()
+    const updatedData = {
+      username: editProfileData.username || user.username,
+      name: editProfileData.name || user.name
+    }
+
+    const response = await fetch(`${hostLink}/api/auth/updateprofile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'auth-token': localStorage.getItem('token')
+      },
+      body: JSON.stringify(updatedData)
+    })
+    const json = await response.json()
+    console.log(json)
+    if (json.success) {
+      setUser(json.user)
+      toggleEditProfileModal()
+      if (updatedData.username !== user.username) {
+        setUsername(updatedData.username)
+        navigate(`/${updatedData.username}`)
+        // fetchUserProfile(updatedData.username)
+        window.location.reload()
+        showAlert('Profile updated successfully', '#D4EDDA')
+      }
+    } else {
+      showAlert('Failed to update profile', '#F8D7DA')
+    }
   }
 
   // Category & Tag Data
@@ -127,6 +175,65 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
         toggleModal={toggleModal}
       />
 
+      {/* Edit Profile Modal */}
+      <div
+        ref={editProfileModalRef}
+        className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-10'
+      >
+        <div className='bg-[#1E293B] rounded-lg p-6 w-full max-w-md'>
+          <h2 className='text-xl font-bold mb-4 text-white'>Edit Profile</h2>
+          <form onSubmit={handleEditProfileSubmit}>
+            <div className='mb-4'>
+              <label
+                htmlFor='username'
+                className='block text-sm font-medium text-gray-300'
+              >
+                Username
+              </label>
+              <input
+                id='username'
+                name='username'
+                type='text'
+                value={editProfileData.username}
+                onChange={handleEditProfileChange}
+                className='mt-1 block w-full rounded-md border-gray-600 bg-[#374151] text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+              />
+            </div>
+            <div className='mb-4'>
+              <label
+                htmlFor='name'
+                className='block text-sm font-medium text-gray-300'
+              >
+                Name
+              </label>
+              <input
+                id='name'
+                name='name'
+                type='text'
+                value={editProfileData.name}
+                onChange={handleEditProfileChange}
+                className='mt-1 block w-full rounded-md border-gray-600 bg-[#374151] text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm'
+              />
+            </div>
+            <div className='flex justify-end'>
+              <button
+                type='button'
+                onClick={toggleEditProfileModal}
+                className='mr-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700'
+              >
+                Cancel
+              </button>
+              <button
+                type='submit'
+                className='px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700'
+              >
+                Save
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
       <div className='flex flex-col items-center text-white px-4'>
         {/* Profile Section */}
         <div className='flex flex-col md:flex-row items-center w-full max-w-2xl py-6 mt-20'>
@@ -153,6 +260,19 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
               <p className='text-gray-400 text-sm'>Public Notes</p>
             </div>
           </div>
+
+          {/* Edit Icon */}
+          {loggedInUser?.username === username && (
+            <button
+              onClick={() => {
+                setEditProfileData({ username: user.username, name: user.name })
+                toggleEditProfileModal()
+              }}
+              className='ml-4 p-2 bg-gray-800 rounded-full hover:bg-gray-700 focus:outline-none'
+            >
+              <Edit3 size={24} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -180,28 +300,28 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
       <div className='w-full flex flex-wrap text-white gap-3 mt-4'>
         {sortedNotesToDisplay.length > 0
           ? (
-              sortedNotesToDisplay.map((note) => (
+              sortedNotesToDisplay.map((note) =>
                 loggedInUser?.username === username
                   ? (
                     <NoteItem
-                      key={note._id}
-                      note={note}
-                      updateNote={updateNote}
-                      showAlert={showAlert}
-                    />
+    key={note._id}
+    note={note}
+    updateNote={updateNote}
+    showAlert={showAlert}
+  />
                     )
                   : (
                     <OtherProfileNoteItem
-                      key={note._id}
-                      title={note.title}
-                      description={note.description}
-                      date={note.date}
-                      modifiedDate={note.modifiedDate}
-                      tag={note.tag}
-                      showAlert={showAlert}
-                    />
+    key={note._id}
+    title={note.title}
+    description={note.description}
+    date={note.date}
+    modifiedDate={note.modifiedDate}
+    tag={note.tag}
+    showAlert={showAlert}
+  />
                     )
-              ))
+              )
             )
           : (
             <p className='text-center text-gray-400'>No notes available.</p>

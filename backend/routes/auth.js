@@ -235,4 +235,32 @@ router.post('/reset-password', [
   }
 })
 
+// ROUTE: Update User Profile
+router.put('/updateprofile', fetchuser, [
+  body('username', 'Enter a valid username').isLength({ min: 5 }),
+  body('name', 'Enter a valid name').isLength({ min: 5 })
+], async (req, res) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() })
+  }
+
+  const { username, name } = req.body
+  try {
+    const user = await User.findById(req.user.id)
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    user.username = username
+    user.name = name
+    await user.save()
+
+    res.json({ success: true, user })
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Internal Server Error')
+  }
+})
+
 module.exports = router
