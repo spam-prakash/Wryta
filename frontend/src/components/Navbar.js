@@ -5,23 +5,29 @@ import defaultUserIcon from '../assets/user.png'
 import notebook from '../assets/notes.png'
 
 const Navbar = (props) => {
-  // const {image}=props.user|| defaultUserIcon;
-  const image = props.user?.image || defaultUserIcon
-  // console.log(defaultUserIcon)
+  const [image, setImage] = useState(defaultUserIcon) // Initialize with default image
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const profileRef = useRef(null)
   const user = props.user
-  // console.log(user)
+
+  // Update the image whenever `props.user` changes
+  useEffect(() => {
+    if (user && user.image) {
+      setImage(user.image + `?t=${new Date().getTime()}`) // ✅ Add timestamp to force reload
+    } else {
+      setImage(defaultUserIcon)
+    }
+  }, [user?.image]) // ✅ Track changes in `user.image`
 
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     navigate('/login')
-    props.showAlert('Logged Out !', '#D4EDDA')
+    props.showAlert('Logged Out!', '#D4EDDA')
     setIsProfileOpen(false)
-    props.setIsAuthenticated(false) // Reset authentication stateconst handleLogout = () => {
+    props.setIsAuthenticated(false) // Reset authentication state
     props.setUser(null) // Reset user state
   }
 
@@ -46,14 +52,11 @@ const Navbar = (props) => {
   const handleProfileClick = () => {
     if (user && user.username) {
       navigate(`/${user.username}`)
-    } else {
-      // showAlert('User not logged in!', 'danger');
-      // navigate('/login');
+      window.location.reload() // Force reload to ensure the profile page updates
     }
   }
 
   const isLoggedIn = !!localStorage.getItem('token')
-  // const userImgURL = "/path-to-user-image.jpg"; // Replace with actual image URL
 
   return (
     <nav className='z-30 flex bg-black py-3 justify-between fixed w-full items-center px-4 md:px-8'>
@@ -125,9 +128,11 @@ const Navbar = (props) => {
             {isProfileOpen && (
               <div className='absolute right-0 mt-2 w-36 bg-[#0a1122] rounded-lg shadow-md z-90'>
                 <span
-                  // to="/profile"
                   className='flex cursor-pointer items-center text-white hover:bg-[#28254a5e] px-4 py-2'
-                  onClick={() => { setIsProfileOpen(false); handleProfileClick() }}
+                  onClick={() => {
+                    setIsProfileOpen(false)
+                    handleProfileClick()
+                  }}
                 >
                   <FiUser className='mr-2' />
                   <span className=''>My Profile</span>

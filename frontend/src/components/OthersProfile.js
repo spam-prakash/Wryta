@@ -11,7 +11,6 @@ import { Plus, Edit3 } from 'lucide-react'
 const OthersProfile = ({ loggedInUser, showAlert }) => {
   const { notes, getNotes, editNote } = useContext(noteContext)
   const { username: initialUsername } = useParams()
-  const navigate = useNavigate()
   const [username, setUsername] = useState(initialUsername)
   const [user, setUser] = useState(null)
   const [error, setError] = useState(null)
@@ -24,6 +23,34 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
 
   const addNoteModalRef = useRef(null)
   const editProfileModalRef = useRef(null)
+
+  const navigate = useNavigate()
+  const location = window.location
+
+  useEffect(() => {
+    // Check if the token is already in localStorage
+    const storedToken = localStorage.getItem('token')
+    if (!storedToken) {
+      navigate('/login') // Redirect to home page
+      return // Exit early
+    }
+
+    // Extract the token from the URL
+    const params = new URLSearchParams(location.search)
+    const token = params.get('token')
+
+    if (token) {
+      // Set the token in local storage
+      localStorage.setItem('token', token)
+
+      // Clear the token from the URL to prevent duplicate processing
+      const cleanUrl = window.location.origin + window.location.pathname
+      window.history.replaceState({}, document.title, cleanUrl)
+
+      // Redirect to the desired page
+      navigate('/')
+    }
+  }, [location.search, navigate])
 
   const [editProfileData, setEditProfileData] = useState({
     username: '',

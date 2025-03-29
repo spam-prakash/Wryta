@@ -61,8 +61,10 @@ const Login = (props) => {
       localStorage.setItem('token', json.authToken)
       props.setUser({
         email: json.email,
-        name: json.name
+        name: json.name,
+        image: json.image || ''
       })
+      // console.log(json)
       navigate('/')
       props.showAlert('Logged in successfully!', '#D4EDDA')
     } else {

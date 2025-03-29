@@ -145,7 +145,7 @@ router.post('/login', [
     }
 
     const authToken = jwt.sign(data, JWT_SECRET)
-    res.json({ success: true, authToken, email: user.email, name: user.name })
+    res.json({ success: true, authToken, email: user.email, name: user.name, image: user.image })
   } catch (error) {
     console.error(error.message)
     res.status(500).send('Internal Server Error')

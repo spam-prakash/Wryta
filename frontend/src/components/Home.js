@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react'
 import HomeNoteItem from './HomeNoteItem'
 import Addnote from './Addnote'
 import { Plus } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 const Home = (props) => {
   const [publicNotes, setPublicNotes] = useState([])
@@ -14,10 +15,38 @@ const Home = (props) => {
   const addNoteModalRef = useRef(null)
   const observer = useRef()
 
+  const navigate = useNavigate()
+  const location = window.location
+
   useEffect(() => {
     document.title = 'iNotebook - Your notes secured in the cloud'
     fetchPublicNotes(page)
   }, [page])
+
+  useEffect(() => {
+    // Check if the token is already in localStorage
+    const storedToken = localStorage.getItem('token')
+    if (!storedToken) {
+      navigate('/login') // Redirect to home page
+      return // Exit early
+    }
+
+    // Extract the token from the URL
+    const params = new URLSearchParams(location.search)
+    const token = params.get('token')
+
+    if (token) {
+      // Set the token in local storage
+      localStorage.setItem('token', token)
+
+      // Clear the token from the URL to prevent duplicate processing
+      const cleanUrl = window.location.origin + window.location.pathname
+      window.history.replaceState({}, document.title, cleanUrl)
+
+      // Redirect to the desired page
+      navigate('/')
+    }
+  }, [location.search, navigate])
 
   const fetchPublicNotes = async (page) => {
     setLoading(true)
