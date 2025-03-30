@@ -62,7 +62,8 @@ const Login = (props) => {
       props.setUser({
         email: json.email,
         name: json.name,
-        image: json.image || ''
+        image: json.image || '',
+        username: credentials.identifier
       })
       // console.log(json)
       navigate('/')

@@ -57,6 +57,7 @@ function App () {
       const data = await response.json()
       if (response.ok) {
         setUser(data)
+        // console.log('User details fetched:', data)
       } else {
         showAlert('Failed to fetch user details!', '#F8D7DA')
       }

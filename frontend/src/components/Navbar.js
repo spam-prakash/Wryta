@@ -11,11 +11,12 @@ const Navbar = (props) => {
   const location = useLocation()
   const profileRef = useRef(null)
   const user = props.user
+  console.log('user', user)
 
   // Update the image whenever `props.user` changes
   useEffect(() => {
     if (user && user.image) {
-      setImage(user.image + `?t=${new Date().getTime()}`) // ✅ Add timestamp to force reload
+      setImage(user.image) // ✅ Add timestamp to force reload
     } else {
       setImage(defaultUserIcon)
     }
@@ -48,7 +49,6 @@ const Navbar = (props) => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
-
   const handleProfileClick = () => {
     if (user && user.username) {
       navigate(`/${user.username}`)
