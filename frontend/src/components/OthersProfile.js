@@ -16,6 +16,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   const [error, setError] = useState(null)
   const [sortCriteria, setSortCriteria] = useState('modifiedDate')
   const [sortOrder, setSortOrder] = useState('desc')
+  const [filterText, setFilterText] = useState('') // State for filtering notes
   const hostLink = process.env.REACT_APP_HOSTLINK
 
   const modalRef = useRef(null)
@@ -125,8 +126,15 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   const notesToDisplay =
     loggedInUser?.username === username ? notes : user.publicNotes || []
 
+  // Filter notes based on the filter text
+  const filteredNotes = notesToDisplay.filter((note) =>
+    note.title.toLowerCase().includes(filterText.toLowerCase()) ||
+    note.description.toLowerCase().includes(filterText.toLowerCase()) ||
+    note.tag.toLowerCase().includes(filterText.toLowerCase())
+  )
+
   // Sort the notes based on the selected criteria and order
-  const sortedNotesToDisplay = notesToDisplay.sort((a, b) => {
+  const sortedNotesToDisplay = filteredNotes.sort((a, b) => {
     const dateA = new Date(a[sortCriteria] || a.date)
     const dateB = new Date(b[sortCriteria] || b.date)
     return sortOrder === 'old' ? dateA - dateB : dateB - dateA
@@ -321,6 +329,17 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
           <option value='new'>Newest</option>
           <option value='old'>Oldest</option>
         </select>
+      </div>
+
+      {/* Filter Input */}
+      <div className='flex justify-center mt-4'>
+        <input
+          type='text'
+          placeholder='Filter notes...'
+          value={filterText}
+          onChange={(e) => setFilterText(e.target.value)}
+          className='px-4 py-2 rounded-full border bg-[#1E293B] text-white border-gray-600 hover:border-white hover:bg-[#374151] w-full max-w-md'
+        />
       </div>
 
       {/* Notes Section */}
