@@ -145,10 +145,6 @@ router.put('/visibility/:id', fetchuser, async (req, res) => {
 // ROUTE 6: Get Public Notes (GET /api/notes/public)
 router.get('/public', async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1
-    const limit = parseInt(req.query.limit) || 10
-    const skip = (page - 1) * limit
-
     const publicNotes = await Note.aggregate([
       { $match: { isPublic: true } },
       {
@@ -159,8 +155,6 @@ router.get('/public', async (req, res) => {
         }
       },
       { $sort: { sortDate: -1, _id: -1 } }, // Sort by latest date and then by ID for consistency
-      { $skip: skip },
-      { $limit: limit },
       {
         $lookup: {
           from: 'users', // Collection name for users
@@ -178,16 +172,12 @@ router.get('/public', async (req, res) => {
       }
     ])
 
-    const totalNotes = await Note.countDocuments({ isPublic: true })
-    const hasMore = skip + limit < totalNotes
-
-    res.json({ notes: publicNotes, hasMore })
+    res.json({ notes: publicNotes })
   } catch (error) {
     console.error(error.message)
     res.status(500).send('Internal Server Error')
   }
 })
-
 
 // // ROUTE 7: Fetch note details along with the owner's info
 // // GET "/api/notes/noteowner/:id" - NO LOGIN REQUIRED (Because Public Notes exist)

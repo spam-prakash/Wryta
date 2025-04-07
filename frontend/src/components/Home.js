@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import HomeNoteItem from './HomeNoteItem'
 import Addnote from './Addnote'
 import Search from './Search' // Import the new Search component
@@ -7,28 +7,26 @@ import { useNavigate } from 'react-router-dom'
 
 const Home = (props) => {
   const [publicNotes, setPublicNotes] = useState([])
-  const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false)
   const [filterText, setFilterText] = useState('') // State for filtering notes
   const hostLink = process.env.REACT_APP_HOSTLINK
   const addNoteModalRef = useRef(null)
-  const observer = useRef()
 
   const navigate = useNavigate()
   const location = window.location
 
   useEffect(() => {
     document.title = 'iNotebook - Your notes secured in the cloud'
-    fetchPublicNotes(page)
-  }, [page])
+    fetchPublicNotes()
+  }, [])
 
   useEffect(() => {
     // Check if the token is already in localStorage
     const storedToken = localStorage.getItem('token')
     if (!storedToken) {
       navigate('/login') // Redirect to home page
-      return // Exit early
+      return; // Exit early
     }
 
     // Extract the token from the URL
@@ -48,10 +46,10 @@ const Home = (props) => {
     }
   }, [location.search, navigate])
 
-  const fetchPublicNotes = async (page) => {
+  const fetchPublicNotes = async () => {
     setLoading(true)
     try {
-      const response = await fetch(`${hostLink}/api/notes/public?page=${page}&limit=10`)
+      const response = await fetch(`${hostLink}/api/notes/public`)
       const data = await response.json()
 
       if (response.ok) {
@@ -61,13 +59,7 @@ const Home = (props) => {
           const dateB = new Date(b.modifiedDate || b.date)
           return dateB - dateA // Descending order
         })
-        setPublicNotes((prevNotes) => {
-          // Filter out any duplicate notes
-          const newNotes = sortedNotes.filter(
-            (note) => !prevNotes.some((prevNote) => prevNote._id === note._id)
-          )
-          return [...prevNotes, ...newNotes]
-        })
+        setPublicNotes(sortedNotes)
         setHasMore(data.hasMore)
       } else {
         props.showAlert('Failed to fetch public notes!', '#F8D7DA')
@@ -76,21 +68,7 @@ const Home = (props) => {
       props.showAlert('An error occurred while fetching public notes!', '#F8D7DA')
     }
     setLoading(false)
-  }
-
-  const lastNoteElementRef = useCallback(
-    (node) => {
-      if (loading) return
-      if (observer.current) observer.current.disconnect()
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          setPage((prevPage) => prevPage + 1)
-        }
-      })
-      if (node) observer.current.observe(node)
-    },
-    [loading, hasMore]
-  )
+  };
 
   const toggleAddNoteModal = () => {
     if (addNoteModalRef.current) {
@@ -122,46 +100,25 @@ const Home = (props) => {
 
         <div className='w-full flex flex-wrap text-white gap-3 mt-4'>
           {filteredNotes.length > 0
-            ? (
-                filteredNotes.map((note, index) => {
-                  if (filteredNotes.length === index + 1) {
-                    return (
-                      <div ref={lastNoteElementRef} key={note._id}>
-                        <HomeNoteItem
-                          key={note._id}
-                          title={note.title}
-                          description={note.description}
-                          date={note.date}
-                          modifiedDate={note.modifiedDate}
-                          tag={note.tag}
-                          name={note.userDetails.name}
-                          username={note.userDetails.username}
-                          image={note.userDetails.image}
-                          showAlert={props.showAlert}
-                        />
-                      </div>
-                    )
-                  } else {
-                    return (
-                      <HomeNoteItem
-                        key={note._id}
-                        title={note.title}
-                        description={note.description}
-                        date={note.date}
-                        modifiedDate={note.modifiedDate}
-                        tag={note.tag}
-                        name={note.userDetails.name}
-                        username={note.userDetails.username}
-                        image={note.userDetails.image}
-                        showAlert={props.showAlert}
-                      />
-                    )
-                  }
-                })
-              )
-            : (
-              <p className='text-center text-gray-400'>No public notes available.</p>
-              )}
+? (
+            filteredNotes.map((note) => (
+              <HomeNoteItem
+                key={note._id}
+                title={note.title}
+                description={note.description}
+                date={note.date}
+                modifiedDate={note.modifiedDate}
+                tag={note.tag}
+                name={note.userDetails.name}
+                username={note.userDetails.username}
+                image={note.userDetails.image}
+                showAlert={props.showAlert}
+              />
+            ))
+          )
+: (
+            <p className='text-center text-gray-400'>No public notes available.</p>
+          )}
         </div>
         {loading && <p className='text-center text-gray-400'>Loading...</p>}
       </div>
@@ -177,6 +134,6 @@ const Home = (props) => {
       )}
     </>
   )
-}
+};
 
 export default Home
