@@ -11,7 +11,7 @@ const Navbar = (props) => {
   const location = useLocation()
   const profileRef = useRef(null)
   const user = props.user
-  console.log('user', user)
+  // console.log('user', user)
 
   // Update the image whenever `props.user` changes
   useEffect(() => {
@@ -126,7 +126,7 @@ const Navbar = (props) => {
 
             {/* Profile Dropdown */}
             {isProfileOpen && (
-              <div className='absolute right-0 mt-2 w-36 bg-[#0a1122] rounded-lg shadow-md z-90'>
+              <div className='absolute right-0 mt-2 w-36 bg-[#0a1122] rounded-lg shadow-md z-100'>
                 <span
                   className='flex cursor-pointer items-center text-white hover:bg-[#28254a5e] px-4 py-2'
                   onClick={() => {

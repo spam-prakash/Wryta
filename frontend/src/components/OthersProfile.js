@@ -7,6 +7,7 @@ import NoteItem from './NoteItem'
 import NoteUpdateModal from './NoteUpdateModal'
 import Addnote from './Addnote'
 import { Plus, Edit3 } from 'lucide-react'
+import Search from './Search' // Import the Search component
 
 const OthersProfile = ({ loggedInUser, showAlert }) => {
   const { notes, getNotes, editNote } = useContext(noteContext)
@@ -332,7 +333,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
       </div>
 
       {/* Filter Input */}
-      <div className='flex justify-center mt-4'>
+      {/* <div className='flex justify-center mt-4'>
         <input
           type='text'
           placeholder='Filter notes...'
@@ -340,7 +341,10 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
           onChange={(e) => setFilterText(e.target.value)}
           className='px-4 py-2 rounded-full border bg-[#1E293B] text-white border-gray-600 hover:border-white hover:bg-[#374151] w-full max-w-md'
         />
-      </div>
+      </div> */}
+
+      {/* Integrate the Search component */}
+      <Search filterText={filterText} setFilterText={setFilterText} />
 
       {/* Notes Section */}
       <div className='w-full flex flex-wrap text-white gap-3 mt-4'>
