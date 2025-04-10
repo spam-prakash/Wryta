@@ -1,18 +1,40 @@
 import { useState } from 'react'
-import { Heart, MessageCircle, Share2, Copy } from 'lucide-react'
+import { Heart, Copy, Download } from 'lucide-react'
+import html2canvas from 'html2canvas'
 
-const InteractionButtons = ({ title, tag, description, showAlert }) => {
+const InteractionButtons = ({ title, tag, description, showAlert, cardRef }) => {
   const [liked, setLiked] = useState(false)
   const [copiedText, setCopiedText] = useState('')
-  const [copiedElement, setCopiedElement] = useState('')
 
-  const copyToClipboard = (element, text) => {
+  const copyToClipboard = () => {
     const textToCopy = `Title: ${title}\nTag: ${tag}\n\nDescription:\n${description}`
     navigator.clipboard.writeText(textToCopy)
-    setCopiedText(textToCopy) // Set state to show copied text
-    // setCopiedElement(element)
+    setCopiedText(textToCopy)
     showAlert('Note Successfully copied!', '#D4EDDA')
-    setTimeout(() => setCopiedText(''), 1500) // Clear message after 1.5 sec
+    setTimeout(() => setCopiedText(''), 1500)
+  }
+
+  const downloadCardAsImage = async () => {
+    try {
+      if (cardRef.current) {
+        const canvas = await html2canvas(cardRef.current, {
+          useCORS: true,
+          backgroundColor: '#0a1122', // Match your card's background
+          scale: 2
+        })
+        const dataURL = canvas.toDataURL('image/png')
+        const link = document.createElement('a')
+        link.href = dataURL
+        link.download = `${title || 'note'}.png`
+        link.click()
+        showAlert('Card downloaded successfully!', '#D4EDDA')
+      } else {
+        showAlert('Card reference is not available!', '#F8D7DA')
+      }
+    } catch (error) {
+      console.error('Error downloading card as image:', error)
+      showAlert('Failed to download card. Please try again.', '#F8D7DA')
+    }
   }
 
   return (
@@ -23,17 +45,14 @@ const InteractionButtons = ({ title, tag, description, showAlert }) => {
         <span className='text-sm'>{liked ? 'Liked' : 'Like'}</span>
       </button>
 
-      {/* Comment Button */}
-      <button className='flex items-center space-x-2'>
-        <MessageCircle />
-        <span className='text-sm'>Comment</span>
+      {/* Download Button */}
+      <button onClick={downloadCardAsImage} className='flex items-center space-x-2'>
+        <Download />
+        <span className='text-sm'>Download</span>
       </button>
 
-      {/* Share Button */}
-      <button
-        onClick={(e) => copyToClipboard(e.currentTarget, `Title: ${title}\nTag: ${tag}\nDescription: ${description}`)}
-        className='flex items-center space-x-2'
-      >
+      {/* Copy Button */}
+      <button onClick={copyToClipboard} className='flex items-center space-x-2'>
         <Copy />
         <span className='text-sm'>Copy</span>
       </button>

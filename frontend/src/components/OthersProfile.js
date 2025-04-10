@@ -108,7 +108,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
 
   if (error) return <p className='text-red-500'>{error}</p>
   if (!user) return <p>Loading...</p>
-
+  // console.log(user)
   const profilePic = user.profilePic || defaultUser
 
   const formatDate = (dateString) => {
@@ -194,6 +194,8 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     '🏡 Personal': ['Reading', 'Poem', 'Shayari', 'Thought'],
     '💰 Future': ['Budgeting', 'Future Plans', 'Goals']
   }
+
+  // console.log(sortedNotesToDisplay)
 
   return (
     <>
@@ -358,6 +360,8 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
                       note={note}
                       updateNote={updateNote}
                       showAlert={showAlert}
+                      image={profilePic}
+                      username={user.username}
                     />
                     )
                   : (
@@ -369,6 +373,8 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
                       modifiedDate={note.modifiedDate}
                       tag={note.tag}
                       showAlert={showAlert}
+                      image={profilePic}
+                      username={user.username}
                     />
                     )
               )

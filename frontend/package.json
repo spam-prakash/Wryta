@@ -16,6 +16,7 @@
     "env": "^0.0.2",
     "flowbite": "^2.4.1",
     "git-filter-repo": "^0.0.30",
+    "html2canvas": "^1.4.1",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.483.0",
     "mongodb": "^6.9.0",
@@ -53,6 +54,7 @@
     ]
   },
   "devDependencies": {
+    "@tailwindcss/line-clamp": "^0.4.4",
     "tailwindcss": "^3.4.4"
   },
   "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
