@@ -68,7 +68,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
         {/* Note Content */}
         <div className='p-4 flex-grow'>
           <h5 className='text-lg font-bold'>{title}</h5>
-          <span className='text-[#FDC116] font-medium text-sm'># {tag}</span>
+          {tag.length > 2 && <span className='text-[#FDC116] font-medium text-sm'># {tag}</span>}
           <div className='relative'>
             <p
               ref={contentRef}
@@ -134,7 +134,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
 
           <div className='p-4 flex-grow'>
             <h5 className='text-lg font-bold uppercase'>{title}</h5>
-            <span className='text-[#FDC116] font-medium text-sm'># {tag}</span>
+            {tag.length > 2 && <span className='text-[#FDC116] font-medium text-sm'># {tag}</span>}
             <p className='mb-0 mt-2 font-normal text-white whitespace-pre-wrap'>{description}</p>
           </div>
 

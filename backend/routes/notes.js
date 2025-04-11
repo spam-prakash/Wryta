@@ -17,7 +17,6 @@ router.get('/fetchallnotes', fetchuser, async (req, res) => {
 
 // ROUTE: 2 ADD A NEW NOTE POST:"/api/notes/addnote" LOGIN REQUIRED
 router.post('/addnote', [
-  body('title', 'Title must be at least 3 characters').isLength({ min: 3 }),
   body('description', 'Description must be at least 3 characters').isLength({ min: 3 })
 ], fetchuser, async (req, res) => {
   try {
@@ -52,7 +51,6 @@ router.post('/addnote', [
 
 // ROUTE: 3 UPDATE A NOTE PUT:"/api/notes/updatenote/:id" LOGIN REQUIRED
 router.put('/updatenote/:id', [
-  body('title', 'Title must be at least 3 characters').isLength({ min: 3 }),
   body('description', 'Description must be at least 3 characters').isLength({ min: 3 })
 ], fetchuser, async (req, res) => {
   const { title, description, tag } = req.body

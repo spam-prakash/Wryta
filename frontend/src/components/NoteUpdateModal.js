@@ -97,17 +97,13 @@ const NoteUpdateModal = ({ modalRef, currentNote, editNote, showAlert, toggleMod
           <button
             type='button'
             className={`bg-[#FFD252] hover:bg-[#FDC116] text-white font-bold py-2 px-4 rounded ${
-              note.etitle.length < 3 ||
-              note.edescription.length < 3 ||
-              note.etag.length < 1
+              note.edescription.length < 3
                 ? 'cursor-not-allowed opacity-50'
                 : ''
             }`}
             onClick={handleClick}
             disabled={
-              note.etitle.length < 3 ||
-              note.edescription.length < 3 ||
-              note.etag.length < 1
+              note.edescription.length < 3
             }
           >
             Edit Note

@@ -124,7 +124,7 @@ const NoteItem = (props) => {
 
         {/* Note Content */}
         <div className='p-4 flex-grow'>
-          <span className='text-[#FDC116] font-medium text-sm'># {note.tag}</span>
+          {note.tag.length > 2 && <span className='text-[#FDC116] font-medium text-sm'># {note.tag}</span>}
           <div className='relative'>
             <p ref={contentRef} className='mt-2 font-normal text-white whitespace-pre-wrap line-clamp-3 overflow-hidden'>
               {note.description}
@@ -233,7 +233,7 @@ const NoteItem = (props) => {
 
           <div className='p-4 flex-grow'>
             <h5 className='text-lg font-bold uppercase'>{note.title}</h5>
-            <span className='text-[#FDC116] font-medium text-sm'># {note.tag}</span>
+            {note.tag.length > 2 && <span className='text-[#FDC116] font-medium text-sm'># {note.tag}</span>}
             <p className='mb-0 mt-2 font-normal text-white whitespace-pre-wrap'>{note.description}</p>
           </div>
 

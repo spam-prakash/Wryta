@@ -120,12 +120,12 @@ const Addnote = ({ modalRef, showAlert, toggleModal }) => {
           <button
             type='button'
             className={`bg-[#FFD252] hover:bg-[#FDC116] text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${
-              note.title.length < 3 || note.description.length < 3 || note.tag.length < 1
+              note.description.length < 3
                 ? 'disabled cursor-not-allowed opacity-50'
                 : ''
             }`}
             onClick={handleClick}
-            disabled={note.title.length < 3 || note.description.length < 3 || note.tag.length < 1}
+            disabled={note.description.length < 3}
           >
             Add Note
           </button>
