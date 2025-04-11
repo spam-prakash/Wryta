@@ -1,26 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { FiUser, FiLogOut, FiHome, FiInfo, FiLogIn, FiUserPlus } from 'react-icons/fi' // Icons
-import defaultUserIcon from '../assets/user.png'
-import notebook from '../assets/notes.png'
+import defaultUserIcon from '../assets/user.png' // Default user icon
+import notebook from '../assets/notes.png' // Notebook logo
 
 const Navbar = (props) => {
-  const [image, setImage] = useState(defaultUserIcon) // Initialize with default image
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
   const profileRef = useRef(null)
+
   const user = props.user
-  // console.log('user', user)
+  const [image, setImage] = useState(
+    user?.image || `https://api.dicebear.com/7.x/adventurer/svg?seed=${user?.username || 'default'}`
+  ) // Initialize with user image or default avatar
 
   // Update the image whenever `props.user` changes
   useEffect(() => {
     if (user && user.image) {
-      setImage(user.image) // ✅ Add timestamp to force reload
+      setImage(user.image) // Use the user's image if available
     } else {
-      setImage(defaultUserIcon)
+      setImage(`https://api.dicebear.com/7.x/adventurer/svg?seed=${user?.username || 'default'}`) // Fallback to DiceBear avatar
     }
-  }, [user?.image]) // ✅ Track changes in `user.image`
+  }, [user])
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -49,6 +51,7 @@ const Navbar = (props) => {
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [])
+
   const handleProfileClick = () => {
     if (user && user.username) {
       navigate(`/${user.username}`)
@@ -122,6 +125,9 @@ const Navbar = (props) => {
               alt='User'
               className='w-10 h-10 rounded-full cursor-pointer'
               onClick={toggleProfileMenu}
+              onError={(e) => {
+                e.target.src = defaultUserIcon // Fallback to default image if the user's image fails to load
+              }}
             />
 
             {/* Profile Dropdown */}

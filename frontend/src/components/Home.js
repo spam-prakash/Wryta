@@ -26,7 +26,7 @@ const Home = (props) => {
     const storedToken = localStorage.getItem('token')
     if (!storedToken) {
       navigate('/login') // Redirect to home page
-      return; // Exit early
+      return // Exit early
     }
 
     // Extract the token from the URL
@@ -68,7 +68,7 @@ const Home = (props) => {
       props.showAlert('An error occurred while fetching public notes!', '#F8D7DA')
     }
     setLoading(false)
-  };
+  }
 
   const toggleAddNoteModal = () => {
     if (addNoteModalRef.current) {
@@ -100,25 +100,25 @@ const Home = (props) => {
 
         <div className='w-full flex flex-wrap text-white gap-3 mt-4'>
           {filteredNotes.length > 0
-? (
-            filteredNotes.map((note) => (
-              <HomeNoteItem
-                key={note._id}
-                title={note.title}
-                description={note.description}
-                date={note.date}
-                modifiedDate={note.modifiedDate}
-                tag={note.tag}
-                name={note.userDetails.name}
-                username={note.userDetails.username}
-                image={note.userDetails.image}
-                showAlert={props.showAlert}
-              />
-            ))
-          )
-: (
-            <p className='text-center text-gray-400'>No public notes available.</p>
-          )}
+            ? (
+                filteredNotes.map((note) => (
+                <HomeNoteItem
+                  key={note._id}
+                  title={note.title}
+                  description={note.description}
+                  date={note.date}
+                  modifiedDate={note.modifiedDate}
+                  tag={note.tag}
+                  name={note.userDetails.name}
+                  username={note.userDetails.username}
+                  image={note.userDetails.image}
+                  showAlert={props.showAlert}
+                />
+                ))
+              )
+            : (
+              <p className='text-center text-gray-400'>No public notes available.</p>
+              )}
         </div>
         {loading && <p className='text-center text-gray-400'>Loading...</p>}
       </div>
@@ -134,6 +134,6 @@ const Home = (props) => {
       )}
     </>
   )
-};
+}
 
 export default Home

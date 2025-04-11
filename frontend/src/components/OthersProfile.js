@@ -109,7 +109,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   if (error) return <p className='text-red-500'>{error}</p>
   if (!user) return <p>Loading...</p>
   // console.log(user)
-  const profilePic = user.profilePic || defaultUser
+  const profilePic = user.profilePic || `https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A'
