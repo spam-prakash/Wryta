@@ -3,25 +3,31 @@ import deleteIcon from '../assets/delete.png'
 import editIcon from '../assets/edit.png'
 import noteContext from '../context/notes/NoteContext'
 import NoteModal from './NoteModal'
-import { Lock, LockOpen, X, Copy, Download } from 'lucide-react'
+import { Lock, LockOpen, X, Copy, Download, Share2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
+import InteractionButtons from './InteractionButtons'
 
 const NoteItem = (props) => {
-  // console.log(props.image)
   const { image, username } = props
   const { note, updateNote, showAlert } = props
+  console.log('note id', note._id)
   const context = useContext(noteContext)
   const { deleteNote, updateVisibility } = context
 
-  const formatDate = (dateString) => new Date(dateString).toLocaleDateString(undefined, {
-    day: 'numeric', month: 'short', year: 'numeric'
-  })
+  const formatDate = (dateString) =>
+    new Date(dateString).toLocaleDateString(undefined, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    })
 
-  const formatTime = (dateString) => new Date(dateString).toLocaleTimeString(undefined, {
-    hour: '2-digit', minute: '2-digit', hour12: false
-  })
+  const formatTime = (dateString) =>
+    new Date(dateString).toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    })
 
-  const [copiedText, setCopiedText] = useState('')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isVisibilityModalOpen, setIsVisibilityModalOpen] = useState(false)
   const [isOverflowing, setIsOverflowing] = useState(false)
@@ -35,9 +41,8 @@ const NoteItem = (props) => {
   const copyToClipboard = () => {
     const textToCopy = `Title: ${note.title}\nTag: ${note.tag}\n\nDescription:\n${note.description}`
     navigator.clipboard.writeText(textToCopy)
-    setCopiedText(textToCopy)
-    showAlert('Note Successfully copied!', '#D4EDDA')
-    setTimeout(() => setCopiedText(''), 1500)
+      .then(() => showAlert('Note successfully copied!', '#D4EDDA'))
+      .catch(() => showAlert('Failed to copy note.', '#F8D7DA'))
   }
 
   const handleImageDownload = () => {
@@ -46,7 +51,6 @@ const NoteItem = (props) => {
 
     const img = card.querySelector('img')
 
-    // If the image isn't loaded yet, wait for it
     if (img && !img.complete) {
       img.onload = () => captureCard()
       img.onerror = () => {
@@ -59,15 +63,39 @@ const NoteItem = (props) => {
   }
 
   const captureCard = () => {
-    html2canvas(hiddenCardRef.current, { useCORS: true, allowTaint: true }).then(canvas => {
-      const link = document.createElement('a')
-      link.download = `${note.title || 'note'}.png`
-      link.href = canvas.toDataURL('image/png')
-      link.click()
-      showAlert('Note downloaded as image!', '#D4EDDA')
-    }).catch(err => {
-      console.error('Image download error:', err)
-    })
+    html2canvas(hiddenCardRef.current, { useCORS: true, allowTaint: true })
+      .then((canvas) => {
+        const link = document.createElement('a')
+        link.download = `${note.title || 'note'}.png`
+        link.href = canvas.toDataURL('image/png')
+        link.click()
+        showAlert('Note downloaded as image!', '#D4EDDA')
+      })
+      .catch((err) => {
+        console.error('Image download error:', err)
+        showAlert('Failed to download note as image.', '#F8D7DA')
+      })
+  }
+
+  const shareNote = async () => {
+    const shareUrl = `${window.location.origin}/note/${note._id}`
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: note.title || 'Shared Note',
+          text: `Check out this note: ${note.title}`,
+          url: shareUrl
+        })
+        showAlert('Note shared successfully!', '#D4EDDA')
+      } else {
+        await navigator.clipboard.writeText(shareUrl)
+        showAlert('Note link copied to clipboard!', '#D4EDDA')
+      }
+    } catch (error) {
+      console.error('Error sharing note:', error)
+      showAlert('Failed to share note. Please try again.', '#F8D7DA')
+    }
   }
 
   const handleVisibilityChange = (newVisibility) => {
@@ -99,22 +127,24 @@ const NoteItem = (props) => {
 
   return (
     <>
-      {/* <img src={props.image} alt='' /> */}
-      <div
-        className='text-white w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 flex flex-col'
-      >
+      <div className='text-white w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 flex flex-col'>
         {/* Header: Title & Actions */}
         <div className='flex items-center justify-between px-4 py-3 border-b border-gray-700'>
           <h5 className='text-lg font-bold text-white truncate'>{note.title}</h5>
           <div className='flex gap-3'>
             <img
-              onClick={() => { deleteNote(note._id); showAlert('Note deleted!', '#D4EDDA') }}
+              onClick={() => {
+                deleteNote(note._id)
+                showAlert('Note deleted!', '#D4EDDA')
+              }}
               src={deleteIcon}
               className='size-6 cursor-pointer'
               alt='Delete'
             />
             <img
-              onClick={() => { updateNote(note) }}
+              onClick={() => {
+                updateNote(note)
+              }}
               src={editIcon}
               className='size-6 cursor-pointer'
               alt='Edit'
@@ -137,30 +167,52 @@ const NoteItem = (props) => {
           </div>
         </div>
 
-        {/* Footer: Timestamps & Visibility */}
-        <div className='px-4 pb-3 border-t border-gray-700 flex justify-between items-center'>
-          <div className='text-gray-400 text-xs'>
-            {note.modifiedDate && (
-              <p>Modified: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}</p>
-            )}
-            <p>Created: {formatDate(note.date)} at {formatTime(note.date)}</p>
-          </div>
-          <div className='flex gap-3 left-icons'>
-            <button onClick={copyToClipboard} className='flex items-center space-x-2'>
-              <Copy />
-            </button>
-            <button onClick={handleImageDownload} className='flex items-center space-x-2'>
-              <Download />
-            </button>
+        {/* Footer: Timestamps & Actions */}
+        <div className='px-2 pb-3 border-t border-gray-700 flex flex-col'>
+          <div className='text-gray-400 text-xs border-b border-gray-700 pb-2 flex justify-between items-center pt-2'>
+            <div>
+              {note.modifiedDate && (
+                <p>
+                  Modified: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}
+                </p>
+              )}
+              <p>
+                Created: {formatDate(note.date)} at {formatTime(note.date)}
+              </p>
+            </div>
             <button
               onClick={toggleVisibilityModal}
-              className={`text-xs p-2 rounded-full transition ${
+              className={`text-xs p-2 mr-3 rounded-full transition ${
                 note.isPublic ? 'bg-green-600' : 'bg-red-600'
               }`}
             >
               {note.isPublic ? <LockOpen size={18} /> : <Lock size={18} />}
             </button>
           </div>
+
+          {/* <div className='flex gap-3 left-icons '>
+            <button onClick={copyToClipboard} className='flex items-center space-x-2'>
+              <Copy />
+            </button>
+            <button onClick={handleImageDownload} className='flex items-center space-x-2'>
+              <Download />
+            </button>
+            <button onClick={shareNote} className='flex items-center space-x-2'>
+              <Share2 />
+            </button>
+
+          </div> */}
+
+          {/* Like, Download, Copy - Stick to Bottom */}
+          <InteractionButtons
+            className='border-t border-gray-700 mt-auto'
+            title={note.title}
+            tag={note.tag}
+            description={note.description}
+            showAlert={showAlert}
+            cardRef={hiddenCardRef}
+            noteId={note._id}
+          />
         </div>
       </div>
 
@@ -238,7 +290,9 @@ const NoteItem = (props) => {
           </div>
 
           <div className='text-gray-400 text-xs px-4 pb-3'>
-            <p>Created: {formatDate(note.date)} at {formatTime(note.date)}</p>
+            <p>
+              Created: {formatDate(note.date)} at {formatTime(note.date)}
+            </p>
           </div>
         </div>
       </div>
