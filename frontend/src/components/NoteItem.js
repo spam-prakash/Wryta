@@ -182,11 +182,9 @@ const NoteItem = (props) => {
             </div>
             <button
               onClick={toggleVisibilityModal}
-              className={`text-xs p-2 mr-3 rounded-full transition ${
-                note.isPublic ? 'bg-green-600' : 'bg-red-600'
-              }`}
+              className='text-xs p-2 mr-3 rounded-full transition '
             >
-              {note.isPublic ? <LockOpen size={18} /> : <Lock size={18} />}
+              {note.isPublic ? <LockOpen size={24} color='#00ff40' /> : <Lock size={24} color='red' />}
             </button>
           </div>
 
