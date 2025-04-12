@@ -35,38 +35,40 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
   }
 
   const shareNote = async () => {
-    if (!navigator.share) {
-      showAlert('Your browser does not support the Web Share API.')
-      return
-    }
+    const shareUrl = `${window.location.origin}/note/${noteId}`
+    showAlert('Note link copied to clipboard!', '#D4EDDA')
 
     try {
-      await navigator.share({
-        url: window.location.href
-      })
+      await navigator.clipboard.writeText(shareUrl)
+      console.log('Note link copied to clipboard!')
+
+      if (navigator.share) {
+        await navigator.share({
+          title: title || 'Shared Note',
+          text: `Check out this note: ${title}`,
+          url: shareUrl
+        })
+      } else {
+        showAlert('Your browser does not support the Web Share API.')
+      }
     } catch (error) {
       console.error('Error sharing:', error)
+      showAlert('Failed to share note. Please try again.', '#F8D7DA')
     }
   }
 
   return (
     <div className='flex items-center justify-between px-4 py-2 bottom-0 border-t border-gray-700'>
-      {/* Like Button */}
-      <button onClick={() => setLiked(!liked)} className='flex items-center space-x-2'>
-        {liked ? <Heart className='text-red-500 fill-red-500' /> : <Heart />}
-        <span className='text-sm'>{liked ? 'Liked' : 'Like'}</span>
+      {/* Copy Button */}
+      <button onClick={copyToClipboard} className='flex items-center space-x-2'>
+        <Copy />
+        <span className='text-sm'>Copy</span>
       </button>
 
       {/* Download Button */}
       <button onClick={downloadCardAsImage} className='flex items-center space-x-2'>
         <Download />
         <span className='text-sm'>Download</span>
-      </button>
-
-      {/* Copy Button */}
-      <button onClick={copyToClipboard} className='flex items-center space-x-2'>
-        <Copy />
-        <span className='text-sm'>Copy</span>
       </button>
 
       {/* Share Button */}
