@@ -102,18 +102,19 @@ const Home = (props) => {
           {filteredNotes.length > 0
             ? (
                 filteredNotes.map((note) => (
-                <HomeNoteItem
-                  key={note._id}
-                  title={note.title}
-                  description={note.description}
-                  date={note.date}
-                  modifiedDate={note.modifiedDate}
-                  tag={note.tag}
-                  name={note.userDetails.name}
-                  username={note.userDetails.username}
-                  image={note.userDetails.image}
-                  showAlert={props.showAlert}
-                />
+                  <HomeNoteItem
+                    key={note._id}
+                    noteId={note._id}
+                    title={note.title}
+                    description={note.description}
+                    date={note.date}
+                    modifiedDate={note.modifiedDate}
+                    tag={note.tag}
+                    name={note.userDetails.name}
+                    username={note.userDetails.username}
+                    image={note.userDetails.image}
+                    showAlert={props.showAlert}
+                  />
                 ))
               )
             : (

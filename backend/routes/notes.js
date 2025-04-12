@@ -177,40 +177,20 @@ router.get('/public', async (req, res) => {
   }
 })
 
-// // ROUTE 7: Fetch note details along with the owner's info
-// // GET "/api/notes/noteowner/:id" - NO LOGIN REQUIRED (Because Public Notes exist)
-// router.get('/noteowner/:id', async (req, res) => {
-//   try {
-//     const note = await Note.findById(req.params.id).populate('user', 'name email username')
+router.get('/note/:id', async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id).populate('user', '-password -tokens')
 
-//     if (!note) {
-//       return res.status(404).json({ error: 'Note not found' })
-//     }
+    if (!note) {
+      return res.status(404).json({ error: 'Note not found' })
+    }
 
-//     // Check if the note is private and the requester is not the owner
-//     if (!note.isPublic && (!req.user || note.user._id.toString() !== req.user?.id)) {
-//       return res.status(403).json({ error: 'Access denied. This note is private.' })
-//     }
-
-//     res.json({
-//       title: note.title,
-//       description: note.description,
-//       tag: note.tag,
-//       isPublic: note.isPublic,
-//       date: note.date,
-//       modifiedDate: note.modifiedDate,
-//       user: {
-//         id: note.user._id,
-//         name: note.user.name,
-//         email: note.user.email,
-//         username: note.user.username
-//       }
-//     })
-
-//   } catch (error) {
-//     console.error(error.message)
-//     res.status(500).send('Internal Server Error')
-//   }
-// })
+    // Return the note along with the user details
+    res.json(note)
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Internal Server Error')
+  }
+})
 
 module.exports = router

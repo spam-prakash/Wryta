@@ -1,17 +1,14 @@
 import { useState } from 'react'
-import { Heart, Copy, Download } from 'lucide-react'
+import { Heart, Copy, Download, Share2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
 
-const InteractionButtons = ({ title, tag, description, showAlert, cardRef }) => {
+const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteId }) => {
   const [liked, setLiked] = useState(false)
-  const [copiedText, setCopiedText] = useState('')
 
   const copyToClipboard = () => {
     const textToCopy = `Title: ${title}\nTag: ${tag}\n\nDescription:\n${description}`
     navigator.clipboard.writeText(textToCopy)
-    setCopiedText(textToCopy)
-    showAlert('Note Successfully copied!', '#D4EDDA')
-    setTimeout(() => setCopiedText(''), 1500)
+    showAlert('Note successfully copied!', '#D4EDDA')
   }
 
   const downloadCardAsImage = async () => {
@@ -37,6 +34,21 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef }) => 
     }
   }
 
+  const shareNote = async () => {
+    if (!navigator.share) {
+      showAlert('Your browser does not support the Web Share API.')
+      return
+    }
+
+    try {
+      await navigator.share({
+        url: window.location.href
+      })
+    } catch (error) {
+      console.error('Error sharing:', error)
+    }
+  }
+
   return (
     <div className='flex items-center justify-between px-4 py-2 bottom-0 border-t border-gray-700'>
       {/* Like Button */}
@@ -55,6 +67,12 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef }) => 
       <button onClick={copyToClipboard} className='flex items-center space-x-2'>
         <Copy />
         <span className='text-sm'>Copy</span>
+      </button>
+
+      {/* Share Button */}
+      <button onClick={shareNote} className='flex items-center space-x-2'>
+        <Share2 />
+        <span className='text-sm'>Share</span>
       </button>
     </div>
   )

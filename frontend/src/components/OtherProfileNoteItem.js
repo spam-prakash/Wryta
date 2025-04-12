@@ -10,6 +10,7 @@ const OtherProfileNoteItem = ({
   modifiedDate,
   username,
   image,
+  noteId,
   showAlert
 }) => {
   const formatDate = (dateString) => {
@@ -97,6 +98,7 @@ const OtherProfileNoteItem = ({
           description={description}
           showAlert={showAlert}
           cardRef={hiddenCardRef}
+          noteId={noteId}
         />
       </div>
 

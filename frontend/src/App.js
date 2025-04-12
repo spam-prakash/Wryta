@@ -12,6 +12,7 @@ import Profile from './components/Profile'
 import OthersProfile from './components/OthersProfile'
 import RequestResetPassword from './components/RequestResetPassword'
 import ResetPassword from './components/ResetPassword'
+import SharedNote from './components/SharedNote'
 
 // const hostLink = 'http://locahost:8000'
 // const hostLink = 'https://inotebook-backend-opal.vercel.app'
@@ -90,6 +91,7 @@ function App () {
               <Route path='/login-success' element={<Login />} />
               <Route path='/request-reset-password' element={<RequestResetPassword showAlert={showAlert} />} />
               <Route path='/reset-password' element={<ResetPassword showAlert={showAlert} />} />
+              <Route path='/note/:id' element={<SharedNote showAlert={showAlert} />} />
             </Routes>
           </div>
         </Router>

@@ -367,6 +367,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
                   : (
                     <OtherProfileNoteItem
                       key={note._id}
+                      noteId={note._id}
                       title={note.title}
                       description={note.description}
                       date={note.date}
