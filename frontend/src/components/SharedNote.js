@@ -23,6 +23,7 @@ const SharedNote = (props) => {
   if (!note) {
     return <p>Loading...</p>
   }
+  // console.log(note._id)
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A'
@@ -79,7 +80,7 @@ const SharedNote = (props) => {
           tag={note.tag}
           description={note.description}
           showAlert={props.showAlert}
-          noteId={note.noteId}
+          noteId={note._id}
         />
       </div>
     </div>

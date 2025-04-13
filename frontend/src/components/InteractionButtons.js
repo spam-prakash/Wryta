@@ -129,22 +129,36 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
 
   const shareNote = async () => {
     const shareUrl = `${window.location.origin}/note/${noteId}`
+    showAlert('Note link copied to clipboard!', '#D4EDDA')
+
     try {
+      await navigator.clipboard.writeText(shareUrl)
+      console.log('Note link copied to clipboard!')
+
       if (navigator.share) {
         await navigator.share({
           title: title || 'Shared Note',
           text: `Check out this note: ${title}`,
           url: shareUrl
         })
-        showAlert('Note shared successfully!', '#D4EDDA')
-        updateCount('share') // Update the share count
       } else {
-        await navigator.clipboard.writeText(shareUrl)
-        showAlert('Note link copied to clipboard!', '#D4EDDA')
-        updateCount('share') // Update the share count
+        showAlert('Your browser does not support the Web Share API.')
+      }
+      // Call the backend to update the share count and user's shared notes
+      const response = await fetch(`${hostLink}/api/notes/note/${noteId}/share`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'auth-token': localStorage.getItem('token')
+        }
+      })
+      if (response.ok) {
+        fetchCounts() // Refresh counts after the action
+      } else {
+        throw new Error('Failed to update share count')
       }
     } catch (error) {
-      console.error('Error sharing note:', error)
+      console.error('Error sharing:', error)
       showAlert('Failed to share note. Please try again.', '#F8D7DA')
     }
   }

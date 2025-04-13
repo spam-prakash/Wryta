@@ -246,7 +246,7 @@ router.post('/note/:id/share', fetchuser, async (req, res) => {
 
     res.json({ success: true, message: 'Note shared successfully' })
   } catch (error) {
-    console.error(error.message)
+    console.error('Error sharing note:', error.message)
     res.status(500).send('Internal Server Error')
   }
 })
