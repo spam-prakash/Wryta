@@ -1,14 +1,9 @@
 const mongoose = require('mongoose')
-const { Schema } = mongoose
 
-const NotesSchema = new Schema({
-  user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'user'
-  },
+const NoteSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: false
+    required: true
   },
   description: {
     type: String,
@@ -18,17 +13,34 @@ const NotesSchema = new Schema({
     type: String,
     default: 'General'
   },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
   date: {
     type: Date,
     default: Date.now
   },
-  modifiedDate: {
-    type: Date
-  }, 
-  isPublic: { 
-    type: Boolean, 
-    // default: false 
-  }, // Visibility Field
+  isPublic: {
+    type: Boolean,
+    default: false
+  },
+  likes: {
+    type: Number,
+    default: 0
+  },
+  shares: {
+    type: Number,
+    default: 0
+  },
+  copies: {
+    type: Number,
+    default: 0
+  },
+  downloads: {
+    type: Number,
+    default: 0
+  },
 })
 
-module.exports = mongoose.model('notes', NotesSchema)
+module.exports = mongoose.model('Note', NoteSchema)

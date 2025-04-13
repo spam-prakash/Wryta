@@ -1,14 +1,106 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Heart, Copy, Download, Share2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
 
 const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteId }) => {
   const [liked, setLiked] = useState(false)
+  const [counts, setCounts] = useState({ likes: 0, copies: 0, downloads: 0, shares: 0 })
+  const hostLink = process.env.REACT_APP_HOSTLINK
+
+  // Fetch counts and liked notes
+  const fetchCounts = async () => {
+    try {
+      const response = await fetch(`${hostLink}/api/notes/note/${noteId}/counts`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'auth-token': localStorage.getItem('token')
+        }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setCounts(data)
+      } else {
+        console.error('Failed to fetch counts')
+      }
+    } catch (error) {
+      console.error('Error fetching counts:', error)
+    }
+  }
+
+  const fetchLikedNotes = async () => {
+    try {
+      const response = await fetch(`${hostLink}/api/user/useraction/likednotes`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'auth-token': localStorage.getItem('token')
+        }
+      })
+      if (response.ok) {
+        const likedNotes = await response.json()
+        setLiked(likedNotes.some((note) => note._id === noteId)) // Check if the current note is liked
+      } else {
+        console.error('Failed to fetch liked notes')
+      }
+    } catch (error) {
+      console.error('Error fetching liked notes:', error)
+    }
+  }
+
+  useEffect(() => {
+    fetchLikedNotes() // Fetch liked notes to set the `liked` state
+    fetchCounts() // Fetch counts for the note
+  }, [noteId, hostLink])
+
+  const updateCount = async (action) => {
+    try {
+      const response = await fetch(`${hostLink}/api/notes/note/${noteId}/${action}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'auth-token': localStorage.getItem('token')
+        }
+      })
+      if (response.ok) {
+        fetchCounts() // Refresh counts after the action
+      } else {
+        throw new Error('Failed to update count')
+      }
+    } catch (error) {
+      console.error(`Error updating ${action} count:`, error)
+    }
+  }
+
+  const handleLike = async () => {
+    try {
+      const response = await fetch(`${hostLink}/api/notes/note/${noteId}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'auth-token': localStorage.getItem('token')
+        }
+      })
+      if (response.ok) {
+        const result = await response.json()
+        setLiked(result.message === 'Note liked') // Update the liked state based on the response
+        fetchCounts() // Refresh counts after liking/unliking
+      } else {
+        console.error('Failed to like/unlike note')
+      }
+    } catch (error) {
+      console.error('Error liking/unliking note:', error)
+    }
+  }
 
   const copyToClipboard = () => {
     const textToCopy = `Title: ${title}\nTag: ${tag}\n\nDescription:\n${description}`
     navigator.clipboard.writeText(textToCopy)
-    showAlert('Note successfully copied!', '#D4EDDA')
+      .then(() => {
+        showAlert('Note successfully copied!', '#D4EDDA')
+        updateCount('copy') // Update the copy count
+      })
+      .catch(() => showAlert('Failed to copy note.', '#F8D7DA'))
   }
 
   const downloadCardAsImage = async () => {
@@ -25,6 +117,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
         link.download = `${title || 'note'}.png`
         link.click()
         showAlert('Card downloaded successfully!', '#D4EDDA')
+        updateCount('download') // Update the download count
       } else {
         showAlert('Card reference is not available!', '#F8D7DA')
       }
@@ -36,45 +129,50 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
 
   const shareNote = async () => {
     const shareUrl = `${window.location.origin}/note/${noteId}`
-    showAlert('Note link copied to clipboard!', '#D4EDDA')
-
     try {
-      await navigator.clipboard.writeText(shareUrl)
-      console.log('Note link copied to clipboard!')
-
       if (navigator.share) {
         await navigator.share({
           title: title || 'Shared Note',
           text: `Check out this note: ${title}`,
           url: shareUrl
         })
+        showAlert('Note shared successfully!', '#D4EDDA')
+        updateCount('share') // Update the share count
       } else {
-        showAlert('Your browser does not support the Web Share API.')
+        await navigator.clipboard.writeText(shareUrl)
+        showAlert('Note link copied to clipboard!', '#D4EDDA')
+        updateCount('share') // Update the share count
       }
     } catch (error) {
-      console.error('Error sharing:', error)
+      console.error('Error sharing note:', error)
       showAlert('Failed to share note. Please try again.', '#F8D7DA')
     }
   }
 
   return (
     <div className='flex items-center justify-between px-4 py-2 bottom-0 border-t border-gray-700'>
+      {/* Like Button */}
+      <button onClick={handleLike} className='flex items-center space-x-2'>
+        <Heart color={liked ? '#FF0000' : '#FFFFFF'} fill={liked ? '#FF0000' : 'none'} />
+        <span className='text-sm text-gray-400'>{counts.likes}</span>
+      </button>
+
       {/* Copy Button */}
       <button onClick={copyToClipboard} className='flex items-center space-x-2'>
         <Copy />
-        <span className='text-sm'>Copy</span>
+        <span className='text-sm text-gray-400'>{counts.copies}</span>
       </button>
 
       {/* Download Button */}
       <button onClick={downloadCardAsImage} className='flex items-center space-x-2'>
         <Download />
-        <span className='text-sm'>Download</span>
+        <span className='text-sm text-gray-400'>{counts.downloads}</span>
       </button>
 
       {/* Share Button */}
       <button onClick={shareNote} className='flex items-center space-x-2'>
         <Share2 />
-        <span className='text-sm'>Share</span>
+        <span className='text-sm text-gray-400'>{counts.shares}</span>
       </button>
     </div>
   )

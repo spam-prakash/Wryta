@@ -1,8 +1,6 @@
-// const { type } = require('@testing-library/user-event/dist/type')
 const mongoose = require('mongoose')
-const { Schema } = mongoose
 
-const UserSchema = new Schema({
+const UserSchema = new mongoose.Schema({
   googleId: {
     type: String,
     required: false
@@ -32,9 +30,13 @@ const UserSchema = new Schema({
   image: {
     type: String,
     required: false
+  },
+  actions: {
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Note' }], // Store liked note IDs
+    shares: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Note' }],
+    copies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Note' }],
+    downloads: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Note' }]
   }
 })
-const User = mongoose.model('user', UserSchema)
-User.createIndexes()
 
-module.exports = User
+module.exports = mongoose.model('User', UserSchema)

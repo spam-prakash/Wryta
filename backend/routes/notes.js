@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const fetchuser = require('../middleware/fetchuser')
 const Note = require('../models/Note')
+const User = require('../models/User')
 const { body, validationResult } = require('express-validator')
 
 // ROUTE: 1 GET ALL NOTES GET:"/api/notes/fetchallnotes" LOGIN REQUIRED
@@ -187,6 +188,101 @@ router.get('/note/:id', async (req, res) => {
 
     // Return the note along with the user details
     res.json(note)
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Internal Server Error')
+  }
+})
+
+router.get('/note/:id/counts', async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id).select('likes shares copies downloads')
+    if (!note) {
+      return res.status(404).json({ error: 'Note not found' })
+    }
+    res.json(note)
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Internal Server Error')
+  }
+})
+
+// Increment like count with user also
+router.post('/note/:id/like', fetchuser, async (req, res) => {
+  try {
+    const noteId = req.params.id
+    const userId = req.user.id
+
+    const user = await User.findById(userId)
+
+    if (user.actions.likes.includes(noteId)) {
+      // If already liked, unlike the note
+      await User.findByIdAndUpdate(userId, { $pull: { 'actions.likes': noteId } })
+      await Note.findByIdAndUpdate(noteId, { $inc: { likes: -1 } })
+      return res.json({ success: true, message: 'Note unliked' })
+    } else {
+      // If not liked, like the note
+      await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.likes': noteId } })
+      await Note.findByIdAndUpdate(noteId, { $inc: { likes: 1 } })
+      return res.json({ success: true, message: 'Note liked' })
+    }
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Internal Server Error')
+  }
+})
+
+// Increment share count
+router.post('/note/:id/share', fetchuser, async (req, res) => {
+  try {
+    const noteId = req.params.id
+    const userId = req.user.id
+
+    // Increment the share count for the note
+    await Note.findByIdAndUpdate(noteId, { $inc: { shares: 1 } })
+
+    // Add the note to the user's shared notes
+    await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.shares': noteId } })
+
+    res.json({ success: true, message: 'Note shared successfully' })
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Internal Server Error')
+  }
+})
+
+// Increment copy count
+router.post('/note/:id/copy', fetchuser, async (req, res) => {
+  try {
+    const noteId = req.params.id
+    const userId = req.user.id
+
+    // Increment the copy count for the note
+    await Note.findByIdAndUpdate(noteId, { $inc: { copies: 1 } })
+
+    // Add the note to the user's copied notes
+    await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.copies': noteId } })
+
+    res.json({ success: true, message: 'Note copied successfully' })
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Internal Server Error')
+  }
+})
+
+// Increment download count
+router.post('/note/:id/download', fetchuser, async (req, res) => {
+  try {
+    const noteId = req.params.id
+    const userId = req.user.id
+
+    // Increment the download count for the note
+    await Note.findByIdAndUpdate(noteId, { $inc: { downloads: 1 } })
+
+    // Add the note to the user's downloaded notes
+    await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.downloads': noteId } })
+
+    res.json({ success: true, message: 'Note downloaded successfully' })
   } catch (error) {
     console.error(error.message)
     res.status(500).send('Internal Server Error')
