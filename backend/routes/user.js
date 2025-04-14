@@ -13,7 +13,7 @@ router.get('/:username', async (req, res) => {
     const { username } = req.params
 
     // Log the username for debugging
-    console.log('Username from request:', username)
+    // console.log('Username from request:', username)
 
     // Find user by username
     const user = await User.findOne({ username })
@@ -44,11 +44,15 @@ router.get('/:username', async (req, res) => {
         tag: note.tag,
         description: note.description,
         date: note.date,
-        modifiedDate: note.modifiedDate
+        modifiedDate: note.modifiedDate,
+        likes: note.likes,
+        copies: note.copies,
+        downloads: note.downloads,
+        shares: note.shares
       }))
     }
 
-    console.log('User data:', userData)
+    // console.log('User data:', userData)
 
     res.json(userData)
   } catch (error) {

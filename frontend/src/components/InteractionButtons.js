@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { Heart, Copy, Download, Share2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
 
-const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteId }) => {
+const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteId, note }) => {
+  // console.log(note)
   const [liked, setLiked] = useState(false)
   const [counts, setCounts] = useState({ likes: 0, copies: 0, downloads: 0, shares: 0 })
   const hostLink = process.env.REACT_APP_HOSTLINK
@@ -50,7 +51,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
 
   useEffect(() => {
     fetchLikedNotes() // Fetch liked notes to set the `liked` state
-    fetchCounts() // Fetch counts for the note
+    // fetchCounts() // Fetch counts for the note
   }, [noteId, hostLink])
 
   const updateCount = async (action) => {
@@ -83,7 +84,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
       })
       if (response.ok) {
         const result = await response.json()
-        setLiked(result.message === 'Note liked') // Update the liked state based on the response
+        setLiked(result.message === 'Note liked')
         fetchCounts() // Refresh counts after liking/unliking
       } else {
         console.error('Failed to like/unlike note')
@@ -94,7 +95,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
   }
 
   const copyToClipboard = () => {
-    const textToCopy = `Title: ${title}\nTag: ${tag}\n\nDescription:\n${description}`
+    const textToCopy = `Title: ${note.title}\nTag: ${note.tag}\n\nDescription:\n${note.description}`
     navigator.clipboard.writeText(textToCopy)
       .then(() => {
         showAlert('Note successfully copied!', '#D4EDDA')
@@ -114,7 +115,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
         const dataURL = canvas.toDataURL('image/png')
         const link = document.createElement('a')
         link.href = dataURL
-        link.download = `${title || 'note'}.png`
+        link.download = `${note.title || 'note'}.png`
         link.click()
         showAlert('Card downloaded successfully!', '#D4EDDA')
         updateCount('download') // Update the download count
@@ -137,8 +138,8 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
 
       if (navigator.share) {
         await navigator.share({
-          title: title || 'Shared Note',
-          text: `Check out this note: ${title}`,
+          title: note.title || 'Shared Note',
+          text: `Check out this note: ${note.title}`,
           url: shareUrl
         })
       } else {
@@ -168,25 +169,25 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
       {/* Like Button */}
       <button onClick={handleLike} className='flex items-center space-x-2'>
         <Heart color={liked ? '#FF0000' : '#FFFFFF'} fill={liked ? '#FF0000' : 'none'} />
-        <span className='text-sm text-gray-400'>{counts.likes}</span>
+        <span className='text-sm text-gray-400'>{counts.likes || note.likes}</span>
       </button>
 
       {/* Copy Button */}
       <button onClick={copyToClipboard} className='flex items-center space-x-2'>
         <Copy />
-        <span className='text-sm text-gray-400'>{counts.copies}</span>
+        <span className='text-sm text-gray-400'>{counts.copies || note.copies}</span>
       </button>
 
       {/* Download Button */}
       <button onClick={downloadCardAsImage} className='flex items-center space-x-2'>
         <Download />
-        <span className='text-sm text-gray-400'>{counts.downloads}</span>
+        <span className='text-sm text-gray-400'>{counts.downloads || note.downloads}</span>
       </button>
 
       {/* Share Button */}
       <button onClick={shareNote} className='flex items-center space-x-2'>
         <Share2 />
-        <span className='text-sm text-gray-400'>{counts.shares}</span>
+        <span className='text-sm text-gray-400'>{counts.shares || note.shares}</span>
       </button>
     </div>
   )

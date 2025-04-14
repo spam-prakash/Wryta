@@ -10,7 +10,7 @@ import InteractionButtons from './InteractionButtons'
 const NoteItem = (props) => {
   const { image, username } = props
   const { note, updateNote, showAlert } = props
-  console.log('note id', note._id)
+  // console.log('note id', note._id)
   const context = useContext(noteContext)
   const { deleteNote, updateVisibility } = context
 
@@ -125,6 +125,8 @@ const NoteItem = (props) => {
     }
   }, [isVisibilityModalOpen])
 
+  // console.log('NoteItem:', note)
+
   return (
     <>
       <div className='text-white w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 flex flex-col'>
@@ -210,6 +212,7 @@ const NoteItem = (props) => {
             showAlert={showAlert}
             cardRef={hiddenCardRef}
             noteId={note._id}
+            note={note} // Pass the note object for sharing
           />
         </div>
       </div>

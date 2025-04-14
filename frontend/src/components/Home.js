@@ -103,6 +103,7 @@ const Home = (props) => {
             ? (
                 filteredNotes.map((note) => (
                   <HomeNoteItem
+                    note={note}
                     key={note._id}
                     noteId={note._id}
                     title={note.title}

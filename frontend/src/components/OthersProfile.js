@@ -106,6 +106,8 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     }
   }, [user])
 
+  // console.log(user)
+
   if (error) return <p className='text-red-500'>{error}</p>
   if (!user) return <p>Loading...</p>
   // console.log(user)
@@ -122,7 +124,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
         day: 'numeric'
       })
   }
-
+  // console.log(notes)
   // If the logged-in user is viewing their own profile, include private notes
   const notesToDisplay =
     loggedInUser?.username === username ? notes : user.publicNotes || []
@@ -140,6 +142,8 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     const dateB = new Date(b[sortCriteria] || b.date)
     return sortOrder === 'old' ? dateA - dateB : dateB - dateA
   })
+
+  // console.log(sortedNotesToDisplay)
 
   const toggleModal = () => {
     modalRef.current.classList.toggle('hidden')
@@ -362,6 +366,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
                       showAlert={showAlert}
                       image={profilePic}
                       username={user.username}
+                      // note={notes}
                     />
                     )
                   : (
@@ -376,6 +381,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
                       showAlert={showAlert}
                       image={profilePic}
                       username={user.username}
+                      note={note}
                     />
                     )
               )

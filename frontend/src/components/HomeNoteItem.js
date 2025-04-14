@@ -3,7 +3,7 @@ import NoteModal from './NoteModal'
 import { Link } from 'react-router-dom'
 import InteractionButtons from './InteractionButtons'
 
-const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, username, image, showAlert, noteId }) => {
+const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, username, image, showAlert, noteId, note }) => {
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A'
     const options = { day: 'numeric', month: 'short', year: 'numeric' }
@@ -98,6 +98,8 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
           showAlert={showAlert}
           cardRef={hiddenCardRef}
           noteId={noteId} // Pass the noteId for sharing
+          note={note} // Pass the note object for sharing
+          // onInteraction={fetchAllNotes}
         />
       </div>
 

@@ -11,13 +11,16 @@ const OtherProfileNoteItem = ({
   username,
   image,
   noteId,
-  showAlert
+  showAlert,
+  note
 }) => {
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A'
     const options = { day: 'numeric', month: 'short', year: 'numeric' }
     return new Date(dateString).toLocaleDateString(undefined, options)
   }
+
+  // console.log(note)
 
   const formatTime = (dateString) => {
     if (!dateString) return 'N/A'
@@ -99,6 +102,7 @@ const OtherProfileNoteItem = ({
           showAlert={showAlert}
           cardRef={hiddenCardRef}
           noteId={noteId}
+          note={note}
         />
       </div>
 

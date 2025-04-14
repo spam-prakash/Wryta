@@ -289,4 +289,15 @@ router.post('/note/:id/download', fetchuser, async (req, res) => {
   }
 })
 
+// GET ALL NOTES DATA
+// router.post('/allnotes', async (req, res) => {
+//   try {
+//     const notesData = await Note.find({})
+//     console.log(notesData)
+//     res.json(notesData)
+//   } catch (error) {
+
+//   }
+// })
+
 module.exports = router
