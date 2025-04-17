@@ -44,7 +44,7 @@ if (environment === 'production') {
 app.use(express.json())
 
 const corsOptions = {
-  origin: ['https://theprakash.xyz', 'https://wryta-frontend.vercel.app'], // Add allowed origins
+  origin: ['https://theprakash.xyz', 'https://wryta-frontend.vercel.app', 'http://localhost:3006'], // Add allowed origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'auth-token', 'Access-Control-Allow-Origin'],
   credentials: true // Allow cookies and credentials

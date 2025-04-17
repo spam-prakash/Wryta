@@ -145,7 +145,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     return sortOrder === 'old' ? dateA - dateB : dateB - dateA
   })
 
-  console.log(sortedNotesToDisplay)
+  // console.log(sortedNotesToDisplay)
 
   const toggleModal = () => {
     modalRef.current.classList.toggle('hidden')
