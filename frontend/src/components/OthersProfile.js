@@ -124,10 +124,12 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
         day: 'numeric'
       })
   }
-  // console.log(notes)
+  // console.log(user.publicNotes)
   // If the logged-in user is viewing their own profile, include private notes
   const notesToDisplay =
     loggedInUser?.username === username ? notes : user.publicNotes || []
+
+  // console.log(user.publicNotes)
 
   // Filter notes based on the filter text
   const filteredNotes = notesToDisplay.filter((note) =>

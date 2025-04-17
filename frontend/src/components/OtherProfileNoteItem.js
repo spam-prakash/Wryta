@@ -33,7 +33,7 @@ const OtherProfileNoteItem = ({
   const contentRef = useRef(null)
   const cardRef = useRef(null) // Visible card
   const hiddenCardRef = useRef(null) // Hidden copy for download
-
+  // console.log(note)
   useEffect(() => {
     if (contentRef.current) {
       setIsOverflowing(contentRef.current.scrollHeight > contentRef.current.clientHeight)
@@ -43,6 +43,7 @@ const OtherProfileNoteItem = ({
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen)
   }
+  // console.log(modifiedDate)
 
   return (
     <>
@@ -90,7 +91,14 @@ const OtherProfileNoteItem = ({
 
         {/* Footer */}
         <div className='text-gray-400 text-xs px-4 pb-3'>
-          <p>Created: {formatDate(date)} at {formatTime(date)}</p>
+          {note.modifiedDate && (
+            <p className='py-1'>
+              Modified: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}
+            </p>
+          )}
+          <p className='py-1'>
+            Created: {formatDate(note.date)} at {formatTime(note.date)}
+          </p>
         </div>
 
         {/* Buttons */}

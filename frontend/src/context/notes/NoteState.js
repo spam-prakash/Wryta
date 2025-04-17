@@ -8,45 +8,44 @@ const NoteState = (props) => {
   const notesInitial = []
 
   const [notes, setNotes] = useState(notesInitial)
-  const [sortCriteria, setSortCriteria] = useState("modifiedDate");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [sortCriteria, setSortCriteria] = useState('modifiedDate')
+  const [sortOrder, setSortOrder] = useState('desc')
 
-
- // Get all notes
- const getNotes = useCallback(async () => {
-  try {
+  // Get all notes
+  const getNotes = useCallback(async () => {
+    try {
     // API CALL
-    const response = await fetch(`${hostLink}/api/notes/fetchallnotes`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'auth-token': localStorage.getItem('token')
-      }
-    });
-    const json = await response.json();
+      const response = await fetch(`${hostLink}/api/notes/fetchallnotes`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'auth-token': localStorage.getItem('token')
+        }
+      })
+      const json = await response.json()
 
-    // Log the response to debug
-    // console.log('API Response:', json);
+      // Log the response to debug
+      // console.log('API Response:', json);
 
-    // Check if the response is an array before sorting
-    if (Array.isArray(json)) {
+      // Check if the response is an array before sorting
+      if (Array.isArray(json)) {
       // Sort notes by modifiedDate or date based on the selected criteria and order
-      const sortedNotes = json.sort((a, b) => {
-        const dateA = new Date(a[sortCriteria] || a.date);
-        const dateB = new Date(b[sortCriteria] || b.date);
-        return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
-      });
-      setNotes(sortedNotes);
-    } else {
-      console.error('Expected an array but got:', json);
+        const sortedNotes = json.sort((a, b) => {
+          const dateA = new Date(a[sortCriteria] || a.date)
+          const dateB = new Date(b[sortCriteria] || b.date)
+          return sortOrder === 'asc' ? dateA - dateB : dateB - dateA
+        })
+        setNotes(sortedNotes)
+      } else {
+        console.error('Expected an array but got:', json)
+      }
+    } catch (error) {
+      console.error('Failed to fetch notes:', error)
     }
-  } catch (error) {
-    console.error('Failed to fetch notes:', error);
-  }
-}, [sortCriteria, sortOrder]);
+  }, [sortCriteria, sortOrder])
 
   // Add a note
-  const addNote = async (title, description, tag,isPublic) => {
+  const addNote = async (title, description, tag, isPublic) => {
     // API CALL
     const response = await fetch(`${hostLink}/api/notes/addnote`, {
       method: 'POST',
@@ -54,7 +53,7 @@ const NoteState = (props) => {
         'Content-Type': 'application/json',
         'auth-token': localStorage.getItem('token')
       },
-      body: JSON.stringify({ title, description, tag,isPublic })
+      body: JSON.stringify({ title, description, tag, isPublic })
     })
     const note = await response.json()
 
@@ -108,30 +107,29 @@ const NoteState = (props) => {
   const updateVisibility = async (noteId, isPublic) => {
     try {
       const response = await fetch(`${hostLink}/api/notes/visibility/${noteId}`, {
-        method: "PUT",
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
-          "auth-token": localStorage.getItem("token"),
+          'Content-Type': 'application/json',
+          'auth-token': localStorage.getItem('token')
         },
-        body: JSON.stringify({ isPublic }),
-      });
-  
-      const json = await response.json();
+        body: JSON.stringify({ isPublic })
+      })
+
+      const json = await response.json()
       if (json.success) {
         setNotes((prevNotes) =>
           prevNotes.map((note) =>
             note._id === noteId ? { ...note, isPublic } : note
           )
-        );
+        )
       }
     } catch (error) {
-      console.error("Error updating visibility:", error);
+      console.error('Error updating visibility:', error)
     }
-  };
-  
+  }
 
   return (
-    <NoteContext.Provider value={{ notes, addNote, editNote, deleteNote, getNotes,updateVisibility, setSortCriteria, setSortOrder }}>
+    <NoteContext.Provider value={{ notes, addNote, editNote, deleteNote, getNotes, updateVisibility, setSortCriteria, setSortOrder }}>
       {props.children}
     </NoteContext.Provider>
   )

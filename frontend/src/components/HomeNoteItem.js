@@ -86,7 +86,14 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
 
         {/* Timestamp - Shows Both Created & Modified Dates */}
         <div className='text-gray-400 text-xs px-4 pb-3'>
-          <p>Created: {formatDate(date)} at {formatTime(date)}</p>
+          {note.modifiedDate && (
+            <p className='py-1'>
+              Modified: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}
+            </p>
+          )}
+          <p className='py-1'>
+            Created: {formatDate(note.date)} at {formatTime(note.date)}
+          </p>
         </div>
 
         {/* Like, Download, Copy - Stick to Bottom */}

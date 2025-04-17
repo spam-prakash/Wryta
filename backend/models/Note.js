@@ -21,6 +21,10 @@ const NoteSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
+  modifiedDate: {
+    type: Date,
+    default: Date.now
+  },
   isPublic: {
     type: Boolean,
     default: false
@@ -40,7 +44,7 @@ const NoteSchema = new mongoose.Schema({
   downloads: {
     type: Number,
     default: 0
-  },
+  }
 })
 
 module.exports = mongoose.model('Note', NoteSchema)
