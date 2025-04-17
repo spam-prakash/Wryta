@@ -44,17 +44,16 @@ if (environment === 'production') {
 app.use(express.json())
 
 const corsOptions = {
-  // origin: allowedOrigins, // Your frontend URL
-  origin: '*', // Your frontend URL
+  origin: ['https://theprakash.xyz', 'https://wryta-frontend.vercel.app'], // Add allowed origins
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'auth-token', 'Access-Control-Allow-Origin'],
-  credentials: true // If cookies or credentials need to be sent
+  credentials: true // Allow cookies and credentials
 }
 
 app.use(cors(corsOptions))
 
 app.options('*', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://wryta-frontend.vercel.app')
+  res.setHeader('Access-Control-Allow-Origin', 'https://theprakash.xyz') // Allow specific origin
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Access-Control-Allow-Origin')
   res.setHeader('Access-Control-Allow-Credentials', 'true')
