@@ -15,7 +15,7 @@ import ResetPassword from './components/ResetPassword'
 import SharedNote from './components/SharedNote'
 
 // const hostLink = 'http://locahost:8000'
-// const hostLink = 'https://inotebook-backend-opal.vercel.app'
+// const hostLink = 'https://Wryta-backend-opal.vercel.app'
 const hostLink = process.env.REACT_APP_HOSTLINK
 
 function App () {

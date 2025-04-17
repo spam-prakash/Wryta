@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 
 const About = () => {
-  useEffect(() => { document.title = 'About | iNoteBook' }, []);
+  useEffect(() => { document.title = 'About | Wryta' }, []);
   return (
     <div className="min-h-screen bg-[#0A1122] text-white">
       <div className="container mx-auto px-6 py-24">
@@ -10,7 +10,7 @@ const About = () => {
         </span></h1>
         <div className="bg-[#1E3E62] rounded-lg p-8 shadow-lg">
           <p className="text-lg leading-8 mb-6">
-            Welcome to iNotebook, a secure and feature-rich platform to manage your notes effortlessly. This web app is powered by React.js, Node.js, Express.js, and MongoDB, showcasing the seamless integration of a modern tech stack. iNotebook is your personal digital notebook, ensuring data security and accessibility wherever you go.
+            Welcome to Wryta, a secure and feature-rich platform to manage your notes effortlessly. This web app is powered by React.js, Node.js, Express.js, and MongoDB, showcasing the seamless integration of a modern tech stack. Wryta is your personal digital notebook, ensuring data security and accessibility wherever you go.
           </p>
           <p className="text-lg leading-8">
             This project was developed as a part of my React.js learning journey, guided by the incredible tutorial series by{' '}
@@ -28,7 +28,7 @@ const About = () => {
         <div className="mt-12 bg-[#1E3E62] rounded-lg p-8 shadow-lg">
           <h2 className="text-2xl font-semibold text-[#FF6500] mb-4">About the Developer</h2>
           <p className="text-lg leading-8">
-            Hi, I am Prakash Kumar, an enthusiastic full-stack web developer currently pursuing BTech in Computer Science Engineering. Passionate about crafting efficient and user-friendly web solutions, I created iNotebook as a milestone in my journey. This project helped me dive deep into React.js and Node.js, enhancing my understanding of full-stack development.
+            Hi, I am Prakash Kumar, an enthusiastic full-stack web developer currently pursuing BTech in Computer Science Engineering. Passionate about crafting efficient and user-friendly web solutions, I created Wryta as a milestone in my journey. This project helped me dive deep into React.js and Node.js, enhancing my understanding of full-stack development.
           </p>
         </div>
 

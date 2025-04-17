@@ -102,7 +102,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   useEffect(() => {
     // Set the document title based on the user data
     if (user) {
-      document.title = `${username} || iNoteBook`
+      document.title = `${username} || Wryta`
     }
   }, [user])
 

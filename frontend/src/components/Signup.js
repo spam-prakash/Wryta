@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useLocation, Link, useNavigate } from 'react-router-dom'
 
 const Signup = (props) => {
-  useEffect(() => { document.title = 'Signup | iNoteBook' }, [])
+  useEffect(() => { document.title = 'Signup | Wryta' }, [])
   const navigate = useNavigate()
   const [credentials, setCredentials] = useState({
     username: '',

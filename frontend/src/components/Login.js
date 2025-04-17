@@ -3,7 +3,7 @@ import { useLocation, Link, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 
 const Login = (props) => {
-  useEffect(() => { document.title = 'Login | iNoteBook' }, [])
+  useEffect(() => { document.title = 'Login | Wryta' }, [])
   const hostLink = process.env.REACT_APP_HOSTLINK
   const navigate = useNavigate()
   const [credentials, setCredentials] = useState({

@@ -1,7 +1,7 @@
 {
-  "short_name": "INotebook",
-  "name": "iNotebook - Secure your notes in the cloud",
-  "description": "iNotebook is a secure and user-friendly note-taking app that stores your notes in the cloud. Manage your notes efficiently and securely.",
+  "short_name": "Wryta",
+  "name": "Wryta - Secure your notes in the cloud",
+  "description": "Wryta is a secure and user-friendly note-taking app that stores your notes in the cloud. Manage your notes efficiently and securely.",
   "icons": [
     {
       "src": "logo.png",

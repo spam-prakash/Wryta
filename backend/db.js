@@ -2,9 +2,6 @@ require('dotenv').config()
 const mongoose = require('mongoose')
 const mongoURI = process.env.MONGOURI
 // console.log(mongoURI)
-// const mongoURI = 'mongodb://127.0.0.1:27017/inotebook'
-// const mongoURI = 'mongodb+srv://akash_raushan_:akash12345@cluster0.cjsil.mongodb.net/inotebook'
-// console.log(mongoURI)
 
 const connectToMongo = async () => {
   try {

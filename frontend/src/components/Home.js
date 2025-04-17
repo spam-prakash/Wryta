@@ -17,7 +17,7 @@ const Home = (props) => {
   const location = window.location
 
   useEffect(() => {
-    document.title = 'iNotebook - Your notes secured in the cloud'
+    document.title = 'Wryta - Your notes secured in the cloud'
     fetchPublicNotes()
   }, [])
 

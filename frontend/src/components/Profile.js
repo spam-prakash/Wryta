@@ -17,7 +17,7 @@ const Profile = (props) => {
   useEffect(() => {
     // Set the document title based on the user data
     if (username) {
-      document.title = `${username} || iNoteBook`;
+      document.title = `${username} || Wryta`;
     }
   }, [username]);
 
