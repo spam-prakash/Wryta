@@ -1,25 +1,30 @@
 {
   "short_name": "INotebook",
   "name": "iNotebook - Secure your notes in the cloud",
+  "description": "iNotebook is a secure and user-friendly note-taking app that stores your notes in the cloud. Manage your notes efficiently and securely.",
   "icons": [
     {
       "src": "logo.png",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "type": "image/x-icon",
+      "purpose": "any"
     },
     {
       "src": "logo.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any"
     },
     {
       "src": "logo.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "theme_color": "#000000",
   "background_color": "#ffffff"
 }
