@@ -22,8 +22,7 @@ const NoteSchema = new mongoose.Schema({
     default: Date.now
   },
   modifiedDate: {
-    type: Date,
-    default: Date.now
+    type: Date
   },
   isPublic: {
     type: Boolean,
