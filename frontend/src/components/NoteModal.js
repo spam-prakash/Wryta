@@ -19,6 +19,11 @@ const NoteModal = ({ note, onClose }) => {
     }
   }
 
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      onClose()
+    }
+  })
   useEffect(() => {
     document.addEventListener('mousedown', handleClickOutside)
     // document.body.style.overflow = 'hidden' // Disable background scrolling
