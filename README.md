@@ -1,6 +1,6 @@
-# ✨ Dastaan — Your Modern Note-Taking Companion
+# ✨ Wryta — Your Modern Note-Taking Companion
 
-**Dastaan** is a secure and feature-rich full-stack notes application that empowers users to take notes, manage them, and interact with others' public notes. Whether you're jotting down thoughts or sharing public insights, Dastaan provides a clean UI, rich interactions, and powerful backend support to supercharge your productivity.
+**Wryta** is a secure and feature-rich full-stack notes application that empowers users to take notes, manage them, and interact with others' public notes. Whether you're jotting down thoughts or sharing public insights, Wryta provides a clean UI, rich interactions, and powerful backend support to supercharge your productivity.
 
 ---
 <!---
@@ -9,7 +9,7 @@
 > *Add screenshots or demo GIFs here if available*
 >
 > Example:
-> ![Dastaan UI](./screenshots/homepage.png)
+> ![Wryta UI](./screenshots/homepage.png)
 
 ---
 
@@ -60,7 +60,7 @@
 
 ## 📁 Project Structure
 
-Dastaan/
+Wryta/
 ├── client/                    # Frontend (React)
 │   ├── components/            # Reusable components
 │   │   └── InteractionButtons.jsx
@@ -85,8 +85,8 @@ Dastaan/
 
 ### 📦 1. Clone the Repository
 ```bash
-  git clone https://github.com/spam-prakash/Dastaan.git
-  cd Dastaan
+  git clone https://github.com/spam-prakash/Wryta.git
+  cd Wryta
 ```
 
 ### 🖥️ 2. Setup Backend
