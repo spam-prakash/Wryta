@@ -3,7 +3,6 @@ const mongoose = require('mongoose')
 const NoteSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true
   },
   description: {
     type: String,
@@ -11,7 +10,6 @@ const NoteSchema = new mongoose.Schema({
   },
   tag: {
     type: String,
-    default: 'General'
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,

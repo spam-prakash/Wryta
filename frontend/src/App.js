@@ -74,7 +74,7 @@ function App () {
           <Navbar showAlert={showAlert} user={user} setUser={setUser} setIsAuthenticated={setIsAuthenticated} />
 
           <Alert alert={alert} />
-          <div className='container'>
+          <div className='container px-4'>
             <Routes>
               {/* <Route
                 exact path='/'
