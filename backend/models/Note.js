@@ -41,6 +41,12 @@ const NoteSchema = new mongoose.Schema({
   downloads: {
     type: Number,
     default: 0
+  },
+  actions: {
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Store liked note IDs
+    shares: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    copies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    downloads: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
   }
 })
 
