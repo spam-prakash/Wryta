@@ -217,6 +217,7 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
     // Fetch Note Owner Email
     const noteObj = await Note.findById(noteId)
     const noteOwnerId = noteObj.user
+    const noteTitle = noteObj.title
 
     // console.log(noteOwnerId)
     const noteOwneruserObj = await User.findById(noteOwnerId)
@@ -253,7 +254,7 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
     <h2>🎉 Your note just got a like!</h2>
     <p>Hi <strong>${noteOwnerName}</strong>,</p>
     <p><strong>${LikingUserName}</strong> just liked your note:  
-      <em>“”</em>.
+      <em>“${noteTitle}”</em>.
     </p>
     <p>Total Likes: ${totalLikes}</p>
     <p>Keep sharing your thoughts, people are loving them!</p>
