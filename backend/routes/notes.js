@@ -3,6 +3,7 @@ const router = express.Router()
 const fetchuser = require('../middleware/fetchuser')
 const Note = require('../models/Note')
 const User = require('../models/User')
+const sendMail = require('./mailer')
 const { body, validationResult } = require('express-validator')
 
 // ROUTE: 1 GET ALL NOTES GET:"/api/notes/fetchallnotes" LOGIN REQUIRED
@@ -213,17 +214,58 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
     const noteId = req.params.id
     const userId = req.user.id
 
+    // Fetch Note Owner Email
+    const noteObj = await Note.findById(noteId)
+    const noteOwnerId = noteObj.user
+
+    // console.log(noteOwnerId)
+    const noteOwneruserObj = await User.findById(noteOwnerId)
+    const noteOwnerEmail = noteOwneruserObj.email
+    const noteOwnerName = noteOwneruserObj.name
+    const noteOwnerUsername = noteOwneruserObj.username
     const user = await User.findById(userId)
+    const LikingUserName = user.name
 
     if (user.actions.likes.includes(noteId)) {
       // If already liked, unlike the note
       await User.findByIdAndUpdate(userId, { $pull: { 'actions.likes': noteId } })
       await Note.findByIdAndUpdate(noteId, { $inc: { likes: -1 } })
+      // Removed UserId Who unLiked the Note
+      await Note.findByIdAndUpdate(noteId, { $pull: { 'actions.likes': userId } })
       return res.json({ success: true, message: 'Note unliked' })
     } else {
       // If not liked, like the note
       await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.likes': noteId } })
       await Note.findByIdAndUpdate(noteId, { $inc: { likes: 1 } })
+      const updatedNote = await Note.findById(noteId)
+      const totalLikes = updatedNote.likes
+      // console.log(totalLikes)
+      // Add UserId Who Liked the Note
+      await Note.findByIdAndUpdate(noteId, { $addToSet: { 'actions.likes': userId } })
+
+      // Mail User about Liked Note
+      const email = noteOwnerEmail
+      const subject = 'Your note just got a like! 🎉'
+      const text = ''
+      const html = `<!DOCTYPE html>
+<html>
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <h2>🎉 Your note just got a like!</h2>
+    <p>Hi <strong>${noteOwnerName}</strong>,</p>
+    <p><strong>${LikingUserName}</strong> just liked your note:  
+      <em>“”</em>.
+    </p>
+    <p>Total Likes: ${totalLikes}</p>
+    <p>Keep sharing your thoughts, people are loving them!</p>
+    <br>
+    <p style="font-size: 0.9em; color: #777;">
+      – The Wryta Team
+    </p>
+  </body>
+</html>
+`
+      await sendMail(email, subject, text, html)
+
       return res.json({ success: true, message: 'Note liked' })
     }
   } catch (error) {
@@ -240,6 +282,9 @@ router.post('/note/:id/share', fetchuser, async (req, res) => {
 
     // Increment the share count for the note
     await Note.findByIdAndUpdate(noteId, { $inc: { shares: 1 } })
+    // Add UserId Who Shared the Note
+    await Note.findByIdAndUpdate(noteId, { $addToSet: { 'actions.shares': userId } })
+    // console.log(Note)
 
     // Add the note to the user's shared notes
     await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.shares': noteId } })
@@ -259,6 +304,8 @@ router.post('/note/:id/copy', fetchuser, async (req, res) => {
 
     // Increment the copy count for the note
     await Note.findByIdAndUpdate(noteId, { $inc: { copies: 1 } })
+    // Add UserId Who Copied the Note
+    await Note.findByIdAndUpdate(noteId, { $addToSet: { 'actions.likes': userId } })
 
     // Add the note to the user's copied notes
     await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.copies': noteId } })
@@ -278,6 +325,8 @@ router.post('/note/:id/download', fetchuser, async (req, res) => {
 
     // Increment the download count for the note
     await Note.findByIdAndUpdate(noteId, { $inc: { downloads: 1 } })
+    // Add UserId Who Downloaded the Note
+    await Note.findByIdAndUpdate(noteId, { $addToSet: { 'actions.likes': userId } })
 
     // Add the note to the user's downloaded notes
     await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.downloads': noteId } })

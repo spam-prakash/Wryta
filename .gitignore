@@ -4,6 +4,7 @@
 node_modules
 /.pnp
 .pnp.js
+.vscode
 
 store
 
@@ -20,6 +21,7 @@ store
 .env.test.local
 .env.production.local
 .env
+.vscode
 
 npm-debug.log*
 yarn-debug.log*
