@@ -306,7 +306,7 @@ router.post('/note/:id/copy', fetchuser, async (req, res) => {
     // Increment the copy count for the note
     await Note.findByIdAndUpdate(noteId, { $inc: { copies: 1 } })
     // Add UserId Who Copied the Note
-    await Note.findByIdAndUpdate(noteId, { $addToSet: { 'actions.likes': userId } })
+    await Note.findByIdAndUpdate(noteId, { $addToSet: { 'actions.copies': userId } })
 
     // Add the note to the user's copied notes
     await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.copies': noteId } })
@@ -327,7 +327,7 @@ router.post('/note/:id/download', fetchuser, async (req, res) => {
     // Increment the download count for the note
     await Note.findByIdAndUpdate(noteId, { $inc: { downloads: 1 } })
     // Add UserId Who Downloaded the Note
-    await Note.findByIdAndUpdate(noteId, { $addToSet: { 'actions.likes': userId } })
+    await Note.findByIdAndUpdate(noteId, { $addToSet: { 'actions.downloads': userId } })
 
     // Add the note to the user's downloaded notes
     await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.downloads': noteId } })
