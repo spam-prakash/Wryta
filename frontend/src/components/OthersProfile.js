@@ -291,7 +291,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
           <div className='mx-6'>
             <h2 className='text-2xl font-semibold mt-2'>{user.name}</h2>
             <p className='text-gray-400'>@{username}</p>
-            <p className='text-gray-300 text-sm'>{user.email}</p>
+            {/* <p className='text-gray-300 text-sm'>{user.email}</p> */}
           </div>
 
           <div className='mt-4 flex space-x-6 text-center'>
