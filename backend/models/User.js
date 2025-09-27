@@ -31,6 +31,28 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: false
   },
+  follower: {
+    count: {
+      type: Number,
+      default: 0
+    },
+    list: [
+      {
+        type: mongoose.Schema.Types.ObjectId, ref: 'User'
+      }
+    ]
+  },
+  following: {
+    count: {
+      type: Number,
+      default: 0
+    },
+    list: [
+      {
+        type: mongoose.Schema.Types.ObjectId, ref: 'User'
+      }
+    ]
+  },
   actions: {
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Note' }], // Store liked note IDs
     shares: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Note' }],
