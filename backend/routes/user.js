@@ -9,37 +9,34 @@ const sendMail = require('./mailer')
 // const fetchuser = require('../middleware/fetchUser')
 const fetchuser = require('../middleware/fetchuser')
 
-router.get('/:username', async (req, res) => {
+router.get('/:username', fetchuser, async (req, res) => {
   try {
     const { username } = req.params
+    // console.log(req.user.id)
 
-    // Log the username for debugging
-    // console.log('Username from request:', username)
-
-    // Find user by username
     const user = await User.findOne({ username })
+    if (!user) return res.status(404).json({ error: 'User not found' })
 
-    if (!user) {
-      console.log(`User not found: ${username}`)
-      return res.status(404).json({ error: 'User not found' })
-    }
-
-    // Fetch notes of the user
     const notes = await Note.find({ user: user._id })
+    const publicNotes = notes.filter(note => note.isPublic)
 
-    // Fetch only public notes
-    const publicNotes = notes.filter((note) => note.isPublic)
-
-    // Prepare user data response
     const userData = {
+      id: user.id, // manual id
       name: user.name,
       email: user.email,
       username: user.username,
+      followerCount: user.follower.count,
+      followingCount: user.following.count,
+      followerList: user.follower.list.map(f => f._id || f),
+      followingList: user.following.list.map(f => f._id || f),
+      isFollowing: user.follower.list.some(
+        f => String(f._id || f) === String(req.user.id)
+      ),
       profilePic: user.image?.trim() ? user.image : null,
       totalNotes: notes.length,
       publicNotesCount: publicNotes.length,
       likesCount: user.actions.likes.length,
-      publicNotes: publicNotes.map((note) => ({
+      publicNotes: publicNotes.map(note => ({
         _id: note._id,
         title: note.title,
         tag: note.tag,
@@ -52,8 +49,6 @@ router.get('/:username', async (req, res) => {
         shares: note.shares
       }))
     }
-
-    // console.log('User data:', userData)
 
     res.json(userData)
   } catch (error) {
