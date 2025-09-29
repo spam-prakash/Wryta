@@ -1,6 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useEffect, useState, useContext, useRef } from 'react'
-import defaultUser from '../assets/user.png' // Default user image
 import OtherProfileNoteItem from './OtherProfileNoteItem'
 import noteContext from '../context/notes/NoteContext'
 import NoteItem from './NoteItem'
@@ -10,6 +9,7 @@ import { Plus, Edit3 } from 'lucide-react'
 import Search from './Search' // Import the Search component
 
 const OthersProfile = ({ loggedInUser, showAlert }) => {
+  // console.log(loggedInUser)
   const { notes, getNotes, editNote } = useContext(noteContext)
   const { username: initialUsername } = useParams()
   const [username, setUsername] = useState(initialUsername)
@@ -17,6 +17,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   const [error, setError] = useState(null)
   const [sortCriteria, setSortCriteria] = useState('modifiedDate')
   const [sortOrder, setSortOrder] = useState('desc')
+  const [isFollowing, setIsFollowing] = useState()
   const [filterText, setFilterText] = useState('') // State for filtering notes
   const hostLink = process.env.REACT_APP_HOSTLINK
 
@@ -30,26 +31,19 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   const location = window.location
 
   useEffect(() => {
-    // Check if the token is already in localStorage
     const storedToken = localStorage.getItem('token')
     if (!storedToken) {
-      navigate('/login') // Redirect to home page
-      return // Exit early
+      navigate('/login')
+      return
     }
 
-    // Extract the token from the URL
     const params = new URLSearchParams(location.search)
     const token = params.get('token')
 
     if (token) {
-      // Set the token in local storage
       localStorage.setItem('token', token)
-
-      // Clear the token from the URL to prevent duplicate processing
       const cleanUrl = window.location.origin + window.location.pathname
       window.history.replaceState({}, document.title, cleanUrl)
-
-      // Redirect to the desired page
       navigate('/')
     }
   }, [location.search, navigate])
@@ -71,18 +65,19 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     }
   }
 
-  const fetchUserProfile = async (usernameToFetch) => {
+  const fetchUserProfile = async (username) => {
     try {
-      const response = await fetch(`${hostLink}/api/user/${usernameToFetch}`)
+      const response = await fetch(`${hostLink}/api/user/${username}`, {
+        headers: {
+          'auth-token': localStorage.getItem('token')
+        }
+      })
       const data = await response.json()
-
-      if (response.ok) {
-        setUser(data)
-      } else {
-        setError('User not found')
-      }
+      // console.log(data)
+      setUser(data)
+      setIsFollowing(data.isFollowing) // ✅ trust backend
     } catch (error) {
-      setError('An error occurred while fetching the user profile.')
+      console.error('Error fetching user profile:', error)
     }
   }
 
@@ -92,60 +87,49 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     }
   }, [username])
 
-  useEffect(() => {
-    // Fetch notes if the logged-in user is viewing their own profile
-    if (loggedInUser?.username === username) {
-      getNotes()
-    }
-  }, [loggedInUser, username, getNotes])
+  // useEffect(() => {
+  //   if (loggedInUser?.username === username) {
+  //     getNotes()
+  //   }
+  // }, [loggedInUser, username, getNotes])
 
   useEffect(() => {
-    // Set the document title based on the user data
+    if (loggedInUser?.id) {
+      fetchUserProfile(username)
+      if (loggedInUser.username === username) {
+        getNotes()
+      }
+    }
+  }, [username, loggedInUser?.id])
+
+  useEffect(() => {
     if (user) {
       document.title = `${username} || Wryta`
     }
   }, [user])
 
-  // console.log(user)
-
   if (error) return <p className='text-red-500'>{error}</p>
   if (!user) return <p>Loading...</p>
-  // console.log(user)
-  const profilePic = user.profilePic || `https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A'
-    const date = new Date(dateString)
-    return isNaN(date)
-      ? 'Invalid Date'
-      : date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-  }
-  // console.log(user.publicNotes)
-  // If the logged-in user is viewing their own profile, include private notes
+  const profilePic =
+    user.profilePic ||
+    `https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`
+
   const notesToDisplay =
     loggedInUser?.username === username ? notes : user.publicNotes || []
 
-  // console.log(user.publicNotes)
-
-  // Filter notes based on the filter text
-  const filteredNotes = notesToDisplay.filter((note) =>
-    note.title.toLowerCase().includes(filterText.toLowerCase()) ||
-    note.description.toLowerCase().includes(filterText.toLowerCase()) ||
-    note.tag.toLowerCase().includes(filterText.toLowerCase())
+  const filteredNotes = notesToDisplay.filter(
+    (note) =>
+      note.title.toLowerCase().includes(filterText.toLowerCase()) ||
+      note.description.toLowerCase().includes(filterText.toLowerCase()) ||
+      note.tag.toLowerCase().includes(filterText.toLowerCase())
   )
 
-  // Sort the notes based on the selected criteria and order
   const sortedNotesToDisplay = filteredNotes.sort((a, b) => {
     const dateA = new Date(a[sortCriteria] || a.date)
     const dateB = new Date(b[sortCriteria] || b.date)
     return sortOrder === 'old' ? dateA - dateB : dateB - dateA
   })
-
-  // console.log(sortedNotesToDisplay)
 
   const toggleModal = () => {
     modalRef.current.classList.toggle('hidden')
@@ -176,14 +160,12 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
       body: JSON.stringify(updatedData)
     })
     const json = await response.json()
-    console.log(json)
     if (json.success) {
       setUser(json.user)
       toggleEditProfileModal()
       if (updatedData.username !== user.username) {
         setUsername(updatedData.username)
         navigate(`/${updatedData.username}`)
-        // fetchUserProfile(updatedData.username)
         window.location.reload()
         showAlert('Profile updated successfully', '#D4EDDA')
       }
@@ -192,7 +174,6 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     }
   }
 
-  // Category & Tag Data
   const categories = {
     '✨ All': [],
     '📚 General': ['General', 'Note', 'Task', 'Ideas'],
@@ -201,7 +182,31 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     '💰 Future': ['Budgeting', 'Future Plans', 'Goals']
   }
 
-  // console.log(sortedNotesToDisplay)
+  const followUnfollow = async () => {
+    try {
+      if (isFollowing) {
+        await fetch(`${hostLink}/api/user/unfollow/${user.id}`, {
+          method: 'POST',
+          headers: {
+            'auth-token': localStorage.getItem('token')
+          }
+        })
+        setIsFollowing(false) // instant UI update
+      } else {
+        await fetch(`${hostLink}/api/user/follow/${user.id}`, {
+          method: 'POST',
+          headers: {
+            'auth-token': localStorage.getItem('token')
+          }
+        })
+        setIsFollowing(true) // instant UI update
+      }
+
+      fetchUserProfile(username) // refresh backend data
+    } catch (error) {
+      console.error('Error updating follow status:', error)
+    }
+  }
 
   return (
     <>
@@ -280,7 +285,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
 
       <div className='flex flex-col items-center text-white px-4'>
         {/* Profile Section */}
-        <div className='flex flex-col md:flex-row items-center w-full max-w-2xl py-6 mt-20'>
+        <div className='flex flex-col md:flex-row items-center w-full max-w-4xl py-6 mt-20'>
           <a href={profilePic} target='_blank' rel='noreferrer'>
             <img
               className='size-40 rounded-full border-4 border-gray-400'
@@ -291,7 +296,6 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
           <div className='mx-6'>
             <h2 className='text-2xl font-semibold mt-2'>{user.name}</h2>
             <p className='text-gray-400'>@{username}</p>
-            {/* <p className='text-gray-300 text-sm'>{user.email}</p> */}
           </div>
 
           <div className='mt-4 flex space-x-6 text-center'>
@@ -302,6 +306,14 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
             <div>
               <p className='text-xl font-bold'>{user.publicNotesCount}</p>
               <p className='text-gray-400 text-sm'>Public Notes</p>
+            </div>
+            <div>
+              <p className='text-xl font-bold'>{user.followerCount}</p>
+              <p className='text-gray-400 text-sm'>Followers</p>
+            </div>
+            <div>
+              <p className='text-xl font-bold'>{user.followingCount}</p>
+              <p className='text-gray-400 text-sm'>Following</p>
             </div>
           </div>
 
@@ -315,6 +327,20 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
               className='ml-4 p-2 bg-gray-800 rounded-full hover:bg-gray-700 focus:outline-none sm:ml-0 sm:mt-4'
             >
               <Edit3 size={24} />
+            </button>
+          )}
+        </div>
+        <div>
+          {loggedInUser && loggedInUser.username !== username && (
+            <button
+              onClick={followUnfollow}
+              className={`ml-4 p-2 ${
+                isFollowing
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              } rounded-full focus:outline-none sm:ml-0 sm:mt-4 text-white`}
+            >
+              {isFollowing ? 'Unfollow' : 'Follow'}
             </button>
           )}
         </div>
@@ -340,18 +366,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
         </select>
       </div>
 
-      {/* Filter Input */}
-      {/* <div className='flex justify-center mt-4'>
-        <input
-          type='text'
-          placeholder='Filter notes...'
-          value={filterText}
-          onChange={(e) => setFilterText(e.target.value)}
-          className='px-4 py-2 rounded-full border bg-[#1E293B] text-white border-gray-600 hover:border-white hover:bg-[#374151] w-full max-w-md'
-        />
-      </div> */}
-
-      {/* Integrate the Search component */}
+      {/* Search Input */}
       <Search filterText={filterText} setFilterText={setFilterText} />
 
       {/* Notes Section */}
@@ -368,7 +383,6 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
                       showAlert={showAlert}
                       image={profilePic}
                       username={user.username}
-                      // note={notes}
                     />
                     )
                   : (
@@ -393,7 +407,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
             )}
       </div>
 
-      {/* Conditionally render the Add Note button */}
+      {/* Add Note Button */}
       {loggedInUser && (
         <button
           onClick={toggleAddNoteModal}
