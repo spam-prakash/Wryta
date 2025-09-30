@@ -8,6 +8,7 @@ const sendMail = require('./mailer')
 // const jwt = require('jsonwebtoken')
 // const fetchuser = require('../middleware/fetchUser')
 const fetchuser = require('../middleware/fetchuser')
+const liveLink = process.env.REACT_APP_LIVE_LINK
 
 router.get('/:username', fetchuser, async (req, res) => {
   try {
@@ -17,8 +18,12 @@ router.get('/:username', fetchuser, async (req, res) => {
     const user = await User.findOne({ username })
     if (!user) return res.status(404).json({ error: 'User not found' })
 
+    // Fetch notes of the user
     const notes = await Note.find({ user: user._id })
-    const publicNotes = notes.filter(note => note.isPublic)
+
+    // Fetch only public notes
+    const publicNotes = notes.filter((note) => note.isPublic)
+    // console.log(publicNotes)
 
     const userData = {
       id: user.id, // manual id
@@ -68,6 +73,7 @@ router.post('/follow/:userId', fetchuser, async (req, res) => {
     const follower = await User.findById(followerId)
     const followerMail = follower.email
     const followerName = follower.name
+    const followerUserName = follower.username
 
     if (!user || !follower) {
       return res.status(404).json({ error: 'User not found' })
@@ -86,6 +92,10 @@ router.post('/follow/:userId', fetchuser, async (req, res) => {
                   <h2>You just got a new follower!</h2>
                   <p>Hi <strong>${userName}</strong>,</p>
                   <p><strong>${followerName}</strong> just started following you on <strong>Wryta</strong>.</p>
+                  <a href="${liveLink}/${followerUserName}" 
+                  style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
+                  View Profile
+                  </a>
                   <p>You now have <strong>${followerCount}</strong> followers. </p>
                   <p>Keep sharing your notes and inspiring others!</p>
                   <br>
