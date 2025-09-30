@@ -5,6 +5,7 @@ const Note = require('../models/Note')
 const User = require('../models/User')
 const sendMail = require('./mailer')
 const { body, validationResult } = require('express-validator')
+const liveLink = process.env.REACT_APP_LIVE_LINK
 
 // ROUTE: 1 GET ALL NOTES GET:"/api/notes/fetchallnotes" LOGIN REQUIRED
 router.get('/fetchallnotes', fetchuser, async (req, res) => {
@@ -44,6 +45,38 @@ router.post('/addnote', [
 
     // Save note in database
     const savedNote = await note.save()
+
+    if (isPublic) {
+      const user = await User.findById(req.user.id).select('-password -tokens')
+      const followers = user.follower.list // Get the list of followers
+
+      // Send email to each follower
+      const subject = `New Note Added by ${user.name}`
+      const text = ''
+      const html = `
+        <!DOCTYPE html>
+        <html>
+          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <h2>New Note Added!</h2>
+            <p>Hi,</p>
+            <p><strong>${user.name}</strong> has added a new note titled <em>“${title}”</em>.</p>
+            <p>Check it out now!</p>
+            <p>Link: <a href="${liveLink}/note/${note._id}">${liveLink}/note/${note._id}</a>
+            <br>
+            <p style="font-size: 0.9em; color: #777;">
+              – The Wryta Team
+            </p>
+          </body>
+        </html>
+      `
+
+      for (const followerId of followers) {
+        const follower = await User.findById(followerId).select('email')
+        if (follower && follower.email) {
+          await sendMail(follower.email, subject, text, html)
+        }
+      }
+    }
     res.json(savedNote)
   } catch (error) {
     console.error(error.message)
@@ -256,6 +289,10 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
     <p><strong>${LikingUserName}</strong> just liked your note:  
       <em>“${noteTitle}”</em>.
     </p>
+    <a href="${liveLink}/note/${noteId}" 
+       style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
+       View Note
+    </a>
     <p>Total Likes: ${totalLikes}</p>
     <p>Keep sharing your thoughts, people are loving them!</p>
     <br>

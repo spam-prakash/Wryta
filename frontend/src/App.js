@@ -99,8 +99,8 @@ function App () {
     </>
   )
 }
-
 const OtherProfileWrapper = ({ loggedInUser, showAlert }) => {
+  // console.log(loggedInUser)
   const { username } = useParams()
   const reservedRoutes = ['dashboard', 'settings', 'profile'] // Add existing routes here
 

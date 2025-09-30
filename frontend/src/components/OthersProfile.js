@@ -9,7 +9,7 @@ import { Plus, Edit3 } from 'lucide-react'
 import Search from './Search' // Import the Search component
 
 const OthersProfile = ({ loggedInUser, showAlert }) => {
-  // console.log(loggedInUser)
+  console.log('loggedInUser:', loggedInUser)
   const { notes, getNotes, editNote } = useContext(noteContext)
   const { username: initialUsername } = useParams()
   const [username, setUsername] = useState(initialUsername)
@@ -73,11 +73,14 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
         }
       })
       const data = await response.json()
-      // console.log(data)
       setUser(data)
+      // console.log(data)
+
+      // ✅ Only set isFollowing if loggedInUser is ready
       setIsFollowing(data.isFollowing) // ✅ trust backend
     } catch (error) {
       console.error('Error fetching user profile:', error)
+      setError('Failed to load user profile')
     }
   }
 
@@ -87,26 +90,25 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     }
   }, [username])
 
-  // useEffect(() => {
-  //   if (loggedInUser?.username === username) {
-  //     getNotes()
-  //   }
-  // }, [loggedInUser, username, getNotes])
-
   useEffect(() => {
-    if (loggedInUser?.id) {
-      fetchUserProfile(username)
-      if (loggedInUser.username === username) {
-        getNotes()
-      }
+    if (loggedInUser?.username === username) {
+      console.log('Fetching own notes...')
+      getNotes() // Fetch notes for the logged-in user
     }
-  }, [username, loggedInUser?.id])
+  }, [username, loggedInUser?.username, getNotes])
+
+  // ✅ Sync isFollowing when both user + loggedInUser are loaded
+  // useEffect(() => {
+  //   if (user && loggedInUser) {
+  //     setIsFollowing(data.isFollowing)
+  //   }
+  // }, [user, loggedInUser])
 
   useEffect(() => {
     if (user) {
       document.title = `${username} || Wryta`
     }
-  }, [user])
+  }, [user, username])
 
   if (error) return <p className='text-red-500'>{error}</p>
   if (!user) return <p>Loading...</p>
@@ -118,11 +120,10 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   const notesToDisplay =
     loggedInUser?.username === username ? notes : user.publicNotes || []
 
-  const filteredNotes = notesToDisplay.filter(
-    (note) =>
-      note.title.toLowerCase().includes(filterText.toLowerCase()) ||
-      note.description.toLowerCase().includes(filterText.toLowerCase()) ||
-      note.tag.toLowerCase().includes(filterText.toLowerCase())
+  const filteredNotes = notesToDisplay.filter((note) =>
+    note.title.toLowerCase().includes(filterText.toLowerCase()) ||
+    note.description.toLowerCase().includes(filterText.toLowerCase()) ||
+    note.tag.toLowerCase().includes(filterText.toLowerCase())
   )
 
   const sortedNotesToDisplay = filteredNotes.sort((a, b) => {
@@ -191,7 +192,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
             'auth-token': localStorage.getItem('token')
           }
         })
-        setIsFollowing(false) // instant UI update
+        setIsFollowing(false)
       } else {
         await fetch(`${hostLink}/api/user/follow/${user.id}`, {
           method: 'POST',
@@ -199,10 +200,9 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
             'auth-token': localStorage.getItem('token')
           }
         })
-        setIsFollowing(true) // instant UI update
+        setIsFollowing(true)
       }
-
-      fetchUserProfile(username) // refresh backend data
+      fetchUserProfile(username)
     } catch (error) {
       console.error('Error updating follow status:', error)
     }
@@ -233,10 +233,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
           <h2 className='text-xl font-bold mb-4 text-white'>Edit Profile</h2>
           <form onSubmit={handleEditProfileSubmit}>
             <div className='mb-4'>
-              <label
-                htmlFor='username'
-                className='block text-sm font-medium text-gray-300'
-              >
+              <label htmlFor='username' className='block text-sm font-medium text-gray-300'>
                 Username
               </label>
               <input
@@ -249,10 +246,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
               />
             </div>
             <div className='mb-4'>
-              <label
-                htmlFor='name'
-                className='block text-sm font-medium text-gray-300'
-              >
+              <label htmlFor='name' className='block text-sm font-medium text-gray-300'>
                 Name
               </label>
               <input
@@ -283,8 +277,8 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
         </div>
       </div>
 
+      {/* Profile Section */}
       <div className='flex flex-col items-center text-white px-4'>
-        {/* Profile Section */}
         <div className='flex flex-col md:flex-row items-center w-full max-w-4xl py-6 mt-20'>
           <a href={profilePic} target='_blank' rel='noreferrer'>
             <img
@@ -317,7 +311,6 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
             </div>
           </div>
 
-          {/* Edit Icon */}
           {loggedInUser?.username === username && (
             <button
               onClick={() => {
@@ -330,6 +323,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
             </button>
           )}
         </div>
+
         <div>
           {loggedInUser && loggedInUser.username !== username && (
             <button
