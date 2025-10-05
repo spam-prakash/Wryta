@@ -9,7 +9,6 @@ import { Plus, Edit3 } from 'lucide-react'
 import Search from './Search' // Import the Search component
 
 const OthersProfile = ({ loggedInUser, showAlert }) => {
-  console.log('loggedInUser:', loggedInUser)
   const { notes, getNotes, editNote } = useContext(noteContext)
   const { username: initialUsername } = useParams()
   const [username, setUsername] = useState(initialUsername)
@@ -18,15 +17,13 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   const [sortCriteria, setSortCriteria] = useState('modifiedDate')
   const [sortOrder, setSortOrder] = useState('desc')
   const [isFollowing, setIsFollowing] = useState()
-  const [filterText, setFilterText] = useState('') // State for filtering notes
+  const [filterText, setFilterText] = useState('')
   const hostLink = process.env.REACT_APP_HOSTLINK
 
   const modalRef = useRef(null)
   const [currentNote, setCurrentNote] = useState(null)
-
   const addNoteModalRef = useRef(null)
   const editProfileModalRef = useRef(null)
-
   const navigate = useNavigate()
   const location = window.location
 
@@ -72,15 +69,23 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
           'auth-token': localStorage.getItem('token')
         }
       })
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError('User not found.')
+        } else {
+          setError('Failed to load user profile.')
+        }
+        setUser(null)
+        return
+      }
+
       const data = await response.json()
       setUser(data)
-      // console.log(data)
-
-      // ✅ Only set isFollowing if loggedInUser is ready
-      setIsFollowing(data.isFollowing) // ✅ trust backend
+      setIsFollowing(data.isFollowing)
     } catch (error) {
       console.error('Error fetching user profile:', error)
-      setError('Failed to load user profile')
+      setError('Something went wrong while loading the user profile.')
     }
   }
 
@@ -92,17 +97,9 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
 
   useEffect(() => {
     if (loggedInUser?.username === username) {
-      console.log('Fetching own notes...')
-      getNotes() // Fetch notes for the logged-in user
+      getNotes()
     }
   }, [username, loggedInUser?.username, getNotes])
-
-  // ✅ Sync isFollowing when both user + loggedInUser are loaded
-  // useEffect(() => {
-  //   if (user && loggedInUser) {
-  //     setIsFollowing(data.isFollowing)
-  //   }
-  // }, [user, loggedInUser])
 
   useEffect(() => {
     if (user) {
@@ -110,8 +107,27 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     }
   }, [user, username])
 
-  if (error) return <p className='text-red-500'>{error}</p>
-  if (!user) return <p>Loading...</p>
+  // ✅ Custom 404 / error screen
+  if (error) {
+    return (
+      <div className='flex items-center justify-center min-h-screen bg-[#0a1122]'>
+        <div className='text-center text-gray-300'>
+          <h2 className='text-2xl font-bold mb-2'>
+            {error.includes('User') ? '404 User Not Found' : 'Unable to load user'}
+          </h2>
+          <p className='text-gray-400'>{error}</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className='flex items-center justify-center min-h-screen bg-[#0a1122]'>
+        <p className='text-gray-300 text-lg'>Loading profile...</p>
+      </div>
+    )
+  }
 
   const profilePic =
     user.profilePic ||
@@ -397,7 +413,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
               )
             )
           : (
-            <p className='text-center text-gray-400'>No notes available.</p>
+            <p className='text-center text-gray-400 w-full'>No notes available.</p>
             )}
       </div>
 
