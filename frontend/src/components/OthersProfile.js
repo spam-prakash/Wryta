@@ -132,7 +132,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
 
   if (!user) {
     return (
-      <div className='flex items-center justify-center min-h-screen bg-[#0a1122]'>
+      <div className='flex items-center justify-center min-h-screen '>
         <p className='text-gray-300 text-lg'>Loading profile...</p>
       </div>
     )

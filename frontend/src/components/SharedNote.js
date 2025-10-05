@@ -32,7 +32,7 @@ const SharedNote = (props) => {
 
   if (error) {
     return (
-      <div className='flex items-center justify-center min-h-screen bg-[#0a1122]'>
+      <div className='flex items-center justify-center min-h-screen z-50 inset-0 bg-opacity-50 md:backdrop-blur-sm'>
         <div className='text-center text-gray-300'>
           <h2 className='text-2xl font-bold mb-2'>404 Unable to load note</h2>
           <p className='text-gray-400'>{error}</p>
@@ -60,7 +60,7 @@ const SharedNote = (props) => {
 
   return (
     <>
-      <div className='flex items-center justify-center min-h-screen bg-[#0a1122]'>
+      <div className='flex items-center justify-center min-h-screen z-50 inset-0 bg-opacity-50 md:backdrop-blur-sm'>
         <div className='text-white w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 flex flex-col'>
           {/* Header (User Info) */}
           <div className='flex flex-col p-4 pb-1 border-b border-gray-700'>
