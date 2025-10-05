@@ -32,8 +32,19 @@ router.get('/:username', fetchuser, async (req, res) => {
       username: user.username,
       followerCount: user.follower.count,
       followingCount: user.following.count,
-      followerList: user.follower.list.map(f => f._id || f),
-      followingList: user.following.list.map(f => f._id || f),
+      followerList: user.follower.list.map(f => ({
+        id: f._id,
+        name: f.name,
+        username: f.username,
+        profilePic: f.image?.trim() ? f.image : null
+      })),
+
+      followingList: user.following.list.map(f => ({
+        id: f._id,
+        name: f.name,
+        username: f.username,
+        profilePic: f.image?.trim() ? f.image : null
+      })),
       isFollowing: user.follower.list.some(
         f => String(f._id || f) === String(req.user.id)
       ),
@@ -64,75 +75,70 @@ router.get('/:username', fetchuser, async (req, res) => {
 
 router.post('/follow/:userId', fetchuser, async (req, res) => {
   try {
-    const userId = req.params.userId // ID of the user to follow
-    const followerId = req.user.id // ID of the logged-in user
+    const userId = req.params.userId
+    const followerId = req.user.id
+
+    if (userId === followerId) {
+      return res.status(400).json({ error: 'You cannot follow yourself.' })
+    }
 
     const user = await User.findById(userId)
-    const userMail = user.email
-    const userName = user.name
     const follower = await User.findById(followerId)
-    const followerMail = follower.email
-    const followerName = follower.name
-    const followerUserName = follower.username
 
     if (!user || !follower) {
       return res.status(404).json({ error: 'User not found' })
     }
 
-    // Add follower to the user's follower list
-    if (!user.follower.list.includes(followerId)) {
-      user.follower.list.push(followerId)
-      user.follower.count += 1
-      const followerCount = user.follower.count
-      const subject = `${followerName} just followed you!`
-      const text = ''
-      const html = `<!DOCTYPE html>
-              <html>
-                <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                  <h2>You just got a new follower!</h2>
-                  <p>Hi <strong>${userName}</strong>,</p>
-                  <p><strong>${followerName}</strong> just started following you on <strong>Wryta</strong>.</p>
-                  <a href="${liveLink}/${followerUserName}" 
-                  style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
-                  View Profile
-                  </a>
-                  <p>You now have <strong>${followerCount}</strong> followers. </p>
-                  <p>Keep sharing your notes and inspiring others!</p>
-                  <br>
-                  <p style="font-size: 0.9em; color: #777;">
-                    – The Wryta Team
-                  </p>
-                </body>
-              </html>
-              `
-
-      sendMail(userMail, subject, text, html)
+    const alreadyFollowing = user.follower.list.some(f => String(f._id) === String(followerId))
+    if (alreadyFollowing) {
+      return res.status(400).json({ error: 'Already following this user.' })
     }
 
-    // Add user to the follower's following list
-    if (!follower.following.list.includes(userId)) {
-      follower.following.list.push(userId)
-      follower.following.count += 1
-      // const subject = 'You just followed.'
-      // const text = ''
-      // const html = ''
-      // sendMail(followerMail, subject)
-    }
+    // Add follower to user
+    user.follower.list.push({
+      _id: follower._id,
+      username: follower.username,
+      name: follower.name
+    })
+    user.follower.count = user.follower.list.length
+
+    // Add following to follower
+    follower.following.list.push({
+      _id: user._id,
+      username: user.username,
+      name: user.name
+    })
+    follower.following.count = follower.following.list.length
 
     await user.save()
     await follower.save()
 
+    // Send follow mail
+    const subject = `${follower.name} just followed you!`
+    const html = `
+      <h2>You just got a new follower!</h2>
+      <p>Hi <strong>${user.name}</strong>,</p>
+      <p><strong>${follower.name}</strong> (@${follower.username}) just started following you on <strong>Wryta</strong>.</p>
+      <a href="${liveLink}/u/${follower.username}" 
+        style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
+        View Profile
+      </a>
+      <p>Keep sharing your notes and inspiring others!</p>
+      <p style="font-size:0.9em;color:#777;">– The Wryta Team</p>
+    `
+    sendMail(user.email, subject, '', html)
+
     res.json({ success: true, message: 'Followed successfully' })
   } catch (error) {
-    console.error(error.message)
+    console.error(error)
     res.status(500).json({ error: 'Internal Server Error' })
   }
 })
 
 router.post('/unfollow/:userId', fetchuser, async (req, res) => {
   try {
-    const userId = req.params.userId // ID of the user to unfollow
-    const followerId = req.user.id // ID of the logged-in user
+    const userId = req.params.userId
+    const followerId = req.user.id
 
     const user = await User.findById(userId)
     const follower = await User.findById(followerId)
@@ -141,20 +147,18 @@ router.post('/unfollow/:userId', fetchuser, async (req, res) => {
       return res.status(404).json({ error: 'User not found' })
     }
 
-    // Remove follower from the user's follower list
-    user.follower.list = user.follower.list.filter((id) => id.toString() !== followerId.toString())
-    user.follower.count -= 1
+    user.follower.list = user.follower.list.filter(f => String(f._id) !== String(followerId))
+    user.follower.count = user.follower.list.length
 
-    // Remove user from the follower's following list
-    follower.following.list = follower.following.list.filter((id) => id.toString() !== userId.toString())
-    follower.following.count -= 1
+    follower.following.list = follower.following.list.filter(f => String(f._id) !== String(userId))
+    follower.following.count = follower.following.list.length
 
     await user.save()
     await follower.save()
 
     res.json({ success: true, message: 'Unfollowed successfully' })
   } catch (error) {
-    console.error(error.message)
+    console.error(error)
     res.status(500).json({ error: 'Internal Server Error' })
   }
 })

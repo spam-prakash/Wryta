@@ -7,9 +7,13 @@ import NoteUpdateModal from './NoteUpdateModal'
 import Addnote from './Addnote'
 import { Plus, Edit3 } from 'lucide-react'
 import Search from './Search' // Import the Search component
+import UserListModal from './UserListModal'
 
 const OthersProfile = ({ loggedInUser, showAlert }) => {
   const { notes, getNotes, editNote } = useContext(noteContext)
+  const [modalType, setModalType] = useState(null)
+  const openModal = (type) => setModalType(type)
+  const closeModal = () => setModalType(null)
   const { username: initialUsername } = useParams()
   const [username, setUsername] = useState(initialUsername)
   const [user, setUser] = useState(null)
@@ -82,6 +86,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
 
       const data = await response.json()
       setUser(data)
+      // console.log(data)
       setIsFollowing(data.isFollowing)
     } catch (error) {
       console.error('Error fetching user profile:', error)
@@ -94,6 +99,10 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
       fetchUserProfile(username)
     }
   }, [username])
+
+  useEffect(() => {
+    setUsername(initialUsername)
+  }, [initialUsername])
 
   useEffect(() => {
     if (loggedInUser?.username === username) {
@@ -129,9 +138,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     )
   }
 
-  const profilePic =
-    user.profilePic ||
-    `https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`
+  const profilePic = user.profilePic || `https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`
 
   const notesToDisplay =
     loggedInUser?.username === username ? notes : user.publicNotes || []
@@ -317,16 +324,41 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
               <p className='text-xl font-bold'>{user.publicNotesCount}</p>
               <p className='text-gray-400 text-sm'>Public Notes</p>
             </div>
-            <div>
+            <div
+              className='cursor-pointer text-center hover:opacity-80'
+              onClick={() => openModal('followers')}
+            >
               <p className='text-xl font-bold'>{user.followerCount}</p>
               <p className='text-gray-400 text-sm'>Followers</p>
             </div>
-            <div>
+
+            <div
+              className='cursor-pointer text-center hover:opacity-80'
+              onClick={() => openModal('following')}
+            >
               <p className='text-xl font-bold'>{user.followingCount}</p>
               <p className='text-gray-400 text-sm'>Following</p>
             </div>
+
+            {modalType === 'followers' && (
+              <UserListModal
+                title='Followers'
+                users={user.followerList}
+                onClose={closeModal}
+              />
+            )}
+            {modalType === 'following' && (
+              <UserListModal
+                title='Following'
+                users={user.followingList}
+                onClose={closeModal}
+              />
+            )}
           </div>
 
+        </div>
+
+        <div>
           {loggedInUser?.username === username && (
             <button
               onClick={() => {
@@ -338,17 +370,13 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
               <Edit3 size={24} />
             </button>
           )}
-        </div>
-
-        <div>
           {loggedInUser && loggedInUser.username !== username && (
             <button
               onClick={followUnfollow}
-              className={`ml-4 p-2 ${
-                isFollowing
-                  ? 'bg-red-600 hover:bg-red-700'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              } rounded-full focus:outline-none sm:ml-0 sm:mt-4 text-white`}
+              className={`ml-4 p-2 px-10 text-base md:px-20 md:text-xl mb-4 ${isFollowing
+                ? 'bg-red-600 hover:bg-red-700'
+                : 'bg-blue-600 hover:bg-blue-700'
+                } rounded-full focus:outline-none sm:ml-0 sm:mt-4 text-white`}
             >
               {isFollowing ? 'Unfollow' : 'Follow'}
             </button>

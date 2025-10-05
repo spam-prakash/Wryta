@@ -32,24 +32,22 @@ const UserSchema = new mongoose.Schema({
     required: false
   },
   follower: {
-    count: {
-      type: Number,
-      default: 0
-    },
+    count: { type: Number, default: 0 },
     list: [
       {
-        type: mongoose.Schema.Types.ObjectId, ref: 'User'
+        _id: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+        username: String,
+        name: String
       }
     ]
   },
   following: {
-    count: {
-      type: Number,
-      default: 0
-    },
+    count: { type: Number, default: 0 },
     list: [
       {
-        type: mongoose.Schema.Types.ObjectId, ref: 'User'
+        _id: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+        username: String,
+        name: String
       }
     ]
   },

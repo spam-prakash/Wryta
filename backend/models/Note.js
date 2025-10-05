@@ -2,14 +2,14 @@ const mongoose = require('mongoose')
 
 const NoteSchema = new mongoose.Schema({
   title: {
-    type: String,
+    type: String
   },
   description: {
     type: String,
     required: true
   },
   tag: {
-    type: String,
+    type: String
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
@@ -43,10 +43,34 @@ const NoteSchema = new mongoose.Schema({
     default: 0
   },
   actions: {
-    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Store liked note IDs
-    shares: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    copies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    downloads: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+    likes: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        username: String,
+        name: String
+      }
+    ],
+    shares: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        username: String,
+        name: String
+      }
+    ],
+    copies: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        username: String,
+        name: String
+      }
+    ],
+    downloads: [
+      {
+        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        username: String,
+        name: String
+      }
+    ]
   }
 })
 

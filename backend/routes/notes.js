@@ -59,7 +59,7 @@ router.post('/addnote', [
           <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
             <h2>New Note Added!</h2>
             <p>Hi,</p>
-            <p><strong><a href="${liveLink}/${user.username}">${user.name}</a></strong> has added a new note titled <em>“${title}”</em>.</p>
+            <p><strong><a href="${liveLink}/u/${user.username}">${user.name}</a></strong> has added a new note titled <em>“${title}”</em>.</p>
             <p>Check it out now!</p>
             <p>Link: <a href="${liveLink}/note/${note._id}">${liveLink}/note/${note._id}</a>
             <br>
@@ -250,50 +250,57 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
     const noteId = req.params.id
     const userId = req.user.id
 
-    // Fetch Note Owner Email
-    const noteObj = await Note.findById(noteId)
-    const noteOwnerId = noteObj.user
-    const noteTitle = noteObj.title
+    const note = await Note.findById(noteId)
+    if (!note) return res.status(404).json({ success: false, message: 'Note not found' })
 
-    // console.log(noteOwnerId)
-    const noteOwneruserObj = await User.findById(noteOwnerId)
-    const noteOwnerEmail = noteOwneruserObj.email
-    const noteOwnerName = noteOwneruserObj.name
-    const noteOwnerUsername = noteOwneruserObj.username
-    const user = await User.findById(userId)
-    const LikingUserName = user.name
+    const noteOwner = await User.findById(note.user)
+    const likingUser = await User.findById(userId)
+    if (!noteOwner || !likingUser) { return res.status(404).json({ success: false, message: 'User not found' }) }
 
-    if (noteOwnerUsername === LikingUserName) {
-      return res.json({ success: true, message: 'Note liked' })
-    } else {
-      if (user.actions.likes.includes(noteId)) {
-        // If already liked, unlike the note
-        await User.findByIdAndUpdate(userId, { $pull: { 'actions.likes': noteId } })
-        await Note.findByIdAndUpdate(noteId, { $inc: { likes: -1 } })
-        // Removed UserId Who unLiked the Note
-        await Note.findByIdAndUpdate(noteId, { $pull: { 'actions.likes': userId } })
-        return res.json({ success: true, message: 'Note unliked' })
-      } else {
-        // If not liked, like the note
-        await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.likes': noteId } })
-        await Note.findByIdAndUpdate(noteId, { $inc: { likes: 1 } })
-        const updatedNote = await Note.findById(noteId)
-        const totalLikes = updatedNote.likes
-        // console.log(totalLikes)
-        // Add UserId Who Liked the Note
-        await Note.findByIdAndUpdate(noteId, { $addToSet: { 'actions.likes': userId } })
+    // Prevent self-like
+    if (noteOwner._id.toString() === userId) { return res.json({ success: true, message: 'You cannot like your own note' }) }
 
-        // Mail User about Liked Note
-        const email = noteOwnerEmail
-        const subject = 'Your note just got a like! 🎉'
-        const text = ''
-        const html = `<!DOCTYPE html>
+    // Check if already liked
+    const alreadyLiked = note.actions.likes.some(
+      like => like.userId?.toString() === userId.toString()
+    )
+
+    if (alreadyLiked) {
+      // Unlike → remove from array & decrement
+      await Note.findByIdAndUpdate(noteId, {
+        $pull: { 'actions.likes': { userId: new mongoose.Types.ObjectId(userId) } },
+        $inc: { likes: -1 }
+      })
+      await User.findByIdAndUpdate(userId, { $pull: { 'actions.likes': noteId } })
+      return res.json({ success: true, message: 'Note unliked' })
+    }
+
+    // Like → manually push liker object
+    const likeData = {
+      userId,
+      name: likingUser.name,
+      username: likingUser.username
+    }
+
+    note.actions.likes.push(likeData)
+    note.likes += 1
+    await note.save()
+
+    await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.likes': noteId } })
+
+    const totalLikes = note.likes
+
+    // Send email
+    const email = noteOwner.email
+    const subject = 'Your note just got a like! 🎉'
+    const html = `
+<!DOCTYPE html>
 <html>
   <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
     <h2>🎉 Your note just got a like!</h2>
-    <p>Hi <strong>${noteOwnerName}</strong>,</p>
-    <p><strong><a href="${liveLink}/${LikingUserName}">${LikingUserName}</a></strong> just liked your note:  
-      <em>“${noteTitle}”</em>.
+    <p>Hi <strong>${noteOwner.name}</strong>,</p>
+    <p><strong><a href="${liveLink}/u/${likingUser.username}">${likingUser.name}</a></strong> just liked your note:  
+      <em>“${note.title}”</em>.
     </p>
     <a href="${liveLink}/note/${noteId}" 
        style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
@@ -302,19 +309,15 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
     <p>Total Likes: ${totalLikes}</p>
     <p>Keep sharing your thoughts, people are loving them!</p>
     <br>
-    <p style="font-size: 0.9em; color: #777;">
-      – The Wryta Team
-    </p>
+    <p style="font-size: 0.9em; color: #777;">– The Wryta Team</p>
   </body>
-</html>
-`
-        await sendMail(email, subject, text, html)
+</html>`
 
-        return res.json({ success: true, message: 'Note liked' })
-      }
-    }
+    await sendMail(email, subject, '', html)
+
+    return res.json({ success: true, message: 'Note liked' })
   } catch (error) {
-    console.error(error.message)
+    console.error('Error in /note/:id/like:', error.message)
     res.status(500).send('Internal Server Error')
   }
 })
@@ -324,15 +327,18 @@ router.post('/note/:id/share', fetchuser, async (req, res) => {
   try {
     const noteId = req.params.id
     const userId = req.user.id
+    const user = await User.findById(userId)
 
-    // Increment the share count for the note
-    await Note.findByIdAndUpdate(noteId, { $inc: { shares: 1 } })
-    // Add UserId Who Shared the Note
-    await Note.findByIdAndUpdate(noteId, { $addToSet: { 'actions.shares': userId } })
-    // console.log(Note)
+    const userData = { userId, username: user.username, name: user.name }
 
-    // Add the note to the user's shared notes
-    await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.shares': noteId } })
+    await Note.findByIdAndUpdate(noteId, {
+      $addToSet: { 'actions.shares': userData },
+      $inc: { shares: 1 }
+    })
+
+    await User.findByIdAndUpdate(userId, {
+      $addToSet: { 'actions.shares': noteId }
+    })
 
     res.json({ success: true, message: 'Note shared successfully' })
   } catch (error) {
@@ -346,14 +352,18 @@ router.post('/note/:id/copy', fetchuser, async (req, res) => {
   try {
     const noteId = req.params.id
     const userId = req.user.id
+    const user = await User.findById(userId)
 
-    // Increment the copy count for the note
-    await Note.findByIdAndUpdate(noteId, { $inc: { copies: 1 } })
-    // Add UserId Who Copied the Note
-    await Note.findByIdAndUpdate(noteId, { $addToSet: { 'actions.copies': userId } })
+    const userData = { userId, username: user.username, name: user.name }
 
-    // Add the note to the user's copied notes
-    await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.copies': noteId } })
+    await Note.findByIdAndUpdate(noteId, {
+      $addToSet: { 'actions.copies': userData },
+      $inc: { copies: 1 }
+    })
+
+    await User.findByIdAndUpdate(userId, {
+      $addToSet: { 'actions.copies': noteId }
+    })
 
     res.json({ success: true, message: 'Note copied successfully' })
   } catch (error) {
@@ -367,14 +377,18 @@ router.post('/note/:id/download', fetchuser, async (req, res) => {
   try {
     const noteId = req.params.id
     const userId = req.user.id
+    const user = await User.findById(userId)
 
-    // Increment the download count for the note
-    await Note.findByIdAndUpdate(noteId, { $inc: { downloads: 1 } })
-    // Add UserId Who Downloaded the Note
-    await Note.findByIdAndUpdate(noteId, { $addToSet: { 'actions.downloads': userId } })
+    const userData = { userId, username: user.username, name: user.name }
 
-    // Add the note to the user's downloaded notes
-    await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.downloads': noteId } })
+    await Note.findByIdAndUpdate(noteId, {
+      $addToSet: { 'actions.downloads': userData },
+      $inc: { downloads: 1 }
+    })
+
+    await User.findByIdAndUpdate(userId, {
+      $addToSet: { 'actions.downloads': noteId }
+    })
 
     res.json({ success: true, message: 'Note downloaded successfully' })
   } catch (error) {
