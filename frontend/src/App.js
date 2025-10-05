@@ -85,12 +85,12 @@ function App () {
               <Route exact path='/login' key='/login' element={<Login showAlert={showAlert} setUser={setUser} />} />
               <Route exact path='/signup' key='/signup' element={<Signup showAlert={showAlert} />} />
               <Route exact path='/profile' key='/profile' element={<Profile showAlert={showAlert} user={user} />} />
-              <Route path='*' key='/' element={<Home />} />
               <Route path='/u/:username' element={<OtherProfileWrapper loggedInUser={user} showAlert={showAlert} />} />
               <Route path='/login-success' element={<Login />} />
               <Route path='/request-reset-password' element={<RequestResetPassword showAlert={showAlert} />} />
               <Route path='/reset-password' element={<ResetPassword showAlert={showAlert} />} />
               <Route path='/note/:id' element={<SharedNote showAlert={showAlert} />} />
+              <Route path='*' key='/' element={<Home />} />
             </Routes>
           </div>
         </Router>
