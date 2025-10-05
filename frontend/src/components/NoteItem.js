@@ -6,7 +6,7 @@ import NoteModal from './NoteModal'
 import { Lock, LockOpen, X, Copy, Download, Share2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import InteractionButtons from './InteractionButtons'
-import renderWithLinksAndMentions from './renderWithLinksAndMentions'
+import renderWithLinksAndMentions from './utils/renderWithLinksAndMentions'
 
 const NoteItem = (props) => {
   const { image, username } = props

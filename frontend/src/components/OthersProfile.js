@@ -8,6 +8,7 @@ import Addnote from './Addnote'
 import { Plus, Edit3 } from 'lucide-react'
 import Search from './Search' // Import the Search component
 import UserListModal from './UserListModal'
+import Loader from './utils/Loader'
 
 const OthersProfile = ({ loggedInUser, showAlert }) => {
   const { notes, getNotes, editNote } = useContext(noteContext)
@@ -132,9 +133,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
 
   if (!user) {
     return (
-      <div className='flex items-center justify-center min-h-screen '>
-        <p className='text-gray-300 text-lg'>Loading profile...</p>
-      </div>
+      <Loader />
     )
   }
 

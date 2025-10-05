@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import NoteModal from './NoteModal'
 import InteractionButtons from './InteractionButtons'
-import renderWithLinksAndMentions from './renderWithLinksAndMentions'
+import renderWithLinksAndMentions from './utils/renderWithLinksAndMentions'
 
 const OtherProfileNoteItem = ({
   title,

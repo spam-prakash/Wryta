@@ -4,6 +4,7 @@ import Addnote from './Addnote'
 import Search from './Search' // Import the new Search component
 import { Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import Loader from './utils/Loader'
 
 const Home = (props) => {
   const [publicNotes, setPublicNotes] = useState([])
@@ -99,30 +100,25 @@ const Home = (props) => {
         <Search filterText={filterText} setFilterText={setFilterText} />
 
         <div className='w-full flex flex-wrap text-white gap-3 mt-4'>
-          {filteredNotes.length > 0
-            ? (
-                filteredNotes.map((note) => (
-                  <HomeNoteItem
-                    note={note}
-                    key={note._id}
-                    noteId={note._id}
-                    title={note.title}
-                    description={note.description}
-                    date={note.date}
-                    modifiedDate={note.modifiedDate}
-                    tag={note.tag}
-                    name={note.userDetails.name}
-                    username={note.userDetails.username}
-                    image={note.userDetails.image}
-                    showAlert={props.showAlert}
-                  />
-                ))
-              )
-            : (
-              <p className='text-center text-gray-400'>No public notes available.</p>
-              )}
+          {filteredNotes.map((note) => (
+            <HomeNoteItem
+              note={note}
+              key={note._id}
+              noteId={note._id}
+              title={note.title}
+              description={note.description}
+              date={note.date}
+              modifiedDate={note.modifiedDate}
+              tag={note.tag}
+              name={note.userDetails.name}
+              username={note.userDetails.username}
+              image={note.userDetails.image}
+              showAlert={props.showAlert}
+            />
+          ))}
+
         </div>
-        {loading && <p className='text-center text-gray-400'>Loading...</p>}
+        {loading && <Loader />}
       </div>
 
       {/* Conditionally render the Add Note button */}
