@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import InteractionButtons from './InteractionButtons'
+import renderWithLinksAndMentions from './renderWithLinksAndMentions'
 
 const SharedNote = (props) => {
   const { id } = useParams()
@@ -57,44 +58,6 @@ const SharedNote = (props) => {
     return new Date(dateString).toLocaleTimeString(undefined, options)
   }
 
-  function renderWithLinks (text = '') {
-    if (typeof text !== 'string') return text
-
-    // Match URLs and domain-like patterns
-    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/[^\s]*)?)/g
-
-    // Split into parts — might include undefined, so we filter later
-    const parts = text.split(urlRegex).filter(Boolean)
-
-    return parts.map((part, i) => {
-    // Ensure it's a string
-      if (typeof part !== 'string') return null
-
-      const isURL = urlRegex.test(part)
-
-      if (isURL) {
-        const href =
-        part.startsWith('http://') || part.startsWith('https://')
-          ? part
-          : `https://${part}`
-
-        return (
-          <a
-            key={i}
-            href={href}
-            target='_blank'
-            rel='noopener noreferrer'
-            className='text-blue-500 underline break-words'
-          >
-            {part}
-          </a>
-        )
-      }
-
-      return <React.Fragment key={i}>{part}</React.Fragment>
-    })
-  }
-
   return (
     <>
       <div className='flex items-center justify-center min-h-screen bg-[#0a1122]'>
@@ -110,7 +73,7 @@ const SharedNote = (props) => {
                 />
               </Link>
               <div>
-                <Link to={`/${note.user.username}`} className='ml-3 font-semibold text-gray-200 hover:underline'>
+                <Link to={`/u/${note.user.username}`} className='ml-3 font-semibold text-gray-200 hover:underline'>
                   @{note.user.username}
                 </Link>
                 <div className='text-gray-400 text-xs ml-4'>
@@ -130,7 +93,7 @@ const SharedNote = (props) => {
           <div className='p-4'>
             <h5 className='text-lg font-bold text-white'>{note.title}</h5>
             {note.tag && <p className='text-[#FDC116] font-medium text-sm'># {note.tag}</p>}
-            <p className='mt-2 font-normal text-white whitespace-pre-wrap'>{renderWithLinks(note.description)}</p>
+            <p className='mt-2 font-normal text-white whitespace-pre-wrap'>{renderWithLinksAndMentions(note.description)}</p>
           </div>
           {/* Buttons */}
           <InteractionButtons
