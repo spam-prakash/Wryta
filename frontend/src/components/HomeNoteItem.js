@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import NoteModal from './NoteModal'
 import { Link } from 'react-router-dom'
 import InteractionButtons from './InteractionButtons'
-import renderWithLinksAndMentions from './renderWithLinksAndMentions'
+import renderWithLinksAndMentions from './utils/renderWithLinksAndMentions'
 
 const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, username, image, showAlert, noteId, note }) => {
   const formatDate = (dateString) => {

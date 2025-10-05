@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import InteractionButtons from './InteractionButtons'
-import renderWithLinksAndMentions from './renderWithLinksAndMentions'
+import renderWithLinksAndMentions from './utils/renderWithLinksAndMentions'
+import Loader from './utils/Loader'
 
 const SharedNote = (props) => {
   const { id } = useParams()
@@ -42,7 +43,7 @@ const SharedNote = (props) => {
   }
 
   if (!note) {
-    return <p>Loading...</p>
+    return <Loader />
   }
   // console.log(note._id)
 

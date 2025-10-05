@@ -55,7 +55,7 @@ const Navbar = (props) => {
   const handleProfileClick = () => {
     if (user && user.username) {
       navigate(`/u/${user.username}`)
-      window.location.reload() // Force reload to ensure the profile page updates
+      // window.location.reload() // Force reload to ensure the profile page updates
     }
   }
 
