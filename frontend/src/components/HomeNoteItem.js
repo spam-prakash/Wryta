@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import NoteModal from './NoteModal'
 import { Link } from 'react-router-dom'
 import InteractionButtons from './InteractionButtons'
+import renderWithLinksAndMentions from './renderWithLinksAndMentions'
 
 const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, username, image, showAlert, noteId, note }) => {
   const formatDate = (dateString) => {
@@ -29,44 +30,6 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
     }
   }, [description])
 
-  function renderWithLinks (text = '') {
-    if (typeof text !== 'string') return text
-
-    // Match URLs and domain-like patterns
-    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/[^\s]*)?)/g
-
-    // Split into parts — might include undefined, so we filter later
-    const parts = text.split(urlRegex).filter(Boolean)
-
-    return parts.map((part, i) => {
-    // Ensure it's a string
-      if (typeof part !== 'string') return null
-
-      const isURL = urlRegex.test(part)
-
-      if (isURL) {
-        const href =
-        part.startsWith('http://') || part.startsWith('https://')
-          ? part
-          : `https://${part}`
-
-        return (
-          <a
-            key={i}
-            href={href}
-            target='_blank'
-            rel='noopener noreferrer'
-            className='text-blue-500 underline break-words'
-          >
-            {part}
-          </a>
-        )
-      }
-
-      return <React.Fragment key={i}>{part}</React.Fragment>
-    })
-  }
-
   const toggleModal = () => setIsModalOpen(!isModalOpen)
 
   return (
@@ -78,7 +41,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
         {/* Header (User Info) */}
         <div className='flex flex-col p-4 pb-1 border-b border-gray-700'>
           <div className='flex items-center mb-1'>
-            <Link to={`/${username}`}>
+            <Link to={`/u/${username}`}>
               <img
                 src={image || `https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`}
                 alt={name}
@@ -86,7 +49,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
               />
             </Link>
             <div>
-              <Link to={`/${username}`} className='ml-3 font-semibold text-gray-200 hover:underline'>
+              <Link to={`/u/${username}`} className='ml-3 font-semibold text-gray-200 hover:underline'>
                 @{username}
               </Link>
               <div className='text-gray-400 text-xs ml-4'>
@@ -112,7 +75,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
               ref={contentRef}
               className='mb-0 mt-2 font-normal text-white whitespace-pre-wrap line-clamp-3 overflow-hidden'
             >
-              {renderWithLinks(description)}
+              {renderWithLinksAndMentions(description)}
             </p>
             {isOverflowing && (
               <button onClick={toggleModal} className='text-sm text-blue-400 hover:underline mt-2'>

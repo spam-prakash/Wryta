@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react'
+import renderWithLinksAndMentions from './renderWithLinksAndMentions'
 
 const NoteModal = ({ note, onClose }) => {
   const modalRef = useRef(null)
@@ -33,44 +34,6 @@ const NoteModal = ({ note, onClose }) => {
     }
   }, [])
 
-  function renderWithLinks (text = '') {
-    if (typeof text !== 'string') return text
-
-    // Match URLs and domain-like patterns
-    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/[^\s]*)?)/g
-
-    // Split into parts — might include undefined, so we filter later
-    const parts = text.split(urlRegex).filter(Boolean)
-
-    return parts.map((part, i) => {
-    // Ensure it's a string
-      if (typeof part !== 'string') return null
-
-      const isURL = urlRegex.test(part)
-
-      if (isURL) {
-        const href =
-        part.startsWith('http://') || part.startsWith('https://')
-          ? part
-          : `https://${part}`
-
-        return (
-          <a
-            key={i}
-            href={href}
-            target='_blank'
-            rel='noopener noreferrer'
-            className='text-blue-500 underline break-words'
-          >
-            {part}
-          </a>
-        )
-      }
-
-      return <React.Fragment key={i}>{part}</React.Fragment>
-    })
-  }
-
   return (
     <div className='fixed z-50 inset-0 bg-opacity-50 md:backdrop-blur-sm flex justify-center items-center my-20 mx-4 md:my-0 md:mt-16 md:mx-0'>
       <div ref={modalRef} className='bg-[#0a1122] p-6 rounded-lg shadow-2xl w-full max-w-lg max-h-full overflow-y-auto relative [&::-webkit-scrollbar]:hidden scrollbar-thin scrollbar-transparent'>
@@ -81,7 +44,7 @@ const NoteModal = ({ note, onClose }) => {
         <span className='text-white cursor-text bg-transparent font-medium rounded-lg text-base mb-0'>
           <span className='text-[#FDC116]'># </span>{note.tag}
         </span>
-        <p className='mb-4 font-normal text-white whitespace-pre-wrap'>{renderWithLinks(note.description)}</p>
+        <p className='mb-4 font-normal text-white whitespace-pre-wrap'>{renderWithLinksAndMentions(note.description)}</p>
         <div className='mt-4'>
           {note.modifiedDate && (
             <p className='text-xs mt-2 text-slate-500'>Modified: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}</p>
