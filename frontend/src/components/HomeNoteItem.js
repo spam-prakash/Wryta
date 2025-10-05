@@ -29,6 +29,44 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
     }
   }, [description])
 
+  function renderWithLinks (text = '') {
+    if (typeof text !== 'string') return text
+
+    // Match URLs and domain-like patterns
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/[^\s]*)?)/g
+
+    // Split into parts — might include undefined, so we filter later
+    const parts = text.split(urlRegex).filter(Boolean)
+
+    return parts.map((part, i) => {
+    // Ensure it's a string
+      if (typeof part !== 'string') return null
+
+      const isURL = urlRegex.test(part)
+
+      if (isURL) {
+        const href =
+        part.startsWith('http://') || part.startsWith('https://')
+          ? part
+          : `https://${part}`
+
+        return (
+          <a
+            key={i}
+            href={href}
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-blue-500 underline break-words'
+          >
+            {part}
+          </a>
+        )
+      }
+
+      return <React.Fragment key={i}>{part}</React.Fragment>
+    })
+  }
+
   const toggleModal = () => setIsModalOpen(!isModalOpen)
 
   return (
@@ -74,7 +112,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
               ref={contentRef}
               className='mb-0 mt-2 font-normal text-white whitespace-pre-wrap line-clamp-3 overflow-hidden'
             >
-              {description}
+              {renderWithLinks(description)}
             </p>
             {isOverflowing && (
               <button onClick={toggleModal} className='text-sm text-blue-400 hover:underline mt-2'>

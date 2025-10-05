@@ -5,6 +5,7 @@ import InteractionButtons from './InteractionButtons'
 const SharedNote = (props) => {
   const { id } = useParams()
   const [note, setNote] = useState(null)
+  const [error, setError] = useState(null)
   const hiddenCardRef = useRef(null) // Hidden copy for download
   const hostLink = process.env.REACT_APP_HOSTLINK
 
@@ -13,13 +14,31 @@ const SharedNote = (props) => {
       try {
         const response = await fetch(`${hostLink}/api/notes/note/${id}`)
         const data = await response.json()
+
+        if (!response.ok) {
+          setError(data.error || 'Failed to load note')
+          return
+        }
+
         setNote(data)
-      } catch (error) {
-        console.error('Error fetching note:', error)
+      } catch (err) {
+        console.error('Error fetching note:', err)
+        setError('Invalid Note Id')
       }
     }
     fetchNote()
   }, [id])
+
+  if (error) {
+    return (
+      <div className='flex items-center justify-center min-h-screen bg-[#0a1122]'>
+        <div className='text-center text-gray-300'>
+          <h2 className='text-2xl font-bold mb-2'>404 Unable to load note</h2>
+          <p className='text-gray-400'>{error}</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!note) {
     return <p>Loading...</p>
@@ -36,6 +55,44 @@ const SharedNote = (props) => {
     if (!dateString) return 'N/A'
     const options = { hour: '2-digit', minute: '2-digit', hour12: false }
     return new Date(dateString).toLocaleTimeString(undefined, options)
+  }
+
+  function renderWithLinks (text = '') {
+    if (typeof text !== 'string') return text
+
+    // Match URLs and domain-like patterns
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\/[^\s]*)?)/g
+
+    // Split into parts — might include undefined, so we filter later
+    const parts = text.split(urlRegex).filter(Boolean)
+
+    return parts.map((part, i) => {
+    // Ensure it's a string
+      if (typeof part !== 'string') return null
+
+      const isURL = urlRegex.test(part)
+
+      if (isURL) {
+        const href =
+        part.startsWith('http://') || part.startsWith('https://')
+          ? part
+          : `https://${part}`
+
+        return (
+          <a
+            key={i}
+            href={href}
+            target='_blank'
+            rel='noopener noreferrer'
+            className='text-blue-500 underline break-words'
+          >
+            {part}
+          </a>
+        )
+      }
+
+      return <React.Fragment key={i}>{part}</React.Fragment>
+    })
   }
 
   return (
@@ -73,7 +130,7 @@ const SharedNote = (props) => {
           <div className='p-4'>
             <h5 className='text-lg font-bold text-white'>{note.title}</h5>
             {note.tag && <p className='text-[#FDC116] font-medium text-sm'># {note.tag}</p>}
-            <p className='mt-2 font-normal text-white whitespace-pre-wrap'>{note.description}</p>
+            <p className='mt-2 font-normal text-white whitespace-pre-wrap'>{renderWithLinks(note.description)}</p>
           </div>
           {/* Buttons */}
           <InteractionButtons

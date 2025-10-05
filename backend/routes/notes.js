@@ -59,7 +59,7 @@ router.post('/addnote', [
           <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
             <h2>New Note Added!</h2>
             <p>Hi,</p>
-            <p><strong>${user.name}</strong> has added a new note titled <em>“${title}”</em>.</p>
+            <p><strong><a href="${liveLink}/${user.username}">${user.name}</a></strong> has added a new note titled <em>“${title}”</em>.</p>
             <p>Check it out now!</p>
             <p>Link: <a href="${liveLink}/note/${note._id}">${liveLink}/note/${note._id}</a>
             <br>
@@ -220,7 +220,10 @@ router.get('/note/:id', async (req, res) => {
       return res.status(404).json({ error: 'Note not found' })
     }
 
-    // Return the note along with the user details
+    if (!note.isPublic) {
+      return res.status(401).json({ error: 'Note is Private' })
+    }
+
     res.json(note)
   } catch (error) {
     console.error(error.message)
@@ -260,33 +263,36 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
     const user = await User.findById(userId)
     const LikingUserName = user.name
 
-    if (user.actions.likes.includes(noteId)) {
-      // If already liked, unlike the note
-      await User.findByIdAndUpdate(userId, { $pull: { 'actions.likes': noteId } })
-      await Note.findByIdAndUpdate(noteId, { $inc: { likes: -1 } })
-      // Removed UserId Who unLiked the Note
-      await Note.findByIdAndUpdate(noteId, { $pull: { 'actions.likes': userId } })
-      return res.json({ success: true, message: 'Note unliked' })
+    if (noteOwnerUsername === LikingUserName) {
+      return res.json({ success: true, message: 'Note liked' })
     } else {
-      // If not liked, like the note
-      await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.likes': noteId } })
-      await Note.findByIdAndUpdate(noteId, { $inc: { likes: 1 } })
-      const updatedNote = await Note.findById(noteId)
-      const totalLikes = updatedNote.likes
-      // console.log(totalLikes)
-      // Add UserId Who Liked the Note
-      await Note.findByIdAndUpdate(noteId, { $addToSet: { 'actions.likes': userId } })
+      if (user.actions.likes.includes(noteId)) {
+        // If already liked, unlike the note
+        await User.findByIdAndUpdate(userId, { $pull: { 'actions.likes': noteId } })
+        await Note.findByIdAndUpdate(noteId, { $inc: { likes: -1 } })
+        // Removed UserId Who unLiked the Note
+        await Note.findByIdAndUpdate(noteId, { $pull: { 'actions.likes': userId } })
+        return res.json({ success: true, message: 'Note unliked' })
+      } else {
+        // If not liked, like the note
+        await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.likes': noteId } })
+        await Note.findByIdAndUpdate(noteId, { $inc: { likes: 1 } })
+        const updatedNote = await Note.findById(noteId)
+        const totalLikes = updatedNote.likes
+        // console.log(totalLikes)
+        // Add UserId Who Liked the Note
+        await Note.findByIdAndUpdate(noteId, { $addToSet: { 'actions.likes': userId } })
 
-      // Mail User about Liked Note
-      const email = noteOwnerEmail
-      const subject = 'Your note just got a like! 🎉'
-      const text = ''
-      const html = `<!DOCTYPE html>
+        // Mail User about Liked Note
+        const email = noteOwnerEmail
+        const subject = 'Your note just got a like! 🎉'
+        const text = ''
+        const html = `<!DOCTYPE html>
 <html>
   <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
     <h2>🎉 Your note just got a like!</h2>
     <p>Hi <strong>${noteOwnerName}</strong>,</p>
-    <p><strong>${LikingUserName}</strong> just liked your note:  
+    <p><strong><a href="${liveLink}/${LikingUserName}">${LikingUserName}</a></strong> just liked your note:  
       <em>“${noteTitle}”</em>.
     </p>
     <a href="${liveLink}/note/${noteId}" 
@@ -302,9 +308,10 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
   </body>
 </html>
 `
-      await sendMail(email, subject, text, html)
+        await sendMail(email, subject, text, html)
 
-      return res.json({ success: true, message: 'Note liked' })
+        return res.json({ success: true, message: 'Note liked' })
+      }
     }
   } catch (error) {
     console.error(error.message)
