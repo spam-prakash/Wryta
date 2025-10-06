@@ -64,7 +64,7 @@ const UserListModal = ({ title, users = [], onClose }) => {
             ? (
                 users.map((user) => (
                   <div
-                    key={user._id}
+                    key={user._id || user.id || user.username}
                     onClick={() => handleUserClick(user.username)}
                     className='flex items-center gap-3 px-4 py-3 hover:bg-gray-800/60 cursor-pointer transition  '
                   >

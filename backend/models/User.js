@@ -33,25 +33,12 @@ const UserSchema = new mongoose.Schema({
   },
   follower: {
     count: { type: Number, default: 0 },
-    list: [
-      {
-        _id: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
-        username: String,
-        name: String,
-        profilePic: String
-      }
-    ]
+    list: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
   },
   following: {
     count: { type: Number, default: 0 },
-    list: [
-      {
-        _id: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
-        username: String,
-        name: String,
-        profilePic: String
-      }
-    ]
+    list: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+
   },
   actions: {
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Note' }], // Store liked note IDs

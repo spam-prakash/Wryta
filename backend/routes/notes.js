@@ -249,73 +249,81 @@ router.get('/note/:id/counts', async (req, res) => {
 router.post('/note/:id/like', fetchuser, async (req, res) => {
   try {
     const noteId = req.params.id
-    const userId = req.user.id
+    const likingUserId = req.user?.id
 
-    // Fetch Note Owner Email
-    const noteObj = await Note.findById(noteId)
-    const noteOwnerId = noteObj.user
-    const noteTitle = noteObj.title
+    if (!noteId || !likingUserId) {
+      return res.status(400).json({ success: false, message: 'Invalid request data' })
+    }
 
-    // console.log(noteOwnerId)
-    const noteOwneruserObj = await User.findById(noteOwnerId)
-    const noteOwnerEmail = noteOwneruserObj.email
-    const noteOwnerName = noteOwneruserObj.name
-    const noteOwnerUsername = noteOwneruserObj.username
-    const user = await User.findById(userId)
-    const LikingUserName = user.name
+    const note = await Note.findById(noteId)
+    if (!note) return res.status(404).json({ success: false, message: 'Note not found' })
 
-    if (noteOwnerUsername === LikingUserName) {
-      return res.json({ success: true, message: 'Note liked' })
+    const noteOwner = await User.findById(note.user)
+    const likingUser = await User.findById(likingUserId)
+    if (!noteOwner || !likingUser) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+
+    // ✅ Check if user already liked (direct ID comparison)
+    const alreadyLiked = note.actions.likes.some(
+      (id) => id.toString() === likingUserId.toString()
+    )
+
+    if (alreadyLiked) {
+      // 🧹 Unlike
+      await Note.findByIdAndUpdate(noteId, {
+        $pull: { 'actions.likes': likingUserId },
+        $inc: { likes: -1 }
+      })
+
+      await User.findByIdAndUpdate(likingUserId, {
+        $pull: { 'actions.likes': noteId }
+      })
+
+      return res.json({ success: true, message: 'Note unliked' })
     } else {
-      if (user.actions.likes.includes(noteId)) {
-        // If already liked, unlike the note
-        await User.findByIdAndUpdate(userId, { $pull: { 'actions.likes': noteId } })
-        await Note.findByIdAndUpdate(noteId, { $inc: { likes: -1 } })
-        // Removed UserId Who unLiked the Note
-        await Note.findByIdAndUpdate(noteId, { $pull: { 'actions.likes': userId } })
-        return res.json({ success: true, message: 'Note unliked' })
-      } else {
-        // If not liked, like the note
-        await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.likes': noteId } })
-        await Note.findByIdAndUpdate(noteId, { $inc: { likes: 1 } })
-        const updatedNote = await Note.findById(noteId)
-        const totalLikes = updatedNote.likes
-        // console.log(totalLikes)
-        // Add UserId Who Liked the Note
-        await Note.findByIdAndUpdate(noteId, { $addToSet: { 'actions.likes': userId } })
+      // ❤️ Like
+      await Note.findByIdAndUpdate(noteId, {
+        $addToSet: { 'actions.likes': likingUserId },
+        $inc: { likes: 1 }
+      })
 
-        // Mail User about Liked Note
-        const email = noteOwnerEmail
+      await User.findByIdAndUpdate(likingUserId, {
+        $addToSet: { 'actions.likes': noteId }
+      })
+
+      const updatedNote = await Note.findById(noteId)
+      const totalLikes = updatedNote?.likes || 0
+
+      // ✉️ Send mail only if not a self-like
+      if (noteOwner._id.toString() !== likingUserId.toString()) {
+        const email = noteOwner.email
         const subject = 'Your note just got a like! 🎉'
-        const text = ''
-        const html = `<!DOCTYPE html>
-<html>
-  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <h2>🎉 Your note just got a like!</h2>
-    <p>Hi <strong>${noteOwnerName}</strong>,</p>
-    <p><strong><a href="${liveLink}/${LikingUserName}">${LikingUserName}</a></strong> just liked your note:  
-      <em>“${noteTitle}”</em>.
-    </p>
-    <a href="${liveLink}/note/${noteId}" 
-       style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
-       View Note
-    </a>
-    <p>Total Likes: ${totalLikes}</p>
-    <p>Keep sharing your thoughts, people are loving them!</p>
-    <br>
-    <p style="font-size: 0.9em; color: #777;">
-      – The Wryta Team
-    </p>
-  </body>
-</html>
-`
-        await sendMail(email, subject, text, html)
-
-        return res.json({ success: true, message: 'Note liked' })
+        const html = `
+          <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+              <h2>🎉 Your note just got a like!</h2>
+              <p>Hi <strong>${noteOwner.name}</strong>,</p>
+              <p>
+                <strong><a href="${liveLink}/u/${likingUser.username}">${likingUser.name}</a></strong>
+                just liked your note: <em>“${note.title}”</em>.
+              </p>
+              <a href="${liveLink}/note/${noteId}"
+                 style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
+                 View Note
+              </a>
+              <p>Total Likes: ${totalLikes}</p>
+              <br>
+              <p style="font-size:0.9em;color:#777;">– The Wryta Team</p>
+            </body>
+          </html>`
+        sendMail(email, subject, '', html)
       }
+
+      return res.json({ success: true, message: 'Note liked' })
     }
   } catch (error) {
-    console.error(error.message)
+    console.error('Error in /note/:id/like:', error.message)
     res.status(500).send('Internal Server Error')
   }
 })
@@ -324,34 +332,34 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
 router.post('/note/:id/share', fetchuser, async (req, res) => {
   try {
     const noteId = req.params.id
-    const userId = req.user.id
-    const user = await User.findById(userId)
+    const userId = req.user?.id
 
-    const userData = {
-      userId,
-      username: user.username,
-      name: user.name,
-      profilePic: user.image
+    if (!noteId || !userId) {
+      return res.status(400).json({ success: false, message: 'Invalid request data' })
     }
 
-    // ✅ Always increment share count
-    await Note.findByIdAndUpdate(noteId, {
-      $inc: { shares: 1 }
-    })
+    const note = await Note.findById(noteId)
+    if (!note) return res.status(404).json({ success: false, message: 'Note not found' })
 
-    // ✅ Add user only if not already in shares list
+    const user = await User.findById(userId)
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' })
+
+    // ✅ Always increment share count
+    await Note.findByIdAndUpdate(noteId, { $inc: { shares: 1 } })
+
+    // ✅ Add userId to shares list only if not already present
     await Note.updateOne(
       { _id: noteId, 'actions.shares.userId': { $ne: userId } },
-      { $addToSet: { 'actions.shares': userData } }
+      { $addToSet: { 'actions.shares': { userId } } }
     )
 
-    // ✅ Add noteId to user's shares list (only once)
+    // ✅ Add noteId to user's share actions
     await User.updateOne(
       { _id: userId },
       { $addToSet: { 'actions.shares': noteId } }
     )
 
-    res.json({ success: true, message: 'Note shared successfully' })
+    return res.json({ success: true, message: 'Note shared successfully' })
   } catch (error) {
     console.error('Error sharing note:', error.message)
     res.status(500).send('Internal Server Error')
@@ -362,36 +370,36 @@ router.post('/note/:id/share', fetchuser, async (req, res) => {
 router.post('/note/:id/copy', fetchuser, async (req, res) => {
   try {
     const noteId = req.params.id
-    const userId = req.user.id
-    const user = await User.findById(userId)
+    const userId = req.user?.id
 
-    const userData = {
-      userId,
-      username: user.username,
-      name: user.name,
-      profilePic: user.image
+    if (!noteId || !userId) {
+      return res.status(400).json({ success: false, message: 'Invalid request data' })
     }
 
-    // Always increment copy count
-    await Note.findByIdAndUpdate(noteId, {
-      $inc: { copies: 1 }
-    })
+    const note = await Note.findById(noteId)
+    if (!note) return res.status(404).json({ success: false, message: 'Note not found' })
 
-    // Add user only if not already in copies list
+    const user = await User.findById(userId)
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' })
+
+    // ✅ Always increment copy count
+    await Note.findByIdAndUpdate(noteId, { $inc: { copies: 1 } })
+
+    // ✅ Add userId to copies list only if not already there
     await Note.updateOne(
       { _id: noteId, 'actions.copies.userId': { $ne: userId } },
-      { $addToSet: { 'actions.copies': userData } }
+      { $addToSet: { 'actions.copies': { userId } } }
     )
 
-    // Track note in user's profile (no duplicates)
+    // ✅ Add noteId to user's copy actions
     await User.updateOne(
       { _id: userId },
       { $addToSet: { 'actions.copies': noteId } }
     )
 
-    res.json({ success: true, message: 'Note copied successfully' })
+    return res.json({ success: true, message: 'Note copied successfully' })
   } catch (error) {
-    console.error(error.message)
+    console.error('Error copying note:', error.message)
     res.status(500).send('Internal Server Error')
   }
 })
@@ -400,36 +408,36 @@ router.post('/note/:id/copy', fetchuser, async (req, res) => {
 router.post('/note/:id/download', fetchuser, async (req, res) => {
   try {
     const noteId = req.params.id
-    const userId = req.user.id
-    const user = await User.findById(userId)
+    const userId = req.user?.id
 
-    const userData = {
-      userId,
-      username: user.username,
-      name: user.name,
-      profilePic: user.image
+    if (!noteId || !userId) {
+      return res.status(400).json({ success: false, message: 'Invalid request data' })
     }
 
-    // Always increase the download count
-    await Note.findByIdAndUpdate(noteId, {
-      $inc: { downloads: 1 }
-    })
+    const note = await Note.findById(noteId)
+    if (!note) return res.status(404).json({ success: false, message: 'Note not found' })
 
-    // Only add user if not already in downloads list
+    const user = await User.findById(userId)
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' })
+
+    // ✅ Always increase download count
+    await Note.findByIdAndUpdate(noteId, { $inc: { downloads: 1 } })
+
+    // ✅ Add userId to downloads list only if not already there
     await Note.updateOne(
       { _id: noteId, 'actions.downloads.userId': { $ne: userId } },
-      { $addToSet: { 'actions.downloads': userData } }
+      { $addToSet: { 'actions.downloads': { userId } } }
     )
 
-    // Keep track on user's side too (only unique notes)
+    // ✅ Add noteId to user's download actions
     await User.updateOne(
       { _id: userId },
       { $addToSet: { 'actions.downloads': noteId } }
     )
 
-    res.json({ success: true, message: 'Note downloaded successfully' })
+    return res.json({ success: true, message: 'Note downloaded successfully' })
   } catch (error) {
-    console.error(error.message)
+    console.error('Error downloading note:', error.message)
     res.status(500).send('Internal Server Error')
   }
 })
@@ -437,15 +445,37 @@ router.post('/note/:id/download', fetchuser, async (req, res) => {
 router.get('/note/:id/likedetails', async (req, res) => {
   try {
     const noteId = req.params.id
-    const note = await Note.findOne({ _id: noteId })
+
+    // 🧭 Find the note by ID
+    const note = await Note.findById(noteId)
     if (!note) {
-      return res.status(404).json({ message: 'Note not found' })
+      return res.status(404).json({ success: false, message: 'Note not found' })
     }
-    const likingUsers = note.actions.likes
-    // console.log(note)
-    res.json({ likingUsers })
+
+    // 🧩 Extract user IDs from likes array
+    const likingUserIds = note.actions.likes || []
+
+    // 🧠 Fetch user details for all liked users
+    const likingUsers = await User.find(
+      { _id: { $in: likingUserIds } },
+      'username name image' // Select only these fields
+    )
+
+    // 🪄 Format output if you want clean field names
+    const formattedUsers = likingUsers.map(user => ({
+      username: user.username,
+      name: user.name,
+      profilePic: user.image
+    }))
+
+    res.json({
+      success: true,
+      totalLikes: likingUserIds.length,
+      users: formattedUsers
+    })
   } catch (error) {
-    res.json(error)
+    console.error('Error fetching like details:', error.message)
+    res.status(500).json({ success: false, message: 'Internal Server Error' })
   }
 })
 
