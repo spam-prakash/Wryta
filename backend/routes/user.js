@@ -36,14 +36,14 @@ router.get('/:username', fetchuser, async (req, res) => {
         id: f._id,
         name: f.name,
         username: f.username,
-        profilePic: f.image?.trim() ? f.image : null
+        profilePic: f.profilePic?.trim() ? f.profilePic : null
       })),
 
       followingList: user.following.list.map(f => ({
         id: f._id,
         name: f.name,
         username: f.username,
-        profilePic: f.image?.trim() ? f.image : null
+        profilePic: f.profilePic?.trim() ? f.profilePic : null
       })),
       isFollowing: user.follower.list.some(
         f => String(f._id || f) === String(req.user.id)
@@ -98,7 +98,8 @@ router.post('/follow/:userId', fetchuser, async (req, res) => {
     user.follower.list.push({
       _id: follower._id,
       username: follower.username,
-      name: follower.name
+      name: follower.name,
+      profilePic: follower.image
     })
     user.follower.count = user.follower.list.length
 
@@ -106,7 +107,8 @@ router.post('/follow/:userId', fetchuser, async (req, res) => {
     follower.following.list.push({
       _id: user._id,
       username: user.username,
-      name: user.name
+      name: user.name,
+      profilePic: user.image
     })
     follower.following.count = follower.following.list.length
 

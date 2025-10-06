@@ -47,28 +47,32 @@ const NoteSchema = new mongoose.Schema({
       {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         username: String,
-        name: String
+        name: String,
+        profilePic: String
       }
     ],
     shares: [
       {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         username: String,
-        name: String
+        name: String,
+        profilePic: String
       }
     ],
     copies: [
       {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         username: String,
-        name: String
+        name: String,
+        profilePic: String
       }
     ],
     downloads: [
       {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         username: String,
-        name: String
+        name: String,
+        profilePic: String
       }
     ]
   }
