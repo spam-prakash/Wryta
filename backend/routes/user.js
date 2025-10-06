@@ -15,7 +15,7 @@ router.get('/:username', fetchuser, async (req, res) => {
     const { username } = req.params
     // console.log(req.user.id)
 
-    const user = await User.findOne({ username })
+    const user = await User.findOne({ username: { $regex: `^${username}$`, $options: 'i' } })
     if (!user) return res.status(404).json({ error: 'User Does Not Exists' })
 
     // Fetch notes of the user

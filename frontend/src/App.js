@@ -85,7 +85,7 @@ function App () {
               <Route exact path='/login' key='/login' element={<Login showAlert={showAlert} setUser={setUser} />} />
               <Route exact path='/signup' key='/signup' element={<Signup showAlert={showAlert} />} />
               <Route exact path='/profile' key='/profile' element={<Profile showAlert={showAlert} user={user} />} />
-              <Route path='/u/:username' element={<OtherProfileWrapper loggedInUser={user} showAlert={showAlert} />} />
+              <Route path='/u/:username' element={<OthersProfile loggedInUser={user} showAlert={showAlert} />} />
               <Route path='/login-success' element={<Login />} />
               <Route path='/request-reset-password' element={<RequestResetPassword showAlert={showAlert} />} />
               <Route path='/reset-password' element={<ResetPassword showAlert={showAlert} />} />
@@ -97,17 +97,6 @@ function App () {
       </NoteState>
     </>
   )
-}
-const OtherProfileWrapper = ({ loggedInUser, showAlert }) => {
-  // console.log(loggedInUser)
-  const { username } = useParams()
-  const reservedRoutes = ['dashboard', 'settings', 'profile'] // Add existing routes here
-
-  if (reservedRoutes.includes(username)) {
-    return <h1 className='text-center text-red-500 mt-20'>Page not found</h1>
-  }
-
-  return <OthersProfile loggedInUser={loggedInUser} showAlert={showAlert} />
 }
 
 export default App

@@ -27,6 +27,7 @@ const RequestResetPassword = (props) => {
       setMessage(json.error || 'Failed to send password reset link')
       props.showAlert(json.error || 'Failed to send password reset link', '#F8D7DA')
     }
+    setEmail('')
   }
 
   return (
@@ -71,8 +72,20 @@ const RequestResetPassword = (props) => {
           </div>
         </form>
 
-        {message && <p className='mt-4 text-center text-sm text-gray-500'>{message}</p>}
+        {/* {message && <p className='mt-4 text-center text-sm text-gray-500'>{message}</p>} */}
       </div>
+      <Link
+        to='/login'
+        className='text-sm text-center font-semibold leading-6 text-white hover:text-indigo-500 mt-4'
+      >
+        Already have an account?{' '}<span className='text-indigo-600 hover:text-indigo-500'>Sign In</span>
+      </Link>
+      <Link
+        to='/signup'
+        className='text-sm text-center font-semibold leading-6 text-white hover:text-indigo-500 mt-4'
+      >
+        Don't have an account? <span className='text-indigo-600 hover:text-indigo-500'>Sign Up</span>
+      </Link>
     </div>
   )
 }
