@@ -32,9 +32,9 @@ router.post('/generateotp', [
   const otp = otpGenerator.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false })
   otpStore[email] = otp
 
-  const subject = 'Your OTP for iNotebook Signup'
-  const text = `Your OTP for signing up on iNotebook is ${otp}. It is valid for 10 minutes.`
-  const html = `<p>Your OTP for signing up on iNotebook is <strong>${otp}</strong>. It is valid for 10 minutes.</p>`
+  const subject = 'Your OTP for wryta Signup'
+  const text = `Your OTP for signing up on wryta is ${otp}. It is valid for 10 minutes.`
+  const html = `<p>Your OTP for signing up on wryta is <strong>${otp}</strong>. It is valid for 10 minutes.</p>`
 
   try {
     await sendMail(email, subject, text, html)
@@ -95,9 +95,9 @@ router.post('/createuser', [
     success = true
     res.json({ success, authToken })
 
-    const subject = 'Welcome to iNotebook'
-    const text = `Hello ${user.name},\n\nThank you for signing up for iNotebook. We are excited to have you on board!\n\nBest regards,\nThe iNotebook Team`
-    const html = `<p>Hello ${user.name},</p><p>Thank you for signing up for iNotebook. We are excited to have you on board!</p><p>Best regards,<br>The iNotebook Team</p>`
+    const subject = 'Welcome to wryta'
+    const text = `Hello ${user.name},\n\nThank you for signing up for wryta. We are excited to have you on board!\n\nBest regards,\nThe wryta Team`
+    const html = `<p>Hello ${user.name},</p><p>Thank you for signing up for wryta. We are excited to have you on board!</p><p>Best regards,<br>The wryta Team</p>`
     await sendMail(user.email, subject, text, html)
 
     // Clear OTP from store
