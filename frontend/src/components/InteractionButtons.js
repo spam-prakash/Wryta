@@ -174,13 +174,8 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
         {/* Like Button */}
         <button className='flex items-center space-x-2'>
           <Heart onClick={handleLike} color={liked ? '#FF0000' : '#FFFFFF'} fill={liked ? '#FF0000' : 'none'} />
-          <span
-            className='text-sm text-gray-400 cursor-pointer hover:underline'
-
-          >
-            {counts.likes || note.likes}
-          </span>
-          <span onClick={fetchLikingUsers} className='text-sm text-gray-400'>{(counts.likes || note.likes) > 1 ? 'Likes' : 'Like'}
+          <span onClick={fetchLikingUsers} className='text-sm text-gray-400 cursor-pointer hover:underline'>
+            {counts.likes || note.likes} {(counts.likes || note.likes) > 1 ? 'Likes' : 'Like'}
           </span>
         </button>
 
