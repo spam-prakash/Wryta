@@ -87,19 +87,19 @@ const Home = (props) => {
 
   return (
     <>
+      {loading && <Loader />}
       <Addnote
         modalRef={addNoteModalRef}
         showAlert={props.showAlert}
         toggleModal={toggleAddNoteModal}
       />
 
-      <div className='mx-auto py-4 sm:px-2 lg:px-4'>
-        <h2 className='text-2xl font-semibold text-white mb-4'>Latest Public Notes</h2>
+      <div className='mx-auto py-4 pt-10 sm:px-2 lg:px-4'>
 
         {/* Integrate the Search component */}
         <Search filterText={filterText} setFilterText={setFilterText} />
 
-        <div className='w-full flex flex-wrap text-white gap-3 mt-4'>
+        <div className='w-full flex flex-wrap text-white gap-3 mt-28'>
           {filteredNotes.map((note) => (
             <HomeNoteItem
               note={note}
@@ -118,7 +118,7 @@ const Home = (props) => {
           ))}
 
         </div>
-        {loading && <Loader />}
+
       </div>
 
       {/* Conditionally render the Add Note button */}

@@ -15,11 +15,12 @@ const Search = ({ filterText, setFilterText }) => {
   }, [])
 
   return (
-    <div
-      className={`${
-        isScrolled ? 'fixed top-0 left-0 w-full z-10 bg-[#] py-2 px-3 md:mt-20 mt-16 flex justify-center' : 'flex justify-center sm:mt-0 md:mt-10'
-      }`}
-    >
+    // <div
+    //   className={`${
+    //     isScrolled ? 'fixed top-0 left-0 w-full z-10 bg-[#] py-2 px-3 md:mt-20 mt-16 flex justify-center' : 'flex justify-center sm:mt-0 md:mt-10'
+    //   }`}
+    // >
+    <div className='fixed top-0 left-0 w-full z-10 bg-[#] py-2 px-3 md:mt-20 mt-16 flex justify-center sm:mt-0 md:mt-10'>
       <input
         type='text'
         placeholder='Filter notes by title, description, tag, or username...'
