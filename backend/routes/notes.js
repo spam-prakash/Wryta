@@ -279,7 +279,8 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
     const likeData = {
       userId,
       name: likingUser.name,
-      username: likingUser.username
+      username: likingUser.username,
+      profilePic: likingUser.image
     }
 
     note.actions.likes.push(likeData)
@@ -329,16 +330,29 @@ router.post('/note/:id/share', fetchuser, async (req, res) => {
     const userId = req.user.id
     const user = await User.findById(userId)
 
-    const userData = { userId, username: user.username, name: user.name }
+    const userData = {
+      userId,
+      username: user.username,
+      name: user.name,
+      profilePic: user.image
+    }
 
+    // ✅ Always increment share count
     await Note.findByIdAndUpdate(noteId, {
-      $addToSet: { 'actions.shares': userData },
       $inc: { shares: 1 }
     })
 
-    await User.findByIdAndUpdate(userId, {
-      $addToSet: { 'actions.shares': noteId }
-    })
+    // ✅ Add user only if not already in shares list
+    await Note.updateOne(
+      { _id: noteId, 'actions.shares.userId': { $ne: userId } },
+      { $addToSet: { 'actions.shares': userData } }
+    )
+
+    // ✅ Add noteId to user's shares list (only once)
+    await User.updateOne(
+      { _id: userId },
+      { $addToSet: { 'actions.shares': noteId } }
+    )
 
     res.json({ success: true, message: 'Note shared successfully' })
   } catch (error) {
@@ -354,16 +368,29 @@ router.post('/note/:id/copy', fetchuser, async (req, res) => {
     const userId = req.user.id
     const user = await User.findById(userId)
 
-    const userData = { userId, username: user.username, name: user.name }
+    const userData = {
+      userId,
+      username: user.username,
+      name: user.name,
+      profilePic: user.image
+    }
 
+    // Always increment copy count
     await Note.findByIdAndUpdate(noteId, {
-      $addToSet: { 'actions.copies': userData },
       $inc: { copies: 1 }
     })
 
-    await User.findByIdAndUpdate(userId, {
-      $addToSet: { 'actions.copies': noteId }
-    })
+    // Add user only if not already in copies list
+    await Note.updateOne(
+      { _id: noteId, 'actions.copies.userId': { $ne: userId } },
+      { $addToSet: { 'actions.copies': userData } }
+    )
+
+    // Track note in user's profile (no duplicates)
+    await User.updateOne(
+      { _id: userId },
+      { $addToSet: { 'actions.copies': noteId } }
+    )
 
     res.json({ success: true, message: 'Note copied successfully' })
   } catch (error) {
@@ -379,16 +406,29 @@ router.post('/note/:id/download', fetchuser, async (req, res) => {
     const userId = req.user.id
     const user = await User.findById(userId)
 
-    const userData = { userId, username: user.username, name: user.name }
+    const userData = {
+      userId,
+      username: user.username,
+      name: user.name,
+      profilePic: user.image
+    }
 
+    // Always increase the download count
     await Note.findByIdAndUpdate(noteId, {
-      $addToSet: { 'actions.downloads': userData },
       $inc: { downloads: 1 }
     })
 
-    await User.findByIdAndUpdate(userId, {
-      $addToSet: { 'actions.downloads': noteId }
-    })
+    // Only add user if not already in downloads list
+    await Note.updateOne(
+      { _id: noteId, 'actions.downloads.userId': { $ne: userId } },
+      { $addToSet: { 'actions.downloads': userData } }
+    )
+
+    // Keep track on user's side too (only unique notes)
+    await User.updateOne(
+      { _id: userId },
+      { $addToSet: { 'actions.downloads': noteId } }
+    )
 
     res.json({ success: true, message: 'Note downloaded successfully' })
   } catch (error) {
