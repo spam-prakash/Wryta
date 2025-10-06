@@ -1,16 +1,12 @@
 const mongoose = require('mongoose')
 
 const NoteSchema = new mongoose.Schema({
-  title: {
-    type: String
-  },
+  title: String,
   description: {
     type: String,
     required: true
   },
-  tag: {
-    type: String
-  },
+  tag: String,
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
@@ -19,9 +15,7 @@ const NoteSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  modifiedDate: {
-    type: Date
-  },
+  modifiedDate: Date,
   isPublic: {
     type: Boolean,
     default: false
@@ -43,39 +37,12 @@ const NoteSchema = new mongoose.Schema({
     default: 0
   },
   actions: {
-    likes: [
-      {
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        username: String,
-        name: String,
-        profilePic: String
-      }
-    ],
-    shares: [
-      {
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        username: String,
-        name: String,
-        profilePic: String
-      }
-    ],
-    copies: [
-      {
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        username: String,
-        name: String,
-        profilePic: String
-      }
-    ],
-    downloads: [
-      {
-        userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        username: String,
-        name: String,
-        profilePic: String
-      }
-    ]
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    shares: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    copies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    downloads: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
   }
+
 })
 
 module.exports = mongoose.model('Note', NoteSchema)

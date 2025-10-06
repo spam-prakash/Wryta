@@ -188,7 +188,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
       toggleEditProfileModal()
       if (updatedData.username !== user.username) {
         setUsername(updatedData.username)
-        navigate(`/${updatedData.username}`)
+        navigate(`/u/${updatedData.username}`)
         window.location.reload()
         showAlert('Profile updated successfully', '#D4EDDA')
       }

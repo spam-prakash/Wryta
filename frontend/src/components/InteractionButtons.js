@@ -42,7 +42,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
       if (response.ok) {
         const data = await response.json()
         setLikingUsers(data)
-        // console.log(likingUsers.likingUsers)
+        // console.log(likingUsers.users)
         setModalType('likes') // open modal
       }
     } catch (error) {
@@ -202,7 +202,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
       {modalType === 'likes' && (
         <UserListModal
           title='Likes'
-          users={likingUsers.likingUsers}
+          users={likingUsers.users}
           onClose={() => setModalType(null)}
         />
       )}
