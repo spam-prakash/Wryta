@@ -301,7 +301,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
 
       {/* Profile Section */}
       <div className='flex flex-col items-center text-white px-4'>
-        <div className='flex flex-col md:flex-row items-center w-full max-w-4xl py-6 mt-20'>
+        <div className='flex flex-col md:flex-row items-center w-full max-w-4xl py-6 mt-28'>
           <a href={profilePic} target='_blank' rel='noreferrer'>
             <img
               className='size-40 rounded-full border-4 border-gray-400'
