@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 const UserListModal = ({ title, users = [], onClose }) => {
   const modalRef = useRef(null)
   const navigate = useNavigate()
+  // console.log(users)
 
   // ✅ Close when clicking outside modal
   const handleClickOutside = useCallback(
@@ -41,10 +42,10 @@ const UserListModal = ({ title, users = [], onClose }) => {
   }
 
   return (
-    <div className='fixed inset-0 bg-opacity-50 md:backdrop-blur-sm flex items-center justify-center z-50 backdrop-blur-sm'>
+    <div className='fixed inset-0 bg-opacity-50 md:backdrop-blur-sm flex items-center justify-center z-50 backdrop-blur-sm '>
       <div
         ref={modalRef}
-        className='bg-[#0a0d22] w-full max-w-md rounded-2xl shadow-lg overflow-hidden border border-gray-700'
+        className='bg-[#0a0d22] w-full max-w-md rounded-2xl shadow-lg overflow-hidden border  border-gray-700 mx-6 '
       >
         {/* Header */}
         <div className='flex items-center justify-between px-4 py-3 border-b border-gray-700'>

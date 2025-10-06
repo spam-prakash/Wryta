@@ -1,3 +1,4 @@
+const mongoose = require('mongoose')
 const express = require('express')
 const router = express.Router()
 const fetchuser = require('../middleware/fetchuser')
@@ -250,58 +251,50 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
     const noteId = req.params.id
     const userId = req.user.id
 
-    const note = await Note.findById(noteId)
-    if (!note) return res.status(404).json({ success: false, message: 'Note not found' })
+    // Fetch Note Owner Email
+    const noteObj = await Note.findById(noteId)
+    const noteOwnerId = noteObj.user
+    const noteTitle = noteObj.title
 
-    const noteOwner = await User.findById(note.user)
-    const likingUser = await User.findById(userId)
-    if (!noteOwner || !likingUser) { return res.status(404).json({ success: false, message: 'User not found' }) }
+    // console.log(noteOwnerId)
+    const noteOwneruserObj = await User.findById(noteOwnerId)
+    const noteOwnerEmail = noteOwneruserObj.email
+    const noteOwnerName = noteOwneruserObj.name
+    const noteOwnerUsername = noteOwneruserObj.username
+    const user = await User.findById(userId)
+    const LikingUserName = user.name
 
-    // Prevent self-like
-    if (noteOwner._id.toString() === userId) { return res.json({ success: true, message: 'You cannot like your own note' }) }
+    if (noteOwnerUsername === LikingUserName) {
+      return res.json({ success: true, message: 'Note liked' })
+    } else {
+      if (user.actions.likes.includes(noteId)) {
+        // If already liked, unlike the note
+        await User.findByIdAndUpdate(userId, { $pull: { 'actions.likes': noteId } })
+        await Note.findByIdAndUpdate(noteId, { $inc: { likes: -1 } })
+        // Removed UserId Who unLiked the Note
+        await Note.findByIdAndUpdate(noteId, { $pull: { 'actions.likes': userId } })
+        return res.json({ success: true, message: 'Note unliked' })
+      } else {
+        // If not liked, like the note
+        await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.likes': noteId } })
+        await Note.findByIdAndUpdate(noteId, { $inc: { likes: 1 } })
+        const updatedNote = await Note.findById(noteId)
+        const totalLikes = updatedNote.likes
+        // console.log(totalLikes)
+        // Add UserId Who Liked the Note
+        await Note.findByIdAndUpdate(noteId, { $addToSet: { 'actions.likes': userId } })
 
-    // Check if already liked
-    const alreadyLiked = note.actions.likes.some(
-      like => like.userId?.toString() === userId.toString()
-    )
-
-    if (alreadyLiked) {
-      // Unlike → remove from array & decrement
-      await Note.findByIdAndUpdate(noteId, {
-        $pull: { 'actions.likes': { userId: new mongoose.Types.ObjectId(userId) } },
-        $inc: { likes: -1 }
-      })
-      await User.findByIdAndUpdate(userId, { $pull: { 'actions.likes': noteId } })
-      return res.json({ success: true, message: 'Note unliked' })
-    }
-
-    // Like → manually push liker object
-    const likeData = {
-      userId,
-      name: likingUser.name,
-      username: likingUser.username,
-      profilePic: likingUser.image
-    }
-
-    note.actions.likes.push(likeData)
-    note.likes += 1
-    await note.save()
-
-    await User.findByIdAndUpdate(userId, { $addToSet: { 'actions.likes': noteId } })
-
-    const totalLikes = note.likes
-
-    // Send email
-    const email = noteOwner.email
-    const subject = 'Your note just got a like! 🎉'
-    const html = `
-<!DOCTYPE html>
+        // Mail User about Liked Note
+        const email = noteOwnerEmail
+        const subject = 'Your note just got a like! 🎉'
+        const text = ''
+        const html = `<!DOCTYPE html>
 <html>
   <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
     <h2>🎉 Your note just got a like!</h2>
-    <p>Hi <strong>${noteOwner.name}</strong>,</p>
-    <p><strong><a href="${liveLink}/u/${likingUser.username}">${likingUser.name}</a></strong> just liked your note:  
-      <em>“${note.title}”</em>.
+    <p>Hi <strong>${noteOwnerName}</strong>,</p>
+    <p><strong><a href="${liveLink}/${LikingUserName}">${LikingUserName}</a></strong> just liked your note:  
+      <em>“${noteTitle}”</em>.
     </p>
     <a href="${liveLink}/note/${noteId}" 
        style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
@@ -310,15 +303,19 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
     <p>Total Likes: ${totalLikes}</p>
     <p>Keep sharing your thoughts, people are loving them!</p>
     <br>
-    <p style="font-size: 0.9em; color: #777;">– The Wryta Team</p>
+    <p style="font-size: 0.9em; color: #777;">
+      – The Wryta Team
+    </p>
   </body>
-</html>`
+</html>
+`
+        await sendMail(email, subject, text, html)
 
-    await sendMail(email, subject, '', html)
-
-    return res.json({ success: true, message: 'Note liked' })
+        return res.json({ success: true, message: 'Note liked' })
+      }
+    }
   } catch (error) {
-    console.error('Error in /note/:id/like:', error.message)
+    console.error(error.message)
     res.status(500).send('Internal Server Error')
   }
 })
@@ -437,15 +434,33 @@ router.post('/note/:id/download', fetchuser, async (req, res) => {
   }
 })
 
-// GET ALL NOTES DATA
-// router.post('/allnotes', async (req, res) => {
-//   try {
-//     const notesData = await Note.find({})
-//     console.log(notesData)
-//     res.json(notesData)
-//   } catch (error) {
+router.get('/note/:id/likedetails', async (req, res) => {
+  try {
+    const noteId = req.params.id
+    const note = await Note.findOne({ _id: noteId })
+    if (!note) {
+      return res.status(404).json({ message: 'Note not found' })
+    }
+    const likingUsers = note.actions.likes
+    // console.log(note)
+    res.json({ likingUsers })
+  } catch (error) {
+    res.json(error)
+  }
+})
 
-//   }
-// })
+router.get('/fetchallnoteswithactions', fetchuser, async (req, res) => {
+  try {
+    const notes = await Note.find({ user: req.user.id })
+      .populate('actions.likes.userId', 'username name image')
+      .populate('actions.shares.userId', 'username name image')
+      .populate('actions.copies.userId', 'username name image')
+      .populate('actions.downloads.userId', 'username name image')
+    res.json(notes)
+  } catch (error) {
+    console.error('Error fetching notes with actions:', error.message)
+    res.status(500).send('Internal Server Error')
+  }
+})
 
 module.exports = router
