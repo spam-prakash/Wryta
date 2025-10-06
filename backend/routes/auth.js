@@ -47,8 +47,8 @@ router.post('/generateotp', [
 
 // ROUTE 2: Create a user using: POST "/api/auth/createuser" NO LOGIN REQUIRE
 router.post('/createuser', [
-  body('username', 'Enter a valid username').isLength({ min: 5 }),
-  body('name', 'Enter a valid name').isLength({ min: 5 }),
+  body('username', 'Enter a valid username').isLength({ min: 3 }),
+  body('name', 'Enter a valid name').isLength({ min: 3 }),
   body('email', 'Enter a valid Email').isEmail(),
   body('password', 'Enter a valid password').isLength({ min: 5 }),
   body('otp', 'Enter a valid OTP').isLength({ min: 6, max: 6 })
@@ -67,11 +67,11 @@ router.post('/createuser', [
   }
 
   try {
-    let user = await User.findOne({ email })
+    let user = await User.findOne({ username: { $regex: `^${email}$`, $options: 'i' } })
     if (user) {
-      return res.status(400).json({ success: false, error: 'A user with this email already exists' })
+      return res.status(400).json({ success: false, error: 'A user with this username already exists' })
     }
-    user = await User.findOne({ username })
+    user = await User.findOne({ username: { $regex: `^${username}$`, $options: 'i' } })
     if (user) {
       return res.status(400).json({ success: false, error: 'A user with this username already exists' })
     }
@@ -124,8 +124,8 @@ router.post('/login', [
     // Check if the identifier is an email or username
     const user = await User.findOne({
       $or: [
-        { email: identifier },
-        { username: identifier }
+        { email: { $regex: `^${identifier}$`, $options: 'i' } },
+        { username: { $regex: `^${identifier}$`, $options: 'i' } }
       ]
     })
 
@@ -252,8 +252,8 @@ router.post('/reset-password', [
 
 // ROUTE: Update User Profile
 router.put('/updateprofile', fetchuser, [
-  body('username', 'Enter a valid username').isLength({ min: 5 }),
-  body('name', 'Enter a valid name').isLength({ min: 5 })
+  body('username', 'Enter a valid username').isLength({ min: 3 }),
+  body('name', 'Enter a valid name').isLength({ min: 3 })
 ], async (req, res) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
@@ -265,6 +265,11 @@ router.put('/updateprofile', fetchuser, [
     const user = await User.findById(req.user.id)
     if (!user) {
       return res.status(404).json({ error: 'User not found' })
+    }
+
+    const existingUser = await User.findOne({ username: { $regex: `^${username}$`, $options: 'i' }, _id: { $ne: user._id } })
+    if (existingUser) {
+      return res.status(400).json({ success: false, error: 'Username already taken' })
     }
 
     user.username = username

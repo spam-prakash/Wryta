@@ -117,7 +117,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     }
   }, [user, username])
 
-  // ✅ Custom 404 / error screen
+  // Custom 404 / error screen
   if (error) {
     return (
       <div className='flex items-center justify-center min-h-screen bg-[#0a1122]'>
@@ -364,7 +364,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
                 setEditProfileData({ username: user.username, name: user.name })
                 toggleEditProfileModal()
               }}
-              className='ml-4 p-2 bg-gray-800 rounded-full hover:bg-gray-700 focus:outline-none sm:ml-0 sm:mt-4'
+              className='ml-4 p-2 bg-gray-800 rounded-full hover:bg-gray-700 focus:outline-none sm:ml-0 sm:mt-4 mb-4'
             >
               <Edit3 size={24} />
             </button>
