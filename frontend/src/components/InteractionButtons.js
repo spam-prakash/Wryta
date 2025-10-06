@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
 import { Heart, Copy, Download, Share2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
+import UserListModal from './UserListModal'
 
 const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteId, note }) => {
-  // console.log(note)
+  const [modalType, setModalType] = useState(null)
+  const [likingUsers, setLikingUsers] = useState([])
   const [liked, setLiked] = useState(false)
   const [counts, setCounts] = useState({ likes: 0, copies: 0, downloads: 0, shares: 0 })
   const hostLink = process.env.REACT_APP_HOSTLINK
 
-  // Fetch counts and liked notes
+  // Fetch counts
   const fetchCounts = async () => {
     try {
       const response = await fetch(`${hostLink}/api/notes/note/${noteId}/counts`, {
@@ -21,14 +23,34 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
       if (response.ok) {
         const data = await response.json()
         setCounts(data)
-      } else {
-        console.error('Failed to fetch counts')
       }
     } catch (error) {
       console.error('Error fetching counts:', error)
     }
   }
 
+  // Fetch liking users
+  const fetchLikingUsers = async () => {
+    try {
+      const response = await fetch(`${hostLink}/api/notes/note/${noteId}/likedetails`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'auth-token': localStorage.getItem('token')
+        }
+      })
+      if (response.ok) {
+        const data = await response.json()
+        setLikingUsers(data)
+        // console.log(likingUsers.likingUsers)
+        setModalType('likes') // open modal
+      }
+    } catch (error) {
+      console.error('Error fetching liking users:', error)
+    }
+  }
+
+  // Fetch liked notes to check if current note is liked
   const fetchLikedNotes = async () => {
     try {
       const response = await fetch(`${hostLink}/api/user/useraction/likednotes`, {
@@ -40,9 +62,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
       })
       if (response.ok) {
         const likedNotes = await response.json()
-        setLiked(likedNotes.some((note) => note._id === noteId)) // Check if the current note is liked
-      } else {
-        console.error('Failed to fetch liked notes')
+        setLiked(likedNotes.some((note) => note._id === noteId))
       }
     } catch (error) {
       console.error('Error fetching liked notes:', error)
@@ -50,8 +70,8 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
   }
 
   useEffect(() => {
-    fetchLikedNotes() // Fetch liked notes to set the `liked` state
-    // fetchCounts() // Fetch counts for the note
+    fetchLikedNotes()
+    // fetchCounts() // optional if note already contains live counts
   }, [noteId, hostLink])
 
   const updateCount = async (action) => {
@@ -63,11 +83,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
           'auth-token': localStorage.getItem('token')
         }
       })
-      if (response.ok) {
-        fetchCounts() // Refresh counts after the action
-      } else {
-        throw new Error('Failed to update count')
-      }
+      if (response.ok) fetchCounts()
     } catch (error) {
       console.error(`Error updating ${action} count:`, error)
     }
@@ -85,9 +101,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
       if (response.ok) {
         const result = await response.json()
         setLiked(result.message === 'Note liked')
-        fetchCounts() // Refresh counts after liking/unliking
-      } else {
-        console.error('Failed to like/unlike note')
+        fetchCounts()
       }
     } catch (error) {
       console.error('Error liking/unliking note:', error)
@@ -99,7 +113,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
     navigator.clipboard.writeText(textToCopy)
       .then(() => {
         showAlert('Note successfully copied!', '#D4EDDA')
-        updateCount('copy') // Update the copy count
+        updateCount('copy')
       })
       .catch(() => showAlert('Failed to copy note.', '#F8D7DA'))
   }
@@ -109,7 +123,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
       if (cardRef.current) {
         const canvas = await html2canvas(cardRef.current, {
           useCORS: true,
-          backgroundColor: '#0a1122', // Match your card's background
+          backgroundColor: '#0a1122',
           scale: 2
         })
         const dataURL = canvas.toDataURL('image/png')
@@ -118,34 +132,28 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
         link.download = `${note.title || 'note'}.png`
         link.click()
         showAlert('Card downloaded successfully!', '#D4EDDA')
-        updateCount('download') // Update the download count
-      } else {
-        showAlert('Card reference is not available!', '#F8D7DA')
+        updateCount('download')
       }
     } catch (error) {
-      console.error('Error downloading card as image:', error)
+      console.error('Error downloading card:', error)
       showAlert('Failed to download card. Please try again.', '#F8D7DA')
     }
   }
 
   const shareNote = async () => {
     const shareUrl = `${window.location.origin}/note/${noteId}`
+    await navigator.clipboard.writeText(shareUrl)
     showAlert('Note link copied to clipboard!', '#D4EDDA')
 
     try {
-      await navigator.clipboard.writeText(shareUrl)
-      console.log('Note link copied to clipboard!')
-
       if (navigator.share) {
         await navigator.share({
           title: note.title || 'Shared Note',
           text: `Check out this note: ${note.title}`,
           url: shareUrl
         })
-      } else {
-        showAlert('Your browser does not support the Web Share API.')
       }
-      // Call the backend to update the share count and user's shared notes
+
       const response = await fetch(`${hostLink}/api/notes/note/${noteId}/share`, {
         method: 'POST',
         headers: {
@@ -153,11 +161,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
           'auth-token': localStorage.getItem('token')
         }
       })
-      if (response.ok) {
-        fetchCounts() // Refresh counts after the action
-      } else {
-        throw new Error('Failed to update share count')
-      }
+      if (response.ok) fetchCounts()
     } catch (error) {
       console.error('Error sharing:', error)
       showAlert('Failed to share note. Please try again.', '#F8D7DA')
@@ -165,31 +169,49 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
   }
 
   return (
-    <div className='flex items-center justify-between px-4 py-2 bottom-0 border-t border-gray-700'>
-      {/* Like Button */}
-      <button onClick={handleLike} className='flex items-center space-x-2'>
-        <Heart color={liked ? '#FF0000' : '#FFFFFF'} fill={liked ? '#FF0000' : 'none'} />
-        <span className='text-sm text-gray-400'>{counts.likes || note.likes}</span>
-      </button>
+    <>
+      <div className='flex items-center justify-between px-4 py-2 border-t border-gray-700'>
+        {/* Like Button */}
+        <button className='flex items-center space-x-2'>
+          <Heart onClick={handleLike} color={liked ? '#FF0000' : '#FFFFFF'} fill={liked ? '#FF0000' : 'none'} />
+          <span
+            className='text-sm text-gray-400 cursor-pointer hover:underline'
 
-      {/* Copy Button */}
-      <button onClick={copyToClipboard} className='flex items-center space-x-2'>
-        <Copy />
-        <span className='text-sm text-gray-400'>{counts.copies || note.copies}</span>
-      </button>
+          >
+            {counts.likes || note.likes}
+          </span>
+          <span onClick={fetchLikingUsers} className='text-sm text-gray-400'>{(counts.likes || note.likes) > 1 ? 'Likes' : 'Like'}
+          </span>
+        </button>
 
-      {/* Download Button */}
-      <button onClick={downloadCardAsImage} className='flex items-center space-x-2'>
-        <Download />
-        <span className='text-sm text-gray-400'>{counts.downloads || note.downloads}</span>
-      </button>
+        {/* Copy Button */}
+        <button onClick={copyToClipboard} className='flex items-center space-x-2'>
+          <Copy />
+          <span className='text-sm text-gray-400'>{counts.copies || note.copies}</span>
+        </button>
 
-      {/* Share Button */}
-      <button onClick={shareNote} className='flex items-center space-x-2'>
-        <Share2 />
-        <span className='text-sm text-gray-400'>{counts.shares || note.shares}</span>
-      </button>
-    </div>
+        {/* Download Button */}
+        <button onClick={downloadCardAsImage} className='flex items-center space-x-2'>
+          <Download />
+          <span className='text-sm text-gray-400'>{counts.downloads || note.downloads}</span>
+        </button>
+
+        {/* Share Button */}
+        <button onClick={shareNote} className='flex items-center space-x-2'>
+          <Share2 />
+          <span className='text-sm text-gray-400'>{counts.shares || note.shares}</span>
+        </button>
+      </div>
+
+      {/* Modal Rendering */}
+      {modalType === 'likes' && (
+        <UserListModal
+          title='Likes'
+          users={likingUsers.likingUsers}
+          onClose={() => setModalType(null)}
+        />
+      )}
+    </>
   )
 }
 
