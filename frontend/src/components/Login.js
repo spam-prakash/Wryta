@@ -190,7 +190,7 @@ const Login = (props) => {
           onClick={logInWithGoogle}
           disabled={loading}
         >
-          {loading ? 'Signing in with Google...' : 'Sign in with Google 🚀'}
+          {loading ? 'Signing in with Google...' : 'Sign in with Google '}
         </button>
       </div>
     </div>
