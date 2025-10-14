@@ -70,7 +70,7 @@ const Navbar = (props) => {
         </Link>
         <Link to='/'>
           <span className='md:text-3xl text-xl font-bold font-serif cursor-pointer text-white'>
-            iNote<span className='text-[#FDC116]'>Book</span>
+            Wry<span className='text-[#FDC116]'>ta</span>
           </span>
         </Link>
       </div>
