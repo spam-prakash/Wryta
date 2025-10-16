@@ -232,6 +232,9 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
 
   return (
     <>
+      {/* Search Input */}
+      <Search filterText={filterText} setFilterText={setFilterText} className='fixed  left-0 w-full bg-gray-900 z-40 px-4 shadow-md' />
+
       <Addnote
         modalRef={addNoteModalRef}
         showAlert={showAlert}
@@ -402,9 +405,6 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
           <option value='old'>Oldest</option>
         </select>
       </div>
-
-      {/* Search Input */}
-      <Search filterText={filterText} setFilterText={setFilterText} />
 
       {/* Notes Section */}
       <div className='w-full flex flex-wrap text-white gap-3 mt-4'>
