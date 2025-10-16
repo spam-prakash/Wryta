@@ -109,7 +109,9 @@ const Search = () => {
 
       {/* Results Dropdown */}
       {showResults && (
-        <div className='absolute mt-2 w-full max-w-lg left-1/2 -translate-x-1/2 bg-[#0a0d22]  backdrop-blur-xl rounded-xl shadow-lg border border-gray-700 max-h-72 overflow-y-auto z-40'>
+        <div
+          className='absolute mt-2 w-[95%] sm:w-full max-w-lg left-1/2 -translate-x-1/2 bg-[#1E293B]/50 backdrop-blur-xl rounded-xl shadow-lg border border-gray-700 max-h-72 overflow-y-auto z-40  transition-all duration-200'
+        >
           {isLoading ? (
             <p className='text-center text-gray-400 py-3'>Searching...</p>
           ) : (
