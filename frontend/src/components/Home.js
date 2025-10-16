@@ -94,10 +94,9 @@ const Home = (props) => {
         toggleModal={toggleAddNoteModal}
       />
 
+      {/* Integrate the Search component */}
+      <Search filterText={filterText} setFilterText={setFilterText} />
       <div className='mx-auto py-4 pt-10 sm:px-2 lg:px-4'>
-
-        {/* Integrate the Search component */}
-        <Search filterText={filterText} setFilterText={setFilterText} />
 
         <div className='w-full flex flex-wrap text-white gap-3 mt-28'>
           {filteredNotes.map((note) => (

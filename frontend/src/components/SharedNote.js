@@ -62,7 +62,7 @@ const SharedNote = (props) => {
   return (
     <>
       <div className='flex items-center justify-center min-h-screen z-50 inset-0 bg-opacity-50 md:backdrop-blur-sm'>
-        <div className='text-white w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 flex flex-col'>
+        <div className='text-white w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 flex flex-col mt-20'>
           {/* Header (User Info) */}
           <div className='flex flex-col p-4 pb-1 border-b border-gray-700'>
             <div className='flex items-center mb-1'>
