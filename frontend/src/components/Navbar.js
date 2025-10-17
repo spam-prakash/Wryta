@@ -9,10 +9,11 @@ const Navbar = (props) => {
   const navigate = useNavigate()
   const location = useLocation()
   const profileRef = useRef(null)
+  const imageAPI = process.env.REACT_APP_IMAGEAPI
 
   const user = props.user
   const [image, setImage] = useState(
-    user?.image || `https://api.dicebear.com/7.x/adventurer/svg?seed=${user?.username || 'default'}`
+    user?.image || `${imageAPI}${encodeURIComponent(user?.username) || 'default'}`
   ) // Initialize with user image or default avatar
 
   // Update the image whenever `props.user` changes
@@ -20,7 +21,7 @@ const Navbar = (props) => {
     if (user && user.image) {
       setImage(user.image) // Use the user's image if available
     } else {
-      setImage(`https://api.dicebear.com/7.x/adventurer/svg?seed=${user?.username || 'default'}`) // Fallback to DiceBear avatar
+      setImage(`${imageAPI}${encodeURIComponent(user?.username) || 'default'}`) // Fallback to DiceBear avatar
     }
   }, [user])
 

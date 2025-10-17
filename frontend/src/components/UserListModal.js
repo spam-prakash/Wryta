@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom'
 const UserListModal = ({ title, users = [], onClose }) => {
   const modalRef = useRef(null)
   const navigate = useNavigate()
+  const imageAPI = process.env.REACT_APP_IMAGEAPI
+
   // console.log(users)
 
   // ✅ Close when clicking outside modal
@@ -71,7 +73,7 @@ const UserListModal = ({ title, users = [], onClose }) => {
                     <img
                       src={
                     user.profilePic ||
-                    `https://api.dicebear.com/7.x/adventurer/svg?seed=${user.username}`
+                    `${imageAPI}${encodeURIComponent(user.username)}`
                   }
                       alt={user.username}
                       className='w-10 h-10 rounded-full object-cover border border-gray-700'

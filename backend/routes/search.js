@@ -18,15 +18,28 @@ router.post('/:q', fetchuser, async (req, res) => {
     if (!query) {
       return res.status(400).json({ success: false, message: 'Empty search query' })
     }
+    const userId = req.user.id // fetched from middleware
 
     // Search notes (title, tag, description)
     const notes = await Note.find({
-      $or: [
-        { title: { $regex: query, $options: 'i' } },
-        { tag: { $regex: query, $options: 'i' } },
-        { description: { $regex: query, $options: 'i' } }
-      ],
-      isPublic: true // Only show public notes (optional)
+      $and: [
+        {
+          $or: [
+            { title: { $regex: query, $options: 'i' } },
+            { tag: { $regex: query, $options: 'i' } },
+            { description: { $regex: query, $options: 'i' } }
+          ]
+        },
+        {
+          // ✅ show:
+          // - public notes
+          // - OR private notes if they belong to the logged-in user
+          $or: [
+            { isPublic: true },
+            { user: userId }
+          ]
+        }
+      ]
     }).populate('user', 'username name image')
 
     // Search users (name, username)
