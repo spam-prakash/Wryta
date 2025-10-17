@@ -213,22 +213,25 @@ router.get('/public', async (req, res) => {
   }
 })
 
-router.get('/note/:id', async (req, res) => {
+router.get('/note/:id', fetchuser, async (req, res) => {
   try {
     const note = await Note.findById(req.params.id).populate('user', '-password -tokens')
 
     if (!note) {
-      return res.status(404).json({ error: 'Note not found' })
+      return res.status(404).json({ success: false, message: 'Note not found' })
     }
 
-    if (!note.isPublic) {
-      return res.status(401).json({ error: 'Note is Private' })
+    // ✅ Allow access if:
+    // 1. The note is public
+    // 2. OR the note belongs to the logged-in user
+    if (!note.isPublic && note.user._id.toString() !== req.user.id) {
+      return res.status(401).json({ success: false, message: 'Access denied — private note' })
     }
 
-    res.json(note)
+    res.status(200).json({ success: true, note })
   } catch (error) {
     console.error(error.message)
-    res.status(500).send('Internal Server Error')
+    res.status(500).json({ success: false, message: 'Internal Server Error' })
   }
 })
 
@@ -349,13 +352,13 @@ router.post('/note/:id/share', fetchuser, async (req, res) => {
 
     // ✅ Add userId to shares list only if not already present
     await Note.updateOne(
-      { _id: noteId, 'actions.shares.userId': { $ne: userId } },
-      { $addToSet: { 'actions.shares': { userId } } }
+      { _id: noteId, 'actions.shares': { $ne: userId } },
+      { $addToSet: { 'actions.shares': userId } }
     )
 
     // ✅ Add noteId to user's share actions
     await User.updateOne(
-      { _id: userId },
+      { _id: userId, 'actions.shares': { $ne: noteId } },
       { $addToSet: { 'actions.shares': noteId } }
     )
 
@@ -387,13 +390,13 @@ router.post('/note/:id/copy', fetchuser, async (req, res) => {
 
     // ✅ Add userId to copies list only if not already there
     await Note.updateOne(
-      { _id: noteId, 'actions.copies.userId': { $ne: userId } },
-      { $addToSet: { 'actions.copies': { userId } } }
+      { _id: noteId, 'actions.copies': { $ne: userId } },
+      { $addToSet: { 'actions.copies': userId } }
     )
 
     // ✅ Add noteId to user's copy actions
     await User.updateOne(
-      { _id: userId },
+      { _id: userId, 'actions.copies': { $ne: noteId } },
       { $addToSet: { 'actions.copies': noteId } }
     )
 
@@ -423,15 +426,15 @@ router.post('/note/:id/download', fetchuser, async (req, res) => {
     // ✅ Always increase download count
     await Note.findByIdAndUpdate(noteId, { $inc: { downloads: 1 } })
 
-    // ✅ Add userId to downloads list only if not already there
+    // ✅ Add userId to note's downloads (only if not already added)
     await Note.updateOne(
-      { _id: noteId, 'actions.downloads.userId': { $ne: userId } },
-      { $addToSet: { 'actions.downloads': { userId } } }
+      { _id: noteId, 'actions.downloads': { $ne: userId } },
+      { $addToSet: { 'actions.downloads': userId } }
     )
 
-    // ✅ Add noteId to user's download actions
+    // ✅ Add noteId to user's downloads (only if not already added)
     await User.updateOne(
-      { _id: userId },
+      { _id: userId, 'actions.downloads': { $ne: noteId } },
       { $addToSet: { 'actions.downloads': noteId } }
     )
 

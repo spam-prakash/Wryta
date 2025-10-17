@@ -13,6 +13,7 @@ const Home = (props) => {
   const [filterText, setFilterText] = useState('') // State for filtering notes
   const hostLink = process.env.REACT_APP_HOSTLINK
   const addNoteModalRef = useRef(null)
+  // console.log('Image API:', process.env.REACT_APP_IMAGEAPI)
 
   const navigate = useNavigate()
   const location = window.location

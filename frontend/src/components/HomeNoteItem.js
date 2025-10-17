@@ -2,9 +2,11 @@ import React, { useState, useRef, useEffect } from 'react'
 import NoteModal from './NoteModal'
 import { Link } from 'react-router-dom'
 import InteractionButtons from './InteractionButtons'
+import HiddenDownloadCard from './HiddenDownloadCard'
 import renderWithLinksAndMentions from './utils/renderWithLinksAndMentions'
 
 const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, username, image, showAlert, noteId, note }) => {
+  const imageAPI = process.env.REACT_APP_IMAGEAPI
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A'
     const options = { day: 'numeric', month: 'short', year: 'numeric' }
@@ -43,7 +45,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
           <div className='flex items-center mb-1'>
             <Link to={`/u/${username}`}>
               <img
-                src={image || `https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`}
+                src={image || `${imageAPI}${encodeURIComponent(username)}`}
                 alt={name}
                 className='w-10 h-10 rounded-full border border-gray-600'
               />
@@ -116,51 +118,16 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
         <NoteModal note={{ title, description, date, modifiedDate, tag }} onClose={toggleModal} />
       )}
 
-      <div
-        style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, pointerEvents: 'none' }}
-      >
-        <div
-          ref={hiddenCardRef}
-          className='w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 text-white flex flex-col'
-        >
-          {/* Header (User Info) */}
-          <div className='flex flex-col p-4 pb-1 border-b border-gray-700'>
-            <div className='flex items-center mb-1'>
-              <Link to={`/${username}`}>
-                <img
-                  src={image || `https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`}
-                  alt={name}
-                  className='w-10 h-10 rounded-full border border-gray-600'
-                />
-              </Link>
-              <div>
-                <Link to={`/${username}`} className='ml-3 font-semibold text-gray-200 hover:underline'>
-                  @{username}
-                </Link>
-                <div className='text-gray-400 text-xs ml-4'>
-                  {modifiedDate
-                    ? (
-                      <p>{formatDate(modifiedDate)} at {formatTime(modifiedDate)}</p>
-                      )
-                    : (
-                      <p>{formatDate(date)} at {formatTime(date)}</p>
-                      )}
-                </div>
-              </div>
-            </div>
-          </div>
+      {/* HIDDEN DOWNLOAD NOTE */}
+      <HiddenDownloadCard
+        ref={hiddenCardRef}
+        note={note}
+        username={username}
+        image={image}
+        formatDate={formatDate}
+        formatTime={formatTime}
+      />
 
-          <div className='p-4 flex-grow'>
-            <h5 className='text-lg font-bold uppercase'>{title}</h5>
-            {tag.length > 2 && <span className='text-[#FDC116] font-medium text-sm'># {tag}</span>}
-            <p className='mb-0 mt-2 font-normal text-white whitespace-pre-wrap'>{description}</p>
-          </div>
-
-          <div className='text-gray-400 text-xs px-4 pb-3'>
-            <p>Created: {formatDate(date)} at {formatTime(date)}</p>
-          </div>
-        </div>
-      </div>
     </>
   )
 }

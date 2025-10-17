@@ -6,12 +6,14 @@ import NoteModal from './NoteModal'
 import { Lock, LockOpen, X, Copy, Download, Share2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import InteractionButtons from './InteractionButtons'
+import HiddenDownloadCard from './HiddenDownloadCard'
 import renderWithLinksAndMentions from './utils/renderWithLinksAndMentions'
 
 const NoteItem = (props) => {
-  const { image, username } = props
+  const { username } = props
+  const imageAPI = process.env.REACT_APP_IMAGEAPI
+  const image = props.image || `${imageAPI}${encodeURIComponent(username)}`
   const { note, updateNote, showAlert } = props
-  // console.log('note id', note._id)
   const context = useContext(noteContext)
   const { deleteNote, updateVisibility } = context
 
@@ -41,30 +43,37 @@ const NoteItem = (props) => {
 
   const copyToClipboard = () => {
     const textToCopy = `Title: ${note.title}\nTag: ${note.tag}\n\nDescription:\n${note.description}`
-    navigator.clipboard.writeText(textToCopy)
+    navigator.clipboard
+      .writeText(textToCopy)
       .then(() => showAlert('Note successfully copied!', '#D4EDDA'))
       .catch(() => showAlert('Failed to copy note.', '#F8D7DA'))
   }
 
-  const handleImageDownload = () => {
+  // ✅ Improved download with guaranteed profile image rendering
+  const handleImageDownload = async () => {
     const card = hiddenCardRef.current
     if (!card) return
 
     const img = card.querySelector('img')
 
-    if (img && !img.complete) {
-      img.onload = () => captureCard()
-      img.onerror = () => {
-        console.error('Image failed to load, downloading without avatar')
-        captureCard()
+    // Convert external image to Base64 before capturing (fixes CORS & timing)
+    if (img && !img.src.startsWith('data:')) {
+      try {
+        const response = await fetch(img.src, { mode: 'cors' })
+        const blob = await response.blob()
+        const reader = new FileReader()
+        const base64Promise = new Promise((resolve) => {
+          reader.onloadend = () => resolve(reader.result)
+          reader.readAsDataURL(blob)
+        })
+        const base64Data = await base64Promise
+        img.src = base64Data
+      } catch (err) {
+        console.warn('Could not convert image to Base64:', err)
       }
-    } else {
-      captureCard()
     }
-  }
 
-  const captureCard = () => {
-    html2canvas(hiddenCardRef.current, { useCORS: true, allowTaint: true })
+    html2canvas(card, { useCORS: true, allowTaint: true, scale: 2 })
       .then((canvas) => {
         const link = document.createElement('a')
         link.download = `${note.title || 'note'}.png`
@@ -126,12 +135,10 @@ const NoteItem = (props) => {
     }
   }, [isVisibilityModalOpen])
 
-  // console.log('NoteItem:', note)
-
   return (
     <>
       <div className='text-white w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 flex flex-col'>
-        {/* Header: Title & Actions */}
+        {/* Header */}
         <div className='flex items-center justify-between px-4 py-3 border-b border-gray-700'>
           <h5 className='text-lg font-bold text-white truncate'>{note.title}</h5>
           <div className='flex gap-3'>
@@ -155,7 +162,7 @@ const NoteItem = (props) => {
           </div>
         </div>
 
-        {/* Note Content */}
+        {/* Content */}
         <div className='p-4 flex-grow'>
           {note.tag.length > 2 && <span className='text-[#FDC116] font-medium text-sm'># {note.tag}</span>}
           <div className='relative'>
@@ -170,7 +177,7 @@ const NoteItem = (props) => {
           </div>
         </div>
 
-        {/* Footer: Timestamps & Actions */}
+        {/* Footer */}
         <div className='px-2 pb-3 border-t border-gray-700 flex flex-col'>
           <div className='text-gray-400 text-xs border-b border-gray-700 pb-2 flex justify-between items-center pt-2'>
             <div>
@@ -183,28 +190,11 @@ const NoteItem = (props) => {
                 Created: {formatDate(note.date)} at {formatTime(note.date)}
               </p>
             </div>
-            <button
-              onClick={toggleVisibilityModal}
-              className='text-xs p-2 mr-3 rounded-full transition '
-            >
+            <button onClick={toggleVisibilityModal} className='text-xs p-2 mr-3 rounded-full transition '>
               {note.isPublic ? <LockOpen size={24} color='#00ff40' /> : <Lock size={24} color='red' />}
             </button>
           </div>
 
-          {/* <div className='flex gap-3 left-icons '>
-            <button onClick={copyToClipboard} className='flex items-center space-x-2'>
-              <Copy />
-            </button>
-            <button onClick={handleImageDownload} className='flex items-center space-x-2'>
-              <Download />
-            </button>
-            <button onClick={shareNote} className='flex items-center space-x-2'>
-              <Share2 />
-            </button>
-
-          </div> */}
-
-          {/* Like, Download, Copy - Stick to Bottom */}
           <InteractionButtons
             className='border-t border-gray-700 mt-auto'
             title={note.title}
@@ -213,15 +203,14 @@ const NoteItem = (props) => {
             showAlert={showAlert}
             cardRef={hiddenCardRef}
             noteId={note._id}
-            note={note} // Pass the note object for sharing
+            note={note}
+            onDownload={handleImageDownload} // ✅ ensures profile image included
           />
         </div>
       </div>
 
-      {/* Read More Modal */}
       {isModalOpen && <NoteModal note={note} onClose={toggleModal} />}
 
-      {/* Visibility Modal */}
       {isVisibilityModalOpen && (
         <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center px-4'>
           <div
@@ -261,43 +250,14 @@ const NoteItem = (props) => {
       )}
 
       {/* Offscreen Hidden Card for Download */}
-      <div
-        style={{ position: 'absolute', top: '-9999px', left: '-9999px', opacity: 0, pointerEvents: 'none' }}
-      >
-        <div
-          ref={hiddenCardRef}
-          className='w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 text-white flex flex-col'
-        >
-          <div className='flex items-center p-4 border-b border-gray-700'>
-            <img
-              src={image}
-              alt={username}
-              crossOrigin='anonymous'
-              className='w-12 h-12 rounded-full border border-gray-600'
-            />
-            <div className='ml-3'>
-              <p className='font-semibold text-gray-200'>@{username}</p>
-              <p className='text-gray-400 text-xs'>
-                {note.modifiedDate
-                  ? `Modified: ${formatDate(note.modifiedDate)} at ${formatTime(note.modifiedDate)}`
-                  : `Created: ${formatDate(note.date)} at ${formatTime(note.date)}`}
-              </p>
-            </div>
-          </div>
-
-          <div className='p-4 flex-grow'>
-            <h5 className='text-lg font-bold uppercase'>{note.title}</h5>
-            {note.tag.length > 2 && <span className='text-[#FDC116] font-medium text-sm'># {note.tag}</span>}
-            <p className='mb-0 mt-2 font-normal text-white whitespace-pre-wrap'>{note.description}</p>
-          </div>
-
-          <div className='text-gray-400 text-xs px-4 pb-3'>
-            <p>
-              Created: {formatDate(note.date)} at {formatTime(note.date)}
-            </p>
-          </div>
-        </div>
-      </div>
+      <HiddenDownloadCard
+        ref={hiddenCardRef}
+        note={note}
+        username={username}
+        image={image}
+        formatDate={formatDate}
+        formatTime={formatTime}
+      />
     </>
   )
 }

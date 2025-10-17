@@ -9,6 +9,7 @@ const Search = () => {
   const [showResults, setShowResults] = useState(false)
   const hostLink = process.env.REACT_APP_HOSTLINK
   const searchRef = useRef(null)
+  const imageAPI = process.env.REACT_APP_IMAGEAPI
 
   // 🧠 Fetch from backend
   const handleSearch = async () => {
@@ -132,7 +133,7 @@ const Search = () => {
                           className='flex items-center gap-3 px-4 py-2 hover:bg-gray-800 transition border-b border-gray-700 last:border-none'
                         >
                           <img
-                            src={user.image || `https://api.dicebear.com/7.x/adventurer/svg?seed=${user.username}`}
+                            src={user.image || `${imageAPI}${encodeURIComponent(user.username)}`}
                             alt={user.name}
                             className='w-8 h-8 rounded-full'
                           />

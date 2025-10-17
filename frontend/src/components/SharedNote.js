@@ -10,24 +10,34 @@ const SharedNote = (props) => {
   const [error, setError] = useState(null)
   const hiddenCardRef = useRef(null) // Hidden copy for download
   const hostLink = process.env.REACT_APP_HOSTLINK
+  const imageAPI = process.env.REACT_APP_IMAGEAPI
+  const token = localStorage.getItem('token')
 
   useEffect(() => {
     const fetchNote = async () => {
       try {
-        const response = await fetch(`${hostLink}/api/notes/note/${id}`)
+        const response = await fetch(`${hostLink}/api/notes/note/${id}`, {
+          method: 'GET',
+          headers: {
+            'auth-token': token || ''
+          }
+        })
+
         const data = await response.json()
 
         if (!response.ok) {
-          setError(data.error || 'Failed to load note')
+          setError(data.message || 'Failed to load note')
           return
         }
 
-        setNote(data)
+        // If your backend returns { success: true, note: {...} }
+        setNote(data.note || data)
       } catch (err) {
         console.error('Error fetching note:', err)
         setError('Invalid Note Id')
       }
     }
+
     fetchNote()
   }, [id])
 
@@ -68,7 +78,7 @@ const SharedNote = (props) => {
             <div className='flex items-center mb-1'>
               <Link to={`/${note.user.username}`}>
                 <img
-                  src={note.user.image || `https://api.dicebear.com/7.x/adventurer/svg?seed=${note.user.username}`}
+                  src={note.user.image || `imageAPI${encodeURIComponent(note.user.username)}`}
                   alt={note.user.name}
                   className='w-10 h-10 rounded-full border border-gray-600'
                 />
@@ -122,7 +132,7 @@ const SharedNote = (props) => {
             <div className='flex items-center mb-1'>
               <Link to={`/${note.user.username}`}>
                 <img
-                  src={note.user.image || `https://api.dicebear.com/7.x/adventurer/svg?seed=${note.user.username}`}
+                  src={note.user.image || `imageAPI${encodeURIComponent(note.user.username)}`}
                   alt={note.user.name}
                   className='w-10 h-10 rounded-full border border-gray-600'
                 />

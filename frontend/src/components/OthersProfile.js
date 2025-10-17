@@ -24,6 +24,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   const [isFollowing, setIsFollowing] = useState()
   const [filterText, setFilterText] = useState('')
   const hostLink = process.env.REACT_APP_HOSTLINK
+  const imageAPI = process.env.REACT_APP_IMAGEAPI
 
   const modalRef = useRef(null)
   const [currentNote, setCurrentNote] = useState(null)
@@ -137,7 +138,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     )
   }
 
-  const profilePic = user.profilePic || `https://api.dicebear.com/7.x/adventurer/svg?seed=${username}`
+  const profilePic = user.profilePic || `${imageAPI}${encodeURIComponent(username)}`
 
   const notesToDisplay =
     loggedInUser?.username === username ? notes : user.publicNotes || []
