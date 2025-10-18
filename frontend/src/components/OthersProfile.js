@@ -1,13 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useEffect, useState, useContext, useRef } from 'react'
-import OtherProfileNoteItem from './OtherProfileNoteItem'
+import OtherProfileNoteItem from './NoteItems/OtherProfileNoteItem'
 import noteContext from '../context/notes/NoteContext'
-import NoteItem from './NoteItem'
+import OwnNoteItem from './NoteItems/OwnNoteItem'
 import NoteUpdateModal from './NoteUpdateModal'
 import Addnote from './Addnote'
 import { Plus, Edit3 } from 'lucide-react'
 import Search from './Search' // Import the Search component
-import UserListModal from './UserListModal'
+import UserListModal from './utils/UserListModal'
 import Loader from './utils/Loader'
 
 const OthersProfile = ({ loggedInUser, showAlert }) => {
@@ -418,7 +418,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
               sortedNotesToDisplay.map((note) =>
                 loggedInUser?.username === username
                   ? (
-                    <NoteItem
+                    <OwnNoteItem
                       key={note._id}
                       note={note}
                       updateNote={updateNote}

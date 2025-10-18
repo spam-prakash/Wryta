@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react'
-import InteractionButtons from './InteractionButtons'
+import InteractionButtons from '../InteractionButtons'
 
 const HiddenDownloadCard = forwardRef(({ note, username, image, formatDate, formatTime }, ref) => {
   const imageAPI = process.env.REACT_APP_IMAGEAPI

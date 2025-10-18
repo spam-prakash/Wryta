@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react'
-import HomeNoteItem from './HomeNoteItem'
+import HomeNoteItem from './NoteItems/HomeNoteItem'
 import Addnote from './Addnote'
 import Search from './Search' // Import the new Search component
 import { Plus } from 'lucide-react'
