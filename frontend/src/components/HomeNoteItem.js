@@ -46,9 +46,14 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
             <Link to={`/u/${username}`}>
               <img
                 src={image || `${imageAPI}${encodeURIComponent(username)}`}
-                alt={name}
-                className='w-10 h-10 rounded-full border border-gray-600'
+                onError={(e) => {
+                  e.target.onerror = null // prevent infinite loop
+                  e.target.src = `${imageAPI}${encodeURIComponent(username)}`
+                }}
+                alt={username}
+                className='w-10 h-10 rounded-full object-cover'
               />
+
             </Link>
             <div>
               <Link to={`/u/${username}`} className='ml-3 font-semibold text-gray-200 hover:underline'>

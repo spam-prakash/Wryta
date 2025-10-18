@@ -310,6 +310,10 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
             <img
               className='size-40 rounded-full border-4 border-gray-400'
               src={profilePic}
+              onError={(e) => {
+                e.target.onerror = null // prevent infinite loop
+                e.target.src = `${process.env.REACT_APP_IMAGEAPI}${encodeURIComponent(username)}`
+              }}
               alt='Profile'
             />
           </a>

@@ -71,10 +71,11 @@ const UserListModal = ({ title, users = [], onClose }) => {
                     className='flex items-center gap-3 px-4 py-3 hover:bg-gray-800/60 cursor-pointer transition  '
                   >
                     <img
-                      src={
-                    user.profilePic ||
-                    `${imageAPI}${encodeURIComponent(user.username)}`
-                  }
+                      src={user.profilePic || `${imageAPI}${encodeURIComponent(user.username)}`}
+                      onError={(e) => {
+                        e.target.onerror = null // prevent infinite loop
+                        e.target.src = `${imageAPI}${encodeURIComponent(user.username)}`
+                      }}
                       alt={user.username}
                       className='w-10 h-10 rounded-full object-cover border border-gray-700'
                     />

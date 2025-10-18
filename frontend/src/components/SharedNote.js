@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import InteractionButtons from './InteractionButtons'
 import renderWithLinksAndMentions from './utils/renderWithLinksAndMentions'
 import Loader from './utils/Loader'
+import Search from './Search'
 
 const SharedNote = (props) => {
   const { id } = useParams()
@@ -12,6 +13,7 @@ const SharedNote = (props) => {
   const hostLink = process.env.REACT_APP_HOSTLINK
   const imageAPI = process.env.REACT_APP_IMAGEAPI
   const token = localStorage.getItem('token')
+  const [filterText, setFilterText] = useState('') // State for filtering notes
 
   useEffect(() => {
     const fetchNote = async () => {
@@ -71,6 +73,8 @@ const SharedNote = (props) => {
 
   return (
     <>
+      <Search filterText={filterText} setFilterText={setFilterText} />
+
       <div className='flex items-center justify-center min-h-screen z-50 inset-0 bg-opacity-50 md:backdrop-blur-sm'>
         <div className='text-white w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 flex flex-col mt-20'>
           {/* Header (User Info) */}
@@ -78,10 +82,15 @@ const SharedNote = (props) => {
             <div className='flex items-center mb-1'>
               <Link to={`/u/${note.user.username}`}>
                 <img
-                  src={note.user.image || `${imageAPI}${encodeURIComponent(note.user.username)}`}
-                  alt={note.user.name}
-                  className='w-10 h-10 rounded-full border border-gray-600'
+                  src={note.user.image ? note.user.image : `${imageAPI}${encodeURIComponent(note.user.username)}`}
+                  onError={(e) => {
+                    e.target.onerror = null // prevent infinite loop
+                    e.target.src = `${imageAPI}${encodeURIComponent(note.user.username)}`
+                  }}
+                  alt={note.user.username}
+                  className='w-10 h-10 rounded-full object-cover'
                 />
+
               </Link>
               <div>
                 <Link to={`/u/${note.user.username}`} className='ml-3 font-semibold text-gray-200 hover:underline'>

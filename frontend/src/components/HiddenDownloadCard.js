@@ -30,7 +30,11 @@ const HiddenDownloadCard = forwardRef(({ note, username, image, formatDate, form
         <div className='flex items-center gap-3 p-4 border-b border-gray-700'>
           <div className='relative w-12 h-12 rounded-full border border-gray-600 bg-gray-800 overflow-hidden flex items-center justify-center flex-shrink-0'>
             <img
-              src={image}
+              src={image || `${imageAPI}${encodeURIComponent(username)}`}
+              onError={(e) => {
+                e.target.onerror = null // prevent infinite loop
+                e.target.src = `${imageAPI}${encodeURIComponent(username)}`
+              }}
               alt={username}
               crossOrigin='anonymous'
               referrerPolicy='no-referrer'

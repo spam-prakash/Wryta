@@ -133,9 +133,13 @@ const Search = () => {
                           className='flex items-center gap-3 px-4 py-2 hover:bg-gray-800 transition border-b border-gray-700 last:border-none'
                         >
                           <img
-                            src={user.image || `${imageAPI}${encodeURIComponent(user.username)}`}
-                            alt={user.name}
-                            className='w-8 h-8 rounded-full'
+                            src={user.image ? user.image : `${imageAPI}${encodeURIComponent(user.username)}`}
+                            onError={(e) => {
+                              e.target.onerror = null // prevent infinite loop
+                              e.target.src = `${imageAPI}${encodeURIComponent(user.username)}`
+                            }}
+                            alt={user.name || user.username}
+                            className='w-8 h-8 rounded-full object-cover bg-gray-800'
                           />
                           <div>
                             <p className='text-sm text-white font-normal'>{user.name}</p>
