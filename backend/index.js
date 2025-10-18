@@ -41,7 +41,11 @@ if (environment === 'production') {
 
 // Middleware for parsing JSON
 app.use(express.json())
-app.use(morgan('combined'))
+
+// Use Morgan only in production
+if (environment === 'production') {
+  app.use(morgan('combined'))
+}
 
 const corsOptions = {
   origin: ['https://theprakash.xyz', 'https://wryta-frontend.vercel.app', 'http://localhost:3006'], // Add allowed origins
