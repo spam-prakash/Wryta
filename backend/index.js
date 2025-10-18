@@ -1,8 +1,7 @@
-// server.js
-
 const connectToMongo = require('./db')
 const cors = require('cors')
 const express = require('express')
+const morgan = require('morgan')
 const jwt = require('jsonwebtoken')
 const app = express()
 const userdb = require('./models/User')
@@ -42,6 +41,7 @@ if (environment === 'production') {
 
 // Middleware for parsing JSON
 app.use(express.json())
+app.use(morgan('combined'))
 
 const corsOptions = {
   origin: ['https://theprakash.xyz', 'https://wryta-frontend.vercel.app', 'http://localhost:3006'], // Add allowed origins
