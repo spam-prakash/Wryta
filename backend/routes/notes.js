@@ -26,47 +26,79 @@ router.post('/addnote', [
   try {
     const { title, description, tag, isPublic } = req.body
 
-    // Debugging: log incoming isPublic
-    // console.log('Received isPublic:', isPublic);
-
-    // Convert isPublic to a boolean
-    // const visibility = isPublic === 'true';  // Ensure 'true' string becomes boolean
-
-    // Create new note
+    // Create and save the note
     const note = new Note({
       title,
       description,
       tag,
-      isPublic, // Store as boolean
+      isPublic,
       user: req.user.id,
       date: Date.now()
     })
-
-    // console.log('Note:', note);
-
-    // Save note in database
     const savedNote = await note.save()
 
-    if (isPublic) {
-      const user = await User.findById(req.user.id).select('-password -tokens')
-      const followers = user.follower.list // Get the list of followers
+    const user = await User.findById(req.user.id).select('name username follower list email')
 
-      // Send email to each follower
-      const subject = `New Note Added by ${user.name}`
-      const text = ''
+    // ----------------------------------------
+    // ✳️ Detect mentions (@username)
+    // ----------------------------------------
+    const mentionPattern = /@([a-zA-Z0-9._-]+)/g
+    const mentionedUsernames = []
+    let match
+    while ((match = mentionPattern.exec(description)) !== null) {
+      mentionedUsernames.push(match[1])
+    }
+
+    // If mentions exist, notify mentioned users
+    if (mentionedUsernames.length > 0) {
+      for (const username of mentionedUsernames) {
+        const mentionedUser = await User.findOne({ username }).select('email name')
+        if (mentionedUser && mentionedUser.email) {
+          const subject = `${user.name} mentioned you in a note`
+          const html = `
+            <html>
+              <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                <h2>📩 You were mentioned in a note!</h2>
+                <p>Hi <strong>${mentionedUser.name}</strong>,</p>
+                <p>
+                  <strong><a href="${liveLink}/u/${user.username}">${user.name}</a></strong>
+                  mentioned you in a note:
+                </p>
+                <a href="${liveLink}/note/${savedNote._id}"
+                   style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
+                   View Note
+                </a>
+                <br><br>
+                <p style="font-size:0.9em;color:#777;">– The Wryta Team</p>
+              </body>
+            </html>
+          `
+          await sendMail(mentionedUser.email, subject, '', html)
+        }
+      }
+    }
+
+    // ----------------------------------------
+    // 📢 Send mail to followers if note is public
+    // ----------------------------------------
+    if (isPublic) {
+      const followers = user.follower.list || []
+      const subject = `📝 New Note Added by ${user.name}`
       const html = `
-        <!DOCTYPE html>
         <html>
           <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <h2>New Note Added!</h2>
+            <h2>🆕 New Note Added!</h2>
             <p>Hi,</p>
-            <p><strong><a href="${liveLink}/u/${user.username}">${user.name}</a></strong> has added a new note titled <em>“${title}”</em>.</p>
-            <p>Check it out now!</p>
-            <p>Link: <a href="${liveLink}/note/${note._id}">${liveLink}/note/${note._id}</a>
-            <br>
-            <p style="font-size: 0.9em; color: #777;">
-              – The Wryta Team
+            <p>
+              <strong><a href="${liveLink}/u/${user.username}">${user.name}</a></strong>
+              has added a new note titled <em>“${title}”</em>.
             </p>
+            <a href="${liveLink}/note/${savedNote._id}"
+               style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
+               View Note
+            </a>
+            <br><br>
+            <p style="font-size:0.9em;color:#777;">– The Wryta Team</p>
           </body>
         </html>
       `
@@ -74,10 +106,11 @@ router.post('/addnote', [
       for (const followerId of followers) {
         const follower = await User.findById(followerId).select('email')
         if (follower && follower.email) {
-          await sendMail(follower.email, subject, text, html)
+          await sendMail(follower.email, subject, '', html)
         }
       }
     }
+
     res.json(savedNote)
   } catch (error) {
     console.error(error.message)
@@ -92,31 +125,108 @@ router.put('/updatenote/:id', [
   const { title, description, tag } = req.body
 
   try {
-    // Create a new Note object
-    const newNote = {
-      title,
-      description,
-      tag,
-      modifiedDate: Date.now() // Update the date to the current date and time
-    }
-
-    // Find the note to be updated
     let note = await Note.findById(req.params.id)
     if (!note) {
       return res.status(404).send('Not Found')
     }
 
-    // Allow update only if user owns this note
     if (note.user.toString() !== req.user.id) {
       return res.status(401).send('Not Allowed')
     }
 
+    // Find the user performing the edit
+    const user = await User.findById(req.user.id).select('name username email')
+
+    // Extract mentions from previous note
+    const oldMentionPattern = /@([a-zA-Z0-9._-]+)/g
+    const oldMentions = []
+    let match
+    while ((match = oldMentionPattern.exec(note.description)) !== null) {
+      oldMentions.push(match[1])
+    }
+
+    // Extract mentions from updated note description
+    const newMentionPattern = /@([a-zA-Z0-9._-]+)/g
+    const newMentions = []
+    while ((match = newMentionPattern.exec(description)) !== null) {
+      newMentions.push(match[1])
+    }
+
+    // Find which mentions are new and which are old
+    const newlyMentioned = newMentions.filter(u => !oldMentions.includes(u))
+    const previouslyMentioned = oldMentions.filter(u => newMentions.includes(u))
+
     // Update the note
-    note = await Note.findByIdAndUpdate(
-      req.params.id,
-      { $set: newNote },
-      { new: true }
-    )
+    const newNote = {
+      title,
+      description,
+      tag,
+      modifiedDate: Date.now()
+    }
+
+    note = await Note.findByIdAndUpdate(req.params.id, { $set: newNote }, { new: true })
+
+    // Base link for emails
+    const noteLink = `${liveLink}/note/${note._id}`
+
+    // --------------------------------------------
+    // 🆕 Send email to newly mentioned users
+    // --------------------------------------------
+    for (const username of newlyMentioned) {
+      const mentionedUser = await User.findOne({ username }).select('email name')
+      if (mentionedUser && mentionedUser.email) {
+        const subject = `${user.name} mentioned you in a note`
+        const html = `
+          <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+              <h2>📩 You were mentioned in a note!</h2>
+              <p>Hi <strong>${mentionedUser.name}</strong>,</p>
+              <p>
+                <strong><a href="${liveLink}/u/${user.username}">${user.name}</a></strong>
+                mentioned you in an updated note:
+              </p>
+              <a href="${noteLink}"
+                 style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
+                 View Note
+              </a>
+              <br><br>
+              <p style="font-size:0.9em;color:#777;">– The Wryta Team</p>
+            </body>
+          </html>
+        `
+        await sendMail(mentionedUser.email, subject, '', html)
+      }
+    }
+
+    // --------------------------------------------
+    // ✏️ Send email to previously mentioned users
+    // --------------------------------------------
+    for (const username of previouslyMentioned) {
+      const mentionedUser = await User.findOne({ username }).select('email name')
+      if (mentionedUser && mentionedUser.email) {
+        const subject = '✏️ A note you were mentioned in was updated'
+        const html = `
+          <html>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+              <h2>✏️ A note was updated!</h2>
+              <p>Hi <strong>${mentionedUser.name}</strong>,</p>
+              <p>
+                The note where you were mentioned by 
+                <strong><a href="${liveLink}/u/${user.username}">${user.name}</a></strong> 
+                has been updated.
+              </p>
+              <a href="${noteLink}"
+                 style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
+                 View Updated Note
+              </a>
+              <br><br>
+              <p style="font-size:0.9em;color:#777;">– The Wryta Team</p>
+            </body>
+          </html>
+        `
+        await sendMail(mentionedUser.email, subject, '', html)
+      }
+    }
 
     res.json(note)
   } catch (error) {

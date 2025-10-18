@@ -4,7 +4,7 @@ export default function renderWithLinksAndMentions (text = '') {
   if (typeof text !== 'string') return text
 
   // Match URLs or @mentions
-  const regex = /(https?:\/\/[^\s]+|www\.[^\s]+|@[a-zA-Z0-9_]+)/g
+  const regex = /(https?:\/\/[^\s]+|www\.[^\s]+|@[a-zA-Z0-9._-]+)/g
   const parts = text.split(regex).filter(Boolean)
 
   return parts.map((part, i) => {

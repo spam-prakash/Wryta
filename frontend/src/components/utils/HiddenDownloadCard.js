@@ -23,8 +23,7 @@ const HiddenDownloadCard = forwardRef(({ note, username, image, formatDate, form
     >
       <div
         ref={ref}
-        className='w-full max-w-lg mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 text-white flex flex-col overflow-hidden'
-        style={{ width: '512px' }}
+        className='w-full mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 text-white flex flex-col overflow-hidden'
       >
         {/* Header (User Info) */}
         <div className='flex items-center gap-3 p-4 border-b border-gray-700'>
@@ -61,7 +60,7 @@ const HiddenDownloadCard = forwardRef(({ note, username, image, formatDate, form
         </div>
 
         {/* Interaction buttons - wrapped in a container with explicit styling */}
-        <div className='border-t border-gray-700' style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className='border-t border-gray-700'>
           <InteractionButtons
             title={title}
             tag={tag}
