@@ -4,14 +4,14 @@ import Navbar from './components/Navbar'
 import Home from './components/Home'
 import About from './components/About'
 import NoteState from './context/notes/NoteState'
-import Alert from './components/Alert'
+import Alert from './components/utils/Alert'
 import { useState, useEffect } from 'react'
-import Login from './components/Login'
-import Signup from './components/Signup'
-import Profile from './components/Profile'
+import Login from './components/auth/Login'
+import Signup from './components/auth/Signup'
+// import Profile from './components/Profile'
 import OthersProfile from './components/OthersProfile'
-import RequestResetPassword from './components/RequestResetPassword'
-import ResetPassword from './components/ResetPassword'
+import RequestResetPassword from './components/auth/RequestResetPassword'
+import ResetPassword from './components/auth/ResetPassword'
 import SharedNote from './components/SharedNote'
 
 // const hostLink = 'http://locahost:8000'
@@ -84,7 +84,7 @@ function App () {
               <Route exact path='/about' key='/about' element={<About />} />
               <Route exact path='/login' key='/login' element={<Login showAlert={showAlert} setUser={setUser} />} />
               <Route exact path='/signup' key='/signup' element={<Signup showAlert={showAlert} />} />
-              <Route exact path='/profile' key='/profile' element={<Profile showAlert={showAlert} user={user} />} />
+              {/* <Route exact path='/profile' key='/profile' element={<Profile showAlert={showAlert} user={user} />} /> */}
               <Route path='/u/:username' element={<OthersProfile loggedInUser={user} showAlert={showAlert} />} />
               <Route path='/login-success' element={<Login />} />
               <Route path='/request-reset-password' element={<RequestResetPassword showAlert={showAlert} />} />

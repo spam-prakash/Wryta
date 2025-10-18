@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, Link, useNavigate } from 'react-router-dom'
-import Loader from './utils/Loader' // Import the Loader component
+import Loader from '../utils/Loader' // Import the Loader component
 
 const Login = (props) => {
   useEffect(() => {

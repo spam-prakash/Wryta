@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Heart, Copy, Download, Share2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
-import UserListModal from './UserListModal'
+import UserListModal from './utils/UserListModal'
 
 const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteId, note }) => {
   const [modalType, setModalType] = useState(null)

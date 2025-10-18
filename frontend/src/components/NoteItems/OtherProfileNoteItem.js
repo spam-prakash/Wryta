@@ -1,17 +1,33 @@
 import React, { useState, useRef, useEffect } from 'react'
-import NoteModal from './NoteModal'
-import { Link } from 'react-router-dom'
-import InteractionButtons from './InteractionButtons'
-import HiddenDownloadCard from './HiddenDownloadCard'
-import renderWithLinksAndMentions from './utils/renderWithLinksAndMentions'
+import NoteModal from '../NoteModal'
+import InteractionButtons from '../InteractionButtons'
+import renderWithLinksAndMentions from '../utils/renderWithLinksAndMentions'
+import HiddenDownloadCard from '../utils/HiddenDownloadCard'
 
-const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, username, image, showAlert, noteId, note }) => {
+const OtherProfileNoteItem = ({
+  title,
+  tag,
+  description,
+  date,
+  modifiedDate,
+  username,
+  image,
+  noteId,
+  showAlert,
+  note
+}) => {
   const imageAPI = process.env.REACT_APP_IMAGEAPI
+  if (!image) {
+    image = `${imageAPI}${encodeURIComponent(username)}`
+  }
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A'
     const options = { day: 'numeric', month: 'short', year: 'numeric' }
     return new Date(dateString).toLocaleDateString(undefined, options)
   }
+
+  // console.log(note)
 
   const formatTime = (dateString) => {
     if (!dateString) return 'N/A'
@@ -22,60 +38,48 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isOverflowing, setIsOverflowing] = useState(false)
   const contentRef = useRef(null)
-  const cardRef = useRef(null) // Ref for the card container  const
+  const cardRef = useRef(null) // Visible card
   const hiddenCardRef = useRef(null) // Hidden copy for download
-
+  // console.log(note)
   useEffect(() => {
     if (contentRef.current) {
-      // ✅ Detect if content is overflowing
       setIsOverflowing(contentRef.current.scrollHeight > contentRef.current.clientHeight)
     }
   }, [description])
 
-  const toggleModal = () => setIsModalOpen(!isModalOpen)
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen)
+  }
+  // console.log(modifiedDate)
 
   return (
     <>
+      {/* Visible Note Card */}
       <div
-        ref={cardRef} // Assign the cardRef to the card container
         className='w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 text-white flex flex-col'
+        ref={cardRef}
       >
-        {/* Header (User Info) */}
-        <div className='flex flex-col p-4 pb-1 border-b border-gray-700'>
-          <div className='flex items-center mb-1'>
-            <Link to={`/u/${username}`}>
-              <img
-                src={image || `${imageAPI}${encodeURIComponent(username)}`}
-                onError={(e) => {
-                  e.target.onerror = null // prevent infinite loop
-                  e.target.src = `${imageAPI}${encodeURIComponent(username)}`
-                }}
-                alt={username}
-                className='w-10 h-10 rounded-full object-cover'
-              />
-
-            </Link>
-            <div>
-              <Link to={`/u/${username}`} className='ml-3 font-semibold text-gray-200 hover:underline'>
-                @{username}
-              </Link>
-              <div className='text-gray-400 text-xs ml-4'>
-                {modifiedDate
-                  ? (
-                    <p>{formatDate(modifiedDate)} at {formatTime(modifiedDate)}</p>
-                    )
-                  : (
-                    <p>{formatDate(date)} at {formatTime(date)}</p>
-                    )}
-              </div>
-            </div>
+        {/* Header */}
+        {/* <div className='flex items-center p-4 border-b border-gray-700'>
+          <img
+            src={image || `imageAPI${username}`}
+            crossOrigin='anonymous'
+            alt={username}
+            className='w-12 h-12 rounded-full border border-gray-600'
+          />
+          <div className='ml-3'>
+            <p className='font-semibold text-gray-200'>@{username}</p>
+            <p className='text-gray-400 text-xs'>
+              {modifiedDate
+                ? `Modified: ${formatDate(modifiedDate)} at ${formatTime(modifiedDate)}`
+                : `Created: ${formatDate(date)} at ${formatTime(date)}`}
+            </p>
           </div>
+        </div> */}
 
-        </div>
-
-        {/* Note Content */}
+        {/* Content */}
         <div className='p-4 flex-grow'>
-          <h5 className='text-lg font-bold'>{title}</h5>
+          <h5 className='text-lg font-bold uppercase'>{title}</h5>
           {tag.length > 2 && <span className='text-[#FDC116] font-medium text-sm'># {tag}</span>}
           <div className='relative'>
             <p
@@ -92,7 +96,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
           </div>
         </div>
 
-        {/* Timestamp - Shows Both Created & Modified Dates */}
+        {/* Footer */}
         <div className='text-gray-400 text-xs px-4 pb-3'>
           {note.modifiedDate && (
             <p className='py-1'>
@@ -104,7 +108,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
           </p>
         </div>
 
-        {/* Like, Download, Copy - Stick to Bottom */}
+        {/* Buttons */}
         <InteractionButtons
           className='border-t border-gray-700 mt-auto'
           title={title}
@@ -112,9 +116,8 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
           description={description}
           showAlert={showAlert}
           cardRef={hiddenCardRef}
-          noteId={noteId} // Pass the noteId for sharing
-          note={note} // Pass the note object for sharing
-          // onInteraction={fetchAllNotes}
+          noteId={noteId}
+          note={note}
         />
       </div>
 
@@ -123,7 +126,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
         <NoteModal note={{ title, description, date, modifiedDate, tag }} onClose={toggleModal} />
       )}
 
-      {/* HIDDEN DOWNLOAD NOTE */}
+      {/* Offscreen Hidden Card for Download */}
       <HiddenDownloadCard
         ref={hiddenCardRef}
         note={note}
@@ -132,9 +135,8 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
         formatDate={formatDate}
         formatTime={formatTime}
       />
-
     </>
   )
 }
 
-export default HomeNoteItem
+export default OtherProfileNoteItem

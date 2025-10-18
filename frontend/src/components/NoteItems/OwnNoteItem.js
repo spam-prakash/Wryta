@@ -1,15 +1,15 @@
 import React, { useContext, useState, useEffect, useRef } from 'react'
-import deleteIcon from '../assets/delete.png'
-import editIcon from '../assets/edit.png'
-import noteContext from '../context/notes/NoteContext'
-import NoteModal from './NoteModal'
+import deleteIcon from '../../assets/delete.png'
+import editIcon from '../../assets/edit.png'
+import noteContext from '../../context/notes/NoteContext'
+import NoteModal from '../NoteModal'
 import { Lock, LockOpen, X, Copy, Download, Share2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
-import InteractionButtons from './InteractionButtons'
-import HiddenDownloadCard from './HiddenDownloadCard'
-import renderWithLinksAndMentions from './utils/renderWithLinksAndMentions'
+import InteractionButtons from '../InteractionButtons'
+import HiddenDownloadCard from '../utils/HiddenDownloadCard'
+import renderWithLinksAndMentions from '../utils/renderWithLinksAndMentions'
 
-const NoteItem = (props) => {
+const OwnNoteItem = (props) => {
   const { username } = props
   const imageAPI = process.env.REACT_APP_IMAGEAPI
   const image = props.image || `${imageAPI}${encodeURIComponent(username)}`
@@ -262,4 +262,4 @@ const NoteItem = (props) => {
   )
 }
 
-export default NoteItem
+export default OwnNoteItem
