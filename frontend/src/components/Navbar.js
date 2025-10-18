@@ -14,16 +14,24 @@ const Navbar = (props) => {
   const user = props.user
   const [image, setImage] = useState(
     user?.image || `${imageAPI}${encodeURIComponent(user?.username) || 'default'}`
-  ) // Initialize with user image or default avatar
+  )
 
-  // Update the image whenever `props.user` changes
+  // Update image whenever user changes
   useEffect(() => {
-    if (user && user.image) {
-      setImage(user.image) // Use the user's image if available
+    if (!user) return
+
+    const fallback = `${imageAPI}${encodeURIComponent(user?.username) || 'default'}`
+
+    if (user.image) {
+      const img = new Image()
+      img.src = user.image
+
+      img.onload = () => setImage(user.image) // Google image works fine
+      img.onerror = () => setImage(fallback) // Fallback if Google image fails
     } else {
-      setImage(`${imageAPI}${encodeURIComponent(user?.username) || 'default'}`) // Fallback to DiceBear avatar
+      setImage(fallback)
     }
-  }, [user])
+  }, [user, imageAPI])
 
   const handleLogout = () => {
     localStorage.removeItem('token')
