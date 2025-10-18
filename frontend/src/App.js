@@ -89,7 +89,7 @@ function App () {
               <Route path='/login-success' element={<Login />} />
               <Route path='/request-reset-password' element={<RequestResetPassword showAlert={showAlert} />} />
               <Route path='/reset-password' element={<ResetPassword showAlert={showAlert} />} />
-              <Route path='/note/:id' element={<SharedNote showAlert={showAlert} />} />
+              <Route path='/note/:id' element={<SharedNote loggedInUser={user} showAlert={showAlert} />} />
               <Route path='*' key='/' element={<Home />} />
             </Routes>
           </div>
