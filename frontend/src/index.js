@@ -9,17 +9,9 @@ const root = ReactDOM.createRoot(document.getElementById('root'))
 // const clientId = process.env.REACT_APP_CLINTID
 // const clientSecret = process.env.REACT_APP_CLINT_SECRET
 
-// In your configuration file or environment setup
-const environment = process.env.NODE_ENV || 'development'; // Or however you determine environment
-
 // let googleClientId;
-if (environment === 'production') {
-  var clientId = process.env.REACT_APP_CLINTID_PRODUCTION;
-  var clientSecret = process.env.REACT_APP_CLINT_SECRET_PRODUCTION;
-} else {
-  var clientId = process.env.REACT_APP_CLINTID_DEVELOPMENT;
-  var clientSecret = process.env.REACT_APP_CLINT_SECRET_DEVELOPMENT;
-}
+const clientId = process.env.REACT_APP_CLINTID
+const clientSecret = process.env.REACT_APP_CLINT_SECRET
 
 if (!clientId) {
   console.error('Missing Google Client ID')
