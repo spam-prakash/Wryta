@@ -76,9 +76,9 @@ const SharedNote = (props) => {
           {/* Header (User Info) */}
           <div className='flex flex-col p-4 pb-1 border-b border-gray-700'>
             <div className='flex items-center mb-1'>
-              <Link to={`/${note.user.username}`}>
+              <Link to={`/u/${note.user.username}`}>
                 <img
-                  src={note.user.image || `imageAPI${encodeURIComponent(note.user.username)}`}
+                  src={note.user.image || `${imageAPI}${encodeURIComponent(note.user.username)}`}
                   alt={note.user.name}
                   className='w-10 h-10 rounded-full border border-gray-600'
                 />
