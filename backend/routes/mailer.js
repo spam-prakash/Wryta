@@ -3,7 +3,7 @@ const { Resend } = require('resend')
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-const sendMail = async (to, subject, html) => {
+const sendMail = async (to, subject, text, html) => {
   try {
     if (process.env.NODE_ENV === 'production') {
       // ✅ Use Resend in production (Render)
@@ -30,6 +30,7 @@ const sendMail = async (to, subject, html) => {
         from: `"Wryta" <${process.env.EMAIL_USER}>`,
         to,
         subject,
+        text,
         html
       })
 
