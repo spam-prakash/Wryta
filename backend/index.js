@@ -140,6 +140,11 @@ app.use('/api/auth', require('./routes/auth'))
 app.use('/api/notes', require('./routes/notes'))
 app.use('/api/user', require('./routes/user')) // Ensure this line exists
 app.use('/api/search', require('./routes/search')) // Ensure this line exists
+// Inside your index.js (after app is defined)
+app.get('/ping', (req, res) => {
+  console.log('Ping received at', new Date())
+  res.status(200).send('Backend is awake')
+})
 
 // Test Route (Optional)
 app.get('/', (req, res) => {
