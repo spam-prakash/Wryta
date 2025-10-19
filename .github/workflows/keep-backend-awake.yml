@@ -1,0 +1,16 @@
+name: Keep Backend Awake
+
+# Trigger schedule
+on:
+  schedule:
+    - cron: "*/13 * * * *" # every 13 minutes
+  workflow_dispatch: # optional: allows manual run
+
+jobs:
+  ping-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Wryta Backend
+        run: |
+          curl -X GET https://wryta-backend.onrender.com/ping
