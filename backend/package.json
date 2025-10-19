@@ -28,6 +28,7 @@
     "passport": "^0.7.0",
     "passport-google-oauth2": "^0.2.0",
     "passport-google-oauth20": "^2.0.0",
+    "resend": "^6.2.0",
     "vercel": "^37.4.2"
   }
 }
