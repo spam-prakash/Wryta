@@ -6,14 +6,16 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 const sendMail = async (to, subject, html) => {
   try {
     if (process.env.NODE_ENV === 'production') {
-      // Use Resend in production (Render)
-      await resend.emails.send({
-        from: 'Wryta <onboarding@resend.dev>', // Or your verified domain
+      // ✅ Use Resend in production (Render)
+      const response = await resend.emails.send({
+        from: 'Wryta <onboarding@resend.dev>', // works without verification
         to,
         subject,
         html
       })
-      console.log('✅ Email sent via Resend')
+
+      console.log('✅ Email sent via Resend to', to)
+      console.log('📨 Resend response:', response)
     } else {
       // Use Gmail locally (development)
       const transporter = nodemailer.createTransport({
