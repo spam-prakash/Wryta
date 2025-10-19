@@ -3,7 +3,7 @@ name: Keep Backend Awake
 # Trigger schedule
 on:
   schedule:
-    - cron: "*/13 * * * *" # every 13 minutes
+    - cron: "*/10 * * * *" # every 13 minutes
   workflow_dispatch: # optional: allows manual run
 
 jobs:
