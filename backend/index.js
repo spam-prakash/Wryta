@@ -29,6 +29,7 @@ let redirectURL = process.env.REDIRECT_URL || '/auth/google/callback'
 // console.log('Redirect URL:', redirectURL)
 
 // let googleClientId;
+let clientID, clientSecret
 if (environment === 'production') {
   clientID = process.env.REACT_APP_CLINTID_PRODUCTION
   clientSecret = process.env.REACT_APP_CLINT_SECRET_PRODUCTION

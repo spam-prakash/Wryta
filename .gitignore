@@ -11,6 +11,12 @@ store
 # testing
 /coverage
 
+#files
+check.js
+getRefreshToken.js
+getToken.js
+
+
 # production
 /build
 
