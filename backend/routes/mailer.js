@@ -1,14 +1,14 @@
-import nodemailer from 'nodemailer'
-import { Resend } from 'resend'
+const nodemailer = require('nodemailer')
+const { Resend } = require('resend')
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-export const sendMail = async (to, subject, html) => {
+const sendMail = async (to, subject, html) => {
   try {
     if (process.env.NODE_ENV === 'production') {
-      // Use Resend on Render (production)
+      // Use Resend in production (Render)
       await resend.emails.send({
-        from: 'Wryta <noreply@wryta.tech>', // your verified sender domain
+        from: 'Wryta <onboarding@resend.dev>', // Or your verified domain
         to,
         subject,
         html
@@ -19,13 +19,13 @@ export const sendMail = async (to, subject, html) => {
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: process.env.GMAIL_USER,
-          pass: process.env.GMAIL_PASS
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
         }
       })
 
       await transporter.sendMail({
-        from: `"Wryta" <${process.env.GMAIL_USER}>`,
+        from: `"Wryta" <${process.env.EMAIL_USER}>`,
         to,
         subject,
         html
@@ -37,3 +37,5 @@ export const sendMail = async (to, subject, html) => {
     console.error('❌ Email send failed:', err.message)
   }
 }
+
+module.exports = sendMail
