@@ -2,12 +2,16 @@ import React, { useEffect, useRef, useCallback } from 'react'
 import { X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-const UserListModal = ({ title, users = [], onClose }) => {
+const UserListModal = ({ title, users = [], onClose, isOpen }) => {
   const modalRef = useRef(null)
   const navigate = useNavigate()
   const imageAPI = process.env.REACT_APP_IMAGEAPI
 
   // console.log(users)
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : 'auto'
+    return () => (document.body.style.overflow = 'auto')
+  }, [isOpen])
 
   // ✅ Close when clicking outside modal
   const handleClickOutside = useCallback(

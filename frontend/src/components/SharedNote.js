@@ -15,6 +15,7 @@ const SharedNote = (props) => {
   const hiddenCardRef = useRef(null)
   const addNoteModalRef = useRef(null)
   const [filterText, setFilterText] = useState('')
+  const [isNoteAddModelOpen, setisNoteAddModelOpen] = useState(false)
 
   const hostLink = process.env.REACT_APP_HOSTLINK
   const imageAPI = process.env.REACT_APP_IMAGEAPI
@@ -49,6 +50,7 @@ const SharedNote = (props) => {
   const toggleAddNoteModal = () => {
     if (addNoteModalRef.current) {
       addNoteModalRef.current.classList.toggle('hidden')
+      setisNoteAddModelOpen(!isNoteAddModelOpen)
     }
   }
 
@@ -80,7 +82,7 @@ const SharedNote = (props) => {
   return (
     <>
       {/* Add Note Modal */}
-      <Addnote modalRef={addNoteModalRef} showAlert={showAlert} toggleModal={toggleAddNoteModal} />
+      <Addnote modalRef={addNoteModalRef} showAlert={showAlert} toggleModal={toggleAddNoteModal} isOpen={isNoteAddModelOpen} />
 
       <Search filterText={filterText} setFilterText={setFilterText} />
 

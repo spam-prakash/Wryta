@@ -1,12 +1,17 @@
-import React, { useContext, useState, useRef } from 'react'
+import React, { useContext, useEffect, useState, useRef } from 'react'
 import noteContext from '../context/notes/NoteContext'
 
-const Addnote = ({ modalRef, showAlert, toggleModal }) => {
+const Addnote = ({ modalRef, showAlert, toggleModal, isOpen }) => {
   const context = useContext(noteContext)
   const { addNote } = context
 
   const [note, setNote] = useState({ title: '', description: '', tag: '', isPublic: false })
   const descriptionRef = useRef(null)
+
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : 'auto'
+    return () => (document.body.style.overflow = 'auto')
+  }, [isOpen])
 
   const onChange = (e) => {
     const { name, value } = e.target

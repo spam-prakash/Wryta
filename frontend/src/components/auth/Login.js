@@ -48,6 +48,7 @@ const Login = (props) => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
+
     try {
       const response = await fetch(`${hostLink}/api/auth/login`, {
         method: 'POST',
@@ -60,18 +61,25 @@ const Login = (props) => {
           password: credentials.password
         })
       })
+
       const json = await response.json()
 
       if (json.success) {
+      // ✅ Save token
         localStorage.setItem('token', json.authToken)
+
+        // ✅ Update user state immediately with accurate data from backend
         props.setUser({
           email: json.email,
           name: json.name,
           image: json.image || '',
-          username: credentials.identifier
+          username: json.username, // ✅ backend now sends correct username
+          id: json.id // optional but useful for future features
         })
-        navigate('/')
+
+        // ✅ Navigate to the logged-in user's profile
         props.showAlert('Logged in successfully!', '#D4EDDA')
+        navigate('/')
       } else {
         props.showAlert('Invalid Credentials!', '#F8D7DA')
       }

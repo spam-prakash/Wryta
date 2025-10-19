@@ -24,6 +24,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
   const contentRef = useRef(null)
   const cardRef = useRef(null) // Ref for the card container  const
   const hiddenCardRef = useRef(null) // Hidden copy for download
+  const [isNoteModalOpen, setisNoteModalOpen] = useState(false)
 
   useEffect(() => {
     if (contentRef.current) {
@@ -32,7 +33,9 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
     }
   }, [description])
 
-  const toggleModal = () => setIsModalOpen(!isModalOpen)
+  const toggleModal = () => {
+    setisNoteModalOpen(!isNoteModalOpen)
+  }
 
   return (
     <>
@@ -119,8 +122,8 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
       </div>
 
       {/* Read More Modal */}
-      {isModalOpen && (
-        <NoteModal note={{ title, description, date, modifiedDate, tag }} onClose={toggleModal} />
+      {isNoteModalOpen && (
+        <NoteModal note={{ title, description, date, modifiedDate, tag }} onClose={toggleModal} isOpen={isNoteModalOpen} />
       )}
 
       {/* HIDDEN DOWNLOAD NOTE */}

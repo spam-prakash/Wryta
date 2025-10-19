@@ -13,6 +13,7 @@ const Home = (props) => {
   const [filterText, setFilterText] = useState('') // State for filtering notes
   const hostLink = process.env.REACT_APP_HOSTLINK
   const addNoteModalRef = useRef(null)
+  const [isNoteAddModelOpen, setisNoteAddModelOpen] = useState(false)
   // console.log('Image API:', process.env.REACT_APP_IMAGEAPI)
 
   const navigate = useNavigate()
@@ -75,6 +76,7 @@ const Home = (props) => {
   const toggleAddNoteModal = () => {
     if (addNoteModalRef.current) {
       addNoteModalRef.current.classList.toggle('hidden')
+      setisNoteAddModelOpen(!isNoteAddModelOpen)
     }
   }
 
@@ -93,6 +95,7 @@ const Home = (props) => {
         modalRef={addNoteModalRef}
         showAlert={props.showAlert}
         toggleModal={toggleAddNoteModal}
+        isOpen={isNoteAddModelOpen}
       />
 
       {/* Integrate the Search component */}

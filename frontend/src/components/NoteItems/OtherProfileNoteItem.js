@@ -35,7 +35,7 @@ const OtherProfileNoteItem = ({
     return new Date(dateString).toLocaleTimeString(undefined, options)
   }
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isNoteModelOpen, setIsNoteModelOpen] = useState(false)
   const [isOverflowing, setIsOverflowing] = useState(false)
   const contentRef = useRef(null)
   const cardRef = useRef(null) // Visible card
@@ -48,7 +48,7 @@ const OtherProfileNoteItem = ({
   }, [description])
 
   const toggleModal = () => {
-    setIsModalOpen(!isModalOpen)
+    setIsNoteModelOpen(!isNoteModelOpen)
   }
   // console.log(modifiedDate)
 
@@ -122,8 +122,8 @@ const OtherProfileNoteItem = ({
       </div>
 
       {/* Read More Modal */}
-      {isModalOpen && (
-        <NoteModal note={{ title, description, date, modifiedDate, tag }} onClose={toggleModal} />
+      {isNoteModelOpen && (
+        <NoteModal note={{ title, description, date, modifiedDate, tag }} onClose={toggleModal} isOpen={isNoteModelOpen} />
       )}
 
       {/* Offscreen Hidden Card for Download */}

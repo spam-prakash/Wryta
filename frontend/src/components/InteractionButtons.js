@@ -7,6 +7,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
   const [modalType, setModalType] = useState(null)
   const [likingUsers, setLikingUsers] = useState([])
   const [liked, setLiked] = useState(false)
+  const [isUserListModelOpen, setIsUserListModalOpen] = useState(false)
   const [counts, setCounts] = useState({ likes: 0, copies: 0, downloads: 0, shares: 0 })
   const hostLink = process.env.REACT_APP_HOSTLINK
 
@@ -174,7 +175,12 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
         {/* Like Button */}
         <button className='flex items-center space-x-2'>
           <Heart onClick={handleLike} color={liked ? '#FF0000' : '#FFFFFF'} fill={liked ? '#FF0000' : 'none'} />
-          <span onClick={fetchLikingUsers} className='text-sm text-gray-400 cursor-pointer hover:underline'>
+          <span
+            onClick={() => {
+              fetchLikingUsers() // ✅ call the function
+              setIsUserListModalOpen(true)
+            }} className='text-sm text-gray-400 cursor-pointer hover:underline'
+          >
             {counts.likes || note.likes} {(counts.likes || note.likes) > 1 ? 'Likes' : 'Like'}
           </span>
         </button>
@@ -204,6 +210,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
           title='Likes'
           users={likingUsers.users}
           onClose={() => setModalType(null)}
+          isOpen={isUserListModelOpen}
         />
       )}
     </>

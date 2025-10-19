@@ -1,8 +1,13 @@
 import React, { useEffect, useRef } from 'react'
 import renderWithLinksAndMentions from './utils/renderWithLinksAndMentions'
 
-const NoteModal = ({ note, onClose }) => {
+const NoteModal = ({ note, onClose, isOpen }) => {
   const modalRef = useRef(null)
+
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? 'hidden' : 'auto'
+    return () => (document.body.style.overflow = 'auto')
+  }, [isOpen])
 
   const formatDate = (dateString) => {
     const options = { day: 'numeric', month: 'short', year: 'numeric' }

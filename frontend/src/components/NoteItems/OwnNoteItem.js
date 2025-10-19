@@ -31,14 +31,14 @@ const OwnNoteItem = (props) => {
       hour12: false
     })
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isNoteModelOpen, setIsNoteModelOpen] = useState(false)
   const [isVisibilityModalOpen, setIsVisibilityModalOpen] = useState(false)
   const [isOverflowing, setIsOverflowing] = useState(false)
   const contentRef = useRef(null)
   const modalRef = useRef(null)
   const hiddenCardRef = useRef(null)
 
-  const toggleModal = () => setIsModalOpen(!isModalOpen)
+  const toggleModal = () => setIsNoteModelOpen(!isNoteModelOpen)
   const toggleVisibilityModal = () => setIsVisibilityModalOpen(!isVisibilityModalOpen)
 
   const copyToClipboard = () => {
@@ -209,7 +209,7 @@ const OwnNoteItem = (props) => {
         </div>
       </div>
 
-      {isModalOpen && <NoteModal note={note} onClose={toggleModal} />}
+      {isNoteModelOpen && <NoteModal note={note} onClose={toggleModal} isOpen={isNoteModelOpen} />}
 
       {isVisibilityModalOpen && (
         <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center px-4'>

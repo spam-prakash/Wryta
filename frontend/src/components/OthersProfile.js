@@ -22,6 +22,10 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   const [sortCriteria, setSortCriteria] = useState('modifiedDate')
   const [sortOrder, setSortOrder] = useState('desc')
   const [isFollowing, setIsFollowing] = useState()
+  const [isNoteAddModelOpen, setisNoteAddModelOpen] = useState(false)
+  const [isEditProfileModelOpen, setIsEditProfileModelOpen] = useState(false)
+  const [isUpdateNoteModalOpen, setIsUpdateNoteModalOpen] = useState(false)
+  const [isUserListModal, setIsUserListModalOpen] = useState(false)
   const [filterText, setFilterText] = useState('')
   const hostLink = process.env.REACT_APP_HOSTLINK
   const imageAPI = process.env.REACT_APP_IMAGEAPI
@@ -59,12 +63,32 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   const toggleAddNoteModal = () => {
     if (addNoteModalRef.current) {
       addNoteModalRef.current.classList.toggle('hidden')
+      setisNoteAddModelOpen(!isNoteAddModelOpen)
     }
   }
+
+  useEffect(() => {
+    const isAnyModalOpen =
+    isEditProfileModelOpen ||
+    isNoteAddModelOpen ||
+    isUpdateNoteModalOpen ||
+    isUserListModal
+
+    if (isAnyModalOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'auto'
+    }
+
+    return () => {
+      document.body.style.overflow = 'auto'
+    }
+  }, [isEditProfileModelOpen, isNoteAddModelOpen, isUpdateNoteModalOpen, isUserListModal])
 
   const toggleEditProfileModal = () => {
     if (editProfileModalRef.current) {
       editProfileModalRef.current.classList.toggle('hidden')
+      setIsEditProfileModelOpen(!isEditProfileModelOpen)
     }
   }
 
@@ -162,6 +186,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   const updateNote = (note) => {
     setCurrentNote(note)
     toggleModal()
+    setIsUpdateNoteModalOpen(!isUpdateNoteModalOpen)
   }
 
   const handleEditProfileChange = (e) => {
@@ -240,6 +265,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
         modalRef={addNoteModalRef}
         showAlert={showAlert}
         toggleModal={toggleAddNoteModal}
+        isOpen={isNoteAddModelOpen}
       />
       <NoteUpdateModal
         modalRef={modalRef}
@@ -333,7 +359,10 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
             </div>
             <div
               className='cursor-pointer text-center hover:opacity-80'
-              onClick={() => openModal('followers')}
+              onClick={() => {
+                openModal('followers')
+                setIsUserListModalOpen(true)
+              }}
             >
               <p className='text-xl font-bold'>{user.followerCount}</p>
               <p className='text-gray-400 text-sm'>Followers</p>
@@ -341,7 +370,10 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
 
             <div
               className='cursor-pointer text-center hover:opacity-80'
-              onClick={() => openModal('following')}
+              onClick={() => {
+                openModal('following')
+                setIsUserListModalOpen(true)
+              }}
             >
               <p className='text-xl font-bold'>{user.followingCount}</p>
               <p className='text-gray-400 text-sm'>Following</p>
@@ -352,6 +384,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
                 title='Followers'
                 users={user.followerList}
                 onClose={closeModal}
+                isOpen={isUserListModal}
               />
             )}
             {modalType === 'following' && (
@@ -359,6 +392,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
                 title='Following'
                 users={user.followingList}
                 onClose={closeModal}
+                isOpen={isUserListModal}
               />
             )}
           </div>
