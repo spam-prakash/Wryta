@@ -1,0 +1,20 @@
+name: Keep Backend Awake
+
+on:
+  schedule:
+    # Runs every 10 minutes
+    - cron: "*/10 * * * *"
+  workflow_dispatch: # allows manual trigger
+
+jobs:
+  ping-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render Backend
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://wryta-backend.onrender.com/ping)
+          echo "Ping status: $STATUS"
+          if [ "$STATUS" -ne 200 ]; then
+            echo "Backend did not respond successfully!"
+            exit 1
+          fi
