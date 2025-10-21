@@ -5,7 +5,7 @@ import noteContext from '../context/notes/NoteContext'
 import OwnNoteItem from './NoteItems/OwnNoteItem'
 import NoteUpdateModal from './NoteUpdateModal'
 import Addnote from './Addnote'
-import { Plus, Edit3 } from 'lucide-react'
+import { Plus, Edit3, CameraIcon } from 'lucide-react'
 import Search from './Search'
 import UserListModal from './utils/UserListModal'
 import Loader from './utils/Loader'
@@ -22,6 +22,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   const [isFollowing, setIsFollowing] = useState(false)
   const [isEditProfileModelOpen, setIsEditProfileModelOpen] = useState(false)
   const [isUserListModal, setIsUserListModalOpen] = useState(false)
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false)
   const [isNoteAddModelOpen, setIsNoteAddModelOpen] = useState(false)
   const [isUpdateNoteModalOpen, setIsUpdateNoteModalOpen] = useState(false)
   const addNoteModalRef = useRef(null)
@@ -70,14 +71,26 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
       isEditProfileModelOpen ||
       isUserListModal ||
       isNoteAddModelOpen ||
-      isUpdateNoteModalOpen
+      isUpdateNoteModalOpen ||
+      isLightboxOpen
 
     document.body.style.overflow = isAnyModalOpen ? 'hidden' : 'auto'
 
     return () => {
       document.body.style.overflow = 'auto'
     }
-  }, [isEditProfileModelOpen, isUserListModal, isNoteAddModelOpen, isUpdateNoteModalOpen])
+  }, [isEditProfileModelOpen, isUserListModal, isNoteAddModelOpen, isUpdateNoteModalOpen, isLightboxOpen])
+
+  // Close lightbox on Escape key
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape' && isLightboxOpen) {
+        setIsLightboxOpen(false)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [isLightboxOpen])
 
   const toggleAddNoteModal = () => {
     if (addNoteModalRef.current) {
@@ -291,6 +304,21 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
         isOpen={isUpdateNoteModalOpen}
       />
 
+      {/* Profile picture action modal (only for own profile) */}
+      {isLightboxOpen && (
+        <div
+          className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-50'
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          <img
+            src={profilePic}
+            alt='Full screen'
+            className='max-w-full max-h-full object-contain'
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+
       {isEditProfileModelOpen && (
         <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10 p-4 sm:p-0'>
           <div className='bg-[#1E293B] rounded-lg p-6 w-full max-w-md'>
@@ -344,17 +372,35 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
 
       <div className='flex flex-col items-center text-white px-4'>
         <div className='flex flex-col md:flex-row items-center w-full max-w-4xl py-6 mt-28'>
-          <a href={profilePic} target='_blank' rel='noreferrer'>
-            <img
-              className='size-40 rounded-full border-4 border-gray-400'
-              src={profilePic}
-              onError={(e) => {
-                e.target.onerror = null
-                e.target.src = `${imageAPI}${encodeURIComponent(username)}`
-              }}
-              alt='Profile'
-            />
-          </a>
+          <div className='relative'>
+            <button
+              type='button'
+              onClick={() => setIsLightboxOpen(true)}
+              className='focus:outline-none'
+              aria-label='Open full image'
+            >
+              <img
+                className='size-40 rounded-full border-4 border-gray-400'
+                src={profilePic}
+                onError={(e) => {
+                  e.target.onerror = null
+                  e.target.src = `${imageAPI}${encodeURIComponent(username)}`
+                }}
+                alt='Profile'
+              />
+            </button>
+
+            {isOwnProfile && (
+              <button
+                type='button'
+                onClick={() => navigate('/upload-image')}
+                className='absolute right-2 bottom-2 w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-md border'
+                aria-label='Upload profile picture'
+              >
+                <CameraIcon />
+              </button>
+            )}
+          </div>
           <div className='mx-6'>
             <h2 className='text-2xl font-semibold mt-2'>{user.name}</h2>
             <p className='text-gray-400'>@{username}</p>
@@ -394,26 +440,26 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
 
         <div>
           {isOwnProfile
-? (
-            <button
-              onClick={toggleEditProfileModal}
-              className='ml-4 p-2 bg-gray-800 rounded-full hover:bg-gray-700 focus:outline-none sm:ml-0 sm:mt-4 mb-4'
-            >
-              <Edit3 size={24} />
-            </button>
-          )
-: loggedInUser && (
-            <button
-              onClick={followUnfollow}
-              className={`ml-4 p-2 px-10 text-base md:px-20 md:text-xl mb-4 ${
+            ? (
+              <button
+                onClick={toggleEditProfileModal}
+                className='ml-4 p-2 bg-gray-800 rounded-full hover:bg-gray-700 focus:outline-none sm:ml-0 sm:mt-4 mb-4'
+              >
+                <Edit3 size={24} />
+              </button>
+              )
+            : loggedInUser && (
+              <button
+                onClick={followUnfollow}
+                className={`ml-4 p-2 px-10 text-base md:px-20 md:text-xl mb-4 ${
                 isFollowing
                   ? 'bg-red-600 hover:bg-red-700'
                   : 'bg-blue-600 hover:bg-blue-700'
               } rounded-full focus:outline-none sm:ml-0 sm:mt-4 text-white`}
-            >
-              {isFollowing ? 'Unfollow' : 'Follow'}
-            </button>
-          )}
+              >
+                {isFollowing ? 'Unfollow' : 'Follow'}
+              </button>
+            )}
         </div>
       </div>
 
@@ -438,39 +484,39 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
 
       <div className='w-full flex flex-wrap text-white gap-3 mt-4 px-4'>
         {sortedNotesToDisplay.length > 0
-? (
-          sortedNotesToDisplay.map((note) =>
-            isOwnProfile
-? (
-              <OwnNoteItem
-                key={note._id}
-                note={note}
-                updateNote={updateNote}
-                showAlert={showAlert}
-                image={profilePic}
-                username={user.username}
-              />
+          ? (
+              sortedNotesToDisplay.map((note) =>
+                isOwnProfile
+                  ? (
+                    <OwnNoteItem
+                      key={note._id}
+                      note={note}
+                      updateNote={updateNote}
+                      showAlert={showAlert}
+                      image={profilePic}
+                      username={user.username}
+                    />
+                    )
+                  : (
+                    <OtherProfileNoteItem
+                      key={note._id}
+                      noteId={note._id}
+                      title={note.title}
+                      description={note.description}
+                      date={note.date}
+                      modifiedDate={note.modifiedDate}
+                      tag={note.tag}
+                      showAlert={showAlert}
+                      image={profilePic}
+                      username={user.username}
+                      note={note}
+                    />
+                    )
+              )
             )
-: (
-              <OtherProfileNoteItem
-                key={note._id}
-                noteId={note._id}
-                title={note.title}
-                description={note.description}
-                date={note.date}
-                modifiedDate={note.modifiedDate}
-                tag={note.tag}
-                showAlert={showAlert}
-                image={profilePic}
-                username={user.username}
-                note={note}
-              />
-            )
-          )
-        )
-: (
-          <p className='text-center text-gray-400 w-full'>No notes available.</p>
-        )}
+          : (
+            <p className='text-center text-gray-400 w-full'>No notes available.</p>
+            )}
       </div>
 
       {loggedInUser && (

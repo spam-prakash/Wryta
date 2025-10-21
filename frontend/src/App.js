@@ -13,6 +13,7 @@ import OthersProfile from './components/OthersProfile'
 import RequestResetPassword from './components/auth/RequestResetPassword'
 import ResetPassword from './components/auth/ResetPassword'
 import SharedNote from './components/SharedNote'
+import UploadImage from './components/UploadImage'
 
 // const hostLink = 'http://locahost:8000'
 // const hostLink = 'https://Wryta-backend-opal.vercel.app'
@@ -82,6 +83,7 @@ function App () {
               /> */}
               <Route exact path='/' element={<Home showAlert={showAlert} isAuthenticated={isAuthenticated} />} />
               <Route exact path='/about' key='/about' element={<About />} />
+              <Route exact path='/upload-image' key='/about' element={<UploadImage user={user} setUser={setUser} />} />
               <Route exact path='/login' key='/login' element={<Login showAlert={showAlert} setUser={setUser} />} />
               <Route exact path='/signup' key='/signup' element={<Signup showAlert={showAlert} />} />
               {/* <Route exact path='/profile' key='/profile' element={<Profile showAlert={showAlert} user={user} />} /> */}
