@@ -238,16 +238,41 @@ router.put('/updatenote/:id', [
 // ROUTE: 4 DELETE A NOTES DELETE:"/api/notes/deletenote" LOGIN REQUIRED
 router.delete('/deletenote/:id', fetchuser, async (req, res) => {
   try {
-    let note = await Note.findById(req.params.id)
+    const note = await Note.findById(req.params.id)
     if (!note) { return res.status(404).send('Not Found') }
 
     if (note.user.toString() !== req.user.id) {
       return res.status(401).send('Not Allowed')
     }
 
-    note = await Note.findByIdAndDelete(req.params.id)
-    note = await Note.findById(req.params.id)
-    if (!note) { return res.status(200).json({ Success: 'NOTE HAS BEEN DELETED' }) }
+    // Delete the note
+    const deletedNote = await Note.findByIdAndDelete(req.params.id)
+    if (!deletedNote) {
+      return res.status(404).json({ success: false, message: 'Note not found or already deleted' })
+    }
+
+    // Clean up: remove this note's ID from all users' action arrays
+    // (likes, shares, copies, downloads)
+    await User.updateMany(
+      {
+        $or: [
+          { 'actions.likes': deletedNote._id },
+          { 'actions.shares': deletedNote._id },
+          { 'actions.copies': deletedNote._id },
+          { 'actions.downloads': deletedNote._id }
+        ]
+      },
+      {
+        $pull: {
+          'actions.likes': deletedNote._id,
+          'actions.shares': deletedNote._id,
+          'actions.copies': deletedNote._id,
+          'actions.downloads': deletedNote._id
+        }
+      }
+    )
+
+    return res.status(200).json({ success: true, message: 'Note deleted and user actions cleaned up' })
   } catch (error) {
     console.error(error.message)
     res.status(500).send('Internal Server Error')
