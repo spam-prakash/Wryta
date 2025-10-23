@@ -78,40 +78,57 @@ passport.use(
     },
     async (request, accessToken, refreshToken, profile, done) => {
       try {
+        // Try finding by googleId first
         let user = await userdb.findOne({ googleId: profile.id })
 
+        // If no user found with googleId, check for existing email
         if (!user) {
-          user = new userdb({
-            googleId: profile.id,
-            name: profile.displayName,
-            email: profile.emails[0].value,
-            image: profile.photos[0].value,
-            username: profile.emails[0].value.split('@')[0]
-          })
-          await user.save()
+          user = await userdb.findOne({ email: profile.emails[0].value })
 
-          // Send welcome email
-          const subject = 'Welcome to iNotebook'
-          const text = `Hello ${user.name},\n\nThank you for signing up for iNotebook. We are excited to have you on board!\n\nBest regards,\nThe iNotebook Team`
-          const html = `<p>Hello ${user.name},</p><p>Thank you for signing up for iNotebook. We are excited to have you on board!</p><p>Best regards,<br>The iNotebook Team</p>`
-          await sendMail(user.email, subject, text, html)
+          if (user) {
+            // User exists via email signup — link Google ID
+            user.googleId = profile.id
+            if (!user.image && profile.photos && profile.photos[0]) {
+              user.image = profile.photos[0].value // Add image if missing
+            }
+            await user.save()
+          } else {
+            // Create a new user
+            user = new userdb({
+              googleId: profile.id,
+              name: profile.displayName,
+              email: profile.emails[0].value,
+              image: profile.photos?.[0]?.value || '',
+              username: profile.emails[0].value.split('@')[0]
+            })
+            await user.save()
+
+            // Send welcome email
+            const subject = 'Welcome to Wryta'
+            const text = `Hello ${user.name},\n\nThank you for signing up for Wryta. We're excited to have you on board!\n\nBest regards,\nThe Wryta Team`
+            const html = `<p>Hello ${user.name},</p><p>Thank you for signing up for <strong>Wryta</strong>. We're excited to have you on board!</p><p>Best regards,<br>The Wryta Team</p>`
+            await sendMail(user.email, subject, text, html)
+          }
         }
 
         // Generate JWT Token
-        const token = jwt.sign({
-          user: {
-            id: user._id,
-            name: user.name,
-            email: user.email,
-            username: user.username || user.email.split('@')[0]
-          }
-        }, JWT_SECRET, {
-          expiresIn: '7d'
-        })
+        const token = jwt.sign(
+          {
+            user: {
+              id: user._id,
+              name: user.name,
+              email: user.email,
+              username: user.username || user.email.split('@')[0]
+            }
+          },
+          JWT_SECRET,
+          { expiresIn: '7d' }
+        )
 
         // Attach user and token to done callback
         return done(null, { user, token })
       } catch (error) {
+        console.error('Google Auth Error:', error)
         return done(error, null)
       }
     }
