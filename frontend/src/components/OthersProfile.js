@@ -313,7 +313,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
           <img
             src={profilePic}
             alt='Full screen'
-            className='max-w-full max-h-full object-contain'
+            className='w-60 h-60 md:w-96 md:h-96 object-cover rounded-2xl '
             onClick={(e) => e.stopPropagation()}
           />
         </div>
@@ -380,7 +380,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
               aria-label='Open full image'
             >
               <img
-                className='size-40 rounded-full border-4 border-gray-400'
+                className='size-40 object-cover rounded-full border-4 border-gray-400'
                 src={profilePic}
                 onError={(e) => {
                   e.target.onerror = null
