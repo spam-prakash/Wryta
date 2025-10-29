@@ -23,7 +23,7 @@ const HiddenDownloadCard = forwardRef(({ note, username, image, formatDate, form
     >
       <div
         ref={ref}
-        className='w-full mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 text-white flex flex-col overflow-hidden'
+        className='w-full mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 text-white flex flex-col overflow-hidden min-w-[320px]'
       >
         {/* Header (User Info) */}
         <div className='flex items-center gap-3 p-4 border-b border-gray-700'>
