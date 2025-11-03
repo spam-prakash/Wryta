@@ -64,7 +64,8 @@ router.get('/:username', fetchuser, async (req, res) => {
         likes: note.likes,
         copies: note.copies,
         downloads: note.downloads,
-        shares: note.shares
+        shares: note.shares,
+        actions: note.actions
       }))
     }
 

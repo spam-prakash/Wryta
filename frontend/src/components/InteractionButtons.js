@@ -3,15 +3,56 @@ import { Heart, Copy, Download, Share2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import UserListModal from './utils/UserListModal'
 
+const getUserIdFromToken = () => {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) return null
+    const [, payload] = token.split('.')
+    return JSON.parse(atob(payload)).user.id
+  } catch (error) {
+    console.error('Error decoding token:', error)
+    return null
+  }
+}
+
 const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteId, note }) => {
   const [modalType, setModalType] = useState(null)
   const [likingUsers, setLikingUsers] = useState([])
   const [liked, setLiked] = useState(false)
   const [isUserListModelOpen, setIsUserListModalOpen] = useState(false)
-  const [counts, setCounts] = useState({ likes: 0, copies: 0, downloads: 0, shares: 0 })
-  const hostLink = process.env.REACT_APP_HOSTLINK
+  const [counts, setCounts] = useState({
+    likes: note.likes || 0,
+    copies: note.copies || 0,
+    downloads: note.downloads || 0,
+    shares: note.shares || 0
+  })
 
-  // Fetch counts
+  const hostLink = process.env.REACT_APP_HOSTLINK
+  const userId = getUserIdFromToken()
+
+  // ✅ Determine liked status on mount or when note changes
+  useEffect(() => {
+    if (!note) return
+
+    // handle both profile and public structures
+    const likesArray = note.actions?.likes || []
+    const isLiked = Array.isArray(likesArray) && likesArray.includes(userId)
+    setLiked(isLiked)
+
+    // initialize counts if available in note
+    setCounts({
+      likes: note.likes ?? note.actions?.likes?.length ?? 0,
+      copies: note.copies ?? note.actions?.copies ?? 0,
+      downloads: note.downloads ?? note.actions?.downloads ?? 0,
+      shares: note.shares ?? note.actions?.shares ?? 0
+    })
+  }, [note, userId])
+
+  // ✅ Re-fetch live counts when noteId changes
+  // useEffect(() => {
+  //   if (noteId) fetchCounts()
+  // }, [noteId])
+
   const fetchCounts = async () => {
     try {
       const response = await fetch(`${hostLink}/api/notes/note/${noteId}/counts`, {
@@ -30,7 +71,6 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
     }
   }
 
-  // Fetch liking users
   const fetchLikingUsers = async () => {
     try {
       const response = await fetch(`${hostLink}/api/notes/note/${noteId}/likedetails`, {
@@ -43,37 +83,39 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
       if (response.ok) {
         const data = await response.json()
         setLikingUsers(data)
-        // console.log(likingUsers.users)
-        setModalType('likes') // open modal
+        setModalType('likes')
       }
     } catch (error) {
       console.error('Error fetching liking users:', error)
     }
   }
 
-  // Fetch liked notes to check if current note is liked
-  const fetchLikedNotes = async () => {
+  // ✅ Like/Unlike (instant update + backend sync)
+  const handleLike = async () => {
     try {
-      const response = await fetch(`${hostLink}/api/user/useraction/likednotes`, {
-        method: 'GET',
+      const response = await fetch(`${hostLink}/api/notes/note/${noteId}/like`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'auth-token': localStorage.getItem('token')
         }
       })
+
       if (response.ok) {
-        const likedNotes = await response.json()
-        setLiked(likedNotes.some((note) => note._id === noteId))
+        const result = await response.json()
+        const isLikedNow = result.message === 'Note liked'
+
+        // instant feedback
+        setLiked(isLikedNow)
+        setCounts(prev => ({
+          ...prev,
+          likes: prev.likes + (isLikedNow ? 1 : -1)
+        }))
       }
     } catch (error) {
-      console.error('Error fetching liked notes:', error)
+      console.error('Error liking/unliking note:', error)
     }
   }
-
-  useEffect(() => {
-    fetchLikedNotes()
-    // fetchCounts() // optional if note already contains live counts
-  }, [noteId, hostLink])
 
   const updateCount = async (action) => {
     try {
@@ -87,25 +129,6 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
       if (response.ok) fetchCounts()
     } catch (error) {
       console.error(`Error updating ${action} count:`, error)
-    }
-  }
-
-  const handleLike = async () => {
-    try {
-      const response = await fetch(`${hostLink}/api/notes/note/${noteId}/like`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'auth-token': localStorage.getItem('token')
-        }
-      })
-      if (response.ok) {
-        const result = await response.json()
-        setLiked(result.message === 'Note liked')
-        fetchCounts()
-      }
-    } catch (error) {
-      console.error('Error liking/unliking note:', error)
     }
   }
 
@@ -172,39 +195,44 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
   return (
     <>
       <div className='flex items-center justify-between px-4 py-2 border-t border-gray-700'>
-        {/* Like Button */}
+        {/* ❤️ Like Button */}
         <button className='flex items-center space-x-2'>
-          <Heart onClick={handleLike} color={liked ? '#FF0000' : '#FFFFFF'} fill={liked ? '#FF0000' : 'none'} />
+          <Heart
+            onClick={handleLike}
+            color={liked ? '#FF0000' : '#FFFFFF'}
+            fill={liked ? '#FF0000' : 'none'}
+          />
           <span
             onClick={() => {
-              fetchLikingUsers() // ✅ call the function
+              fetchLikingUsers()
               setIsUserListModalOpen(true)
-            }} className='text-sm text-gray-400 cursor-pointer hover:underline'
+            }}
+            className='text-sm text-gray-400 cursor-pointer hover:underline'
           >
-            {counts.likes || note.likes} {(counts.likes || note.likes) > 1 ? 'Likes' : 'Like'}
+            {counts.likes} {counts.likes === 1 ? 'Like' : 'Likes'}
           </span>
         </button>
 
-        {/* Copy Button */}
+        {/* 📋 Copy */}
         <button onClick={copyToClipboard} className='flex items-center space-x-2'>
           <Copy />
-          <span className='text-sm text-gray-400'>{counts.copies || note.copies}</span>
+          <span className='text-sm text-gray-400'>{counts.copies}</span>
         </button>
 
-        {/* Download Button */}
+        {/* ⬇️ Download */}
         <button onClick={downloadCardAsImage} className='flex items-center space-x-2'>
           <Download />
-          <span className='text-sm text-gray-400'>{counts.downloads || note.downloads}</span>
+          <span className='text-sm text-gray-400'>{counts.downloads}</span>
         </button>
 
-        {/* Share Button */}
+        {/* 🔗 Share */}
         <button onClick={shareNote} className='flex items-center space-x-2'>
           <Share2 />
-          <span className='text-sm text-gray-400'>{counts.shares || note.shares}</span>
+          <span className='text-sm text-gray-400'>{counts.shares}</span>
         </button>
       </div>
 
-      {/* Modal Rendering */}
+      {/* 🧑‍🤝‍🧑 Likes Modal */}
       {modalType === 'likes' && (
         <UserListModal
           title='Likes'
