@@ -122,7 +122,7 @@ passport.use(
             }
           },
           JWT_SECRET,
-          { expiresIn: '7d' }
+          { expiresIn: '30d' }
         )
 
         // Attach user and token to done callback

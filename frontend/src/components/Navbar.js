@@ -132,7 +132,7 @@ const Navbar = (props) => {
             <img
               src={image}
               alt='User'
-              className='w-10 h-10 rounded-full cursor-pointer'
+              className='w-10 h-10 rounded-full object-cover cursor-pointer'
               onClick={toggleProfileMenu}
               onError={(e) => {
                 e.target.src = defaultUserIcon // Fallback to default image if the user's image fails to load
