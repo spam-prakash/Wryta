@@ -455,7 +455,7 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
               <p style="font-size:0.9em;color:#777;">– The Wryta Team</p>
             </body>
           </html>`
-        // sendMail(email, subject, '', html)
+        sendMail(email, subject, '', html)
       }
 
       return res.json({ success: true, message: 'Note liked' })
