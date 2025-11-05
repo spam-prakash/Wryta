@@ -47,7 +47,11 @@ router.post('/generateotp', [
 
 // ROUTE 2: Create a user using: POST "/api/auth/createuser" NO LOGIN REQUIRE
 router.post('/createuser', [
-  body('username', 'Enter a valid username').isLength({ min: 3 }),
+  body('username')
+    .isLength({ min: 3 })
+    .withMessage('Username must be at least 3 characters long')
+    .matches(/^[A-Za-z0-9_.-]+$/)
+    .withMessage('Only letter, Numbers, _-. are allowed'),
   body('name', 'Enter a valid name').isLength({ min: 3 }),
   body('email', 'Enter a valid Email').isEmail(),
   body('password', 'Enter a valid password').isLength({ min: 5 }),
@@ -260,7 +264,11 @@ router.post('/reset-password', [
 
 // ROUTE: Update User Profile
 router.put('/updateprofile', fetchuser, [
-  body('username', 'Enter a valid username').isLength({ min: 3 }),
+  body('username')
+    .isLength({ min: 3 })
+    .withMessage('Username must be at least 3 characters long')
+    .matches(/^[A-Za-z0-9_.-]+$/)
+    .withMessage('Only letter, Numbers, _-. are allowed'),
   body('name', 'Enter a valid name').isLength({ min: 3 })
 ], async (req, res) => {
   const errors = validationResult(req)

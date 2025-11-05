@@ -15,7 +15,8 @@ const getUserIdFromToken = () => {
   }
 }
 
-const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteId, note }) => {
+const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteId, note, ownerName }) => {
+  // console.log(note.userDetails.username)
   const [modalType, setModalType] = useState(null)
   const [likingUsers, setLikingUsers] = useState([])
   const [liked, setLiked] = useState(false)
@@ -171,9 +172,10 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
 
     try {
       if (navigator.share) {
+        console.log(ownerName)
         await navigator.share({
           title: note.title || 'Shared Note',
-          text: `Check out this note: ${note.title}`,
+          text: `Check out this note: ${note.title} by ${ownerName}`,
           url: shareUrl
         })
       }

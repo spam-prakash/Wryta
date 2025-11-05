@@ -72,7 +72,11 @@ const Signup = (props) => {
       props.showAlert('New Account Created Successfully', '#D4EDDA')
       navigate('/login')
     } else {
-      props.showAlert(json.error || 'Signup failed', '#F8D7DA')
+      const errorMsg =
+        json.errors?.[0]?.msg || // express-validator error
+        json.error || // custom backend error
+        'Something went wrong'
+      props.showAlert(errorMsg, '#F8D7DA')
     }
   }
 

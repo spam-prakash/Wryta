@@ -212,11 +212,15 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
         }
         showAlert('Profile updated successfully', '#D4EDDA')
       } else {
-        showAlert('Failed to update profile', '#F8D7DA')
+        const errorMsg =
+        json.errors?.[0]?.msg || // express-validator error
+        json.error || // custom backend error
+        'Something went wrong'
+        showAlert(errorMsg, '#F8D7DA')
       }
     } catch (error) {
       console.error('Error updating profile:', error)
-      showAlert('Failed to update profile', '#F8D7DA')
+      showAlert(error.msg, '#F8D7DA')
     }
   }
 

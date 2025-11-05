@@ -356,11 +356,34 @@ router.get('/note/:id', fetchuser, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Note not found' })
     }
 
+    const loggedInUserId = req.user.id
+
+    // ✅ Check if the logged-in user is mentioned in the note
+    let isMentioned = false
+
+    // If you store mentions as usernames or user IDs
+    if (Array.isArray(note.mentions)) {
+      isMentioned = note.mentions.some(
+        (mention) =>
+          mention.toString().toLowerCase() === loggedInUserId.toString().toLowerCase()
+      )
+    } else if (typeof note.description === 'string') {
+      // If mentions are within text like @username
+      const user = await User.findById(loggedInUserId)
+      if (user && user.username) {
+        const mentionPattern = new RegExp(`@${user.username}\\b`, 'i')
+        isMentioned = mentionPattern.test(note.description)
+      }
+    }
+
     // ✅ Allow access if:
     // 1. The note is public
     // 2. OR the note belongs to the logged-in user
-    if (!note.isPublic && note.user._id.toString() !== req.user.id) {
-      return res.status(401).json({ success: false, message: 'Access denied — private note' })
+    // 3. OR the user is mentioned
+    if (!note.isPublic && note.user._id.toString() !== loggedInUserId && !isMentioned) {
+      return res
+        .status(401)
+        .json({ success: false, message: 'Access denied — private note' })
     }
 
     res.status(200).json({ success: true, note })

@@ -118,6 +118,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
           noteId={noteId} // Pass the noteId for sharing
           note={note} // Pass the note object for sharing
           // onInteraction={fetchAllNotes}
+          ownerName={note.userDetails.username}
         />
       </div>
 

@@ -11,6 +11,7 @@ import renderWithLinksAndMentions from '../utils/renderWithLinksAndMentions'
 
 const OwnNoteItem = (props) => {
   const { username } = props
+  // console.log(username)
   const imageAPI = process.env.REACT_APP_IMAGEAPI
   const image = props.image || `${imageAPI}${encodeURIComponent(username)}`
   const { note, updateNote, showAlert } = props
@@ -205,6 +206,7 @@ const OwnNoteItem = (props) => {
             noteId={note._id}
             note={note}
             onDownload={handleImageDownload} // ✅ ensures profile image included
+            ownerName={username}
           />
         </div>
       </div>

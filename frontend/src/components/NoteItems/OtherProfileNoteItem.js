@@ -51,6 +51,7 @@ const OtherProfileNoteItem = ({
     setIsNoteModelOpen(!isNoteModelOpen)
   }
   // console.log(modifiedDate)
+  // console.log(username)
 
   return (
     <>
@@ -118,6 +119,7 @@ const OtherProfileNoteItem = ({
           cardRef={hiddenCardRef}
           noteId={noteId}
           note={note}
+          ownerName={username}
         />
       </div>
 
