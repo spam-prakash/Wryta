@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import NoteModal from '../NoteModal'
+import NoteModal from '../models/NoteModal'
 import InteractionButtons from '../InteractionButtons'
 import renderWithLinksAndMentions from '../utils/renderWithLinksAndMentions'
 import HiddenDownloadCard from '../utils/HiddenDownloadCard'

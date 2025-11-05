@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import NoteModal from '../NoteModal'
+import NoteModal from '../models/NoteModal'
 import { Link } from 'react-router-dom'
 import InteractionButtons from '../InteractionButtons'
 import HiddenDownloadCard from '../utils/HiddenDownloadCard'

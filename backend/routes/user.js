@@ -35,6 +35,7 @@ router.get('/:username', fetchuser, async (req, res) => {
       name: user.name,
       email: user.email,
       username: user.username,
+      bio: user.bio || ' ',
       followerCount: followers.length,
       followingCount: following.length,
       followerList: followers.map(f => ({

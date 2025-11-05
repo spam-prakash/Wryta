@@ -1,16 +1,25 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useEffect, useState, useContext, useCallback } from 'react'
+import { useEffect, useState, useContext, useRef, useCallback } from 'react'
+import OtherProfileNoteItem from './NoteItems/OtherProfileNoteItem'
 import noteContext from '../context/notes/NoteContext'
-import Search from './Search'
-import EditProfileModel from './models/EditProfileModel'
+import OwnNoteItem from './NoteItems/OwnNoteItem'
 import NoteUpdateModal from './models/NoteUpdateModal'
+import Addnote from './Addnote'
+import { Plus, Edit3, CameraIcon } from 'lucide-react'
+import Search from './Search'
+import UserListModal from './models/UserListModal'
+import EditProfileModel from './models/EditProfileModel'
 import Loader from './utils/Loader'
 import ProfileHeader from './utils/ProfileHeader'
-import OwnNoteItem from './NoteItems/OwnNoteItem'
-import OtherProfileNoteItem from './NoteItems/OtherProfileNoteItem'
-import UserListModal from './models/UserListModal'
 
 const OthersProfile = ({ loggedInUser, showAlert }) => {
+  // Validate token
+  useEffect(() => {
+    const storedToken = localStorage.getItem('token')
+    if (!storedToken) {
+      navigate('/login')
+    }
+  }, [navigate])
   const { notes, getNotes, editNote } = useContext(noteContext)
   const { username: initialUsername } = useParams()
   const [username, setUsername] = useState(initialUsername)
@@ -20,16 +29,28 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   const [sortOrder, setSortOrder] = useState('desc')
   const [isFollowing, setIsFollowing] = useState(false)
   const [isEditProfileModelOpen, setIsEditProfileModelOpen] = useState(false)
+  const [isNoteAddModelOpen, setIsNoteAddModelOpen] = useState(false)
+  const [isUpdateNoteModalOpen, setIsUpdateNoteModalOpen] = useState(false)
+  const addNoteModalRef = useRef(null)
+  const updateNoteModalRef = useRef(null)
   const [filterText, setFilterText] = useState('')
   const [isOwnProfile, setIsOwnProfile] = useState(false)
-  const [modalType, setModalType] = useState(null)
-  const [isUserListModal, setIsUserListModal] = useState(false)
-  const [isUpdateNoteModalOpen, setIsUpdateNoteModalOpen] = useState(false)
-  const [currentNoteForUpdate, setCurrentNoteForUpdate] = useState(null)
+  const [currentNote, setCurrentNote] = useState(null)
+  const [editProfileData, setEditProfileData] = useState({
+    username: '',
+    name: ''
+  })
 
   const hostLink = process.env.REACT_APP_HOSTLINK
   const imageAPI = process.env.REACT_APP_IMAGEAPI
   const navigate = useNavigate()
+
+  // Memoize modal functions
+  const openModal = useCallback((type) => setModalType(type), [])
+  const closeModal = useCallback(() => {
+    setModalType(null)
+    setIsUserListModalOpen(false)
+  }, [])
 
   // Handle token check
   useEffect(() => {
@@ -50,15 +71,56 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     }
   }, [navigate])
 
-  // Handle body scroll for edit profile modal
+  // Handle body scroll lock for modals
   useEffect(() => {
-    document.body.style.overflow = isEditProfileModelOpen ? 'hidden' : 'auto'
+    const isAnyModalOpen =
+      isEditProfileModelOpen ||
+      isUserListModal ||
+      isNoteAddModelOpen ||
+      isUpdateNoteModalOpen ||
+      isLightboxOpen
+
+    document.body.style.overflow = isAnyModalOpen ? 'hidden' : 'auto'
+
     return () => {
       document.body.style.overflow = 'auto'
     }
-  }, [isEditProfileModelOpen])
+  }, [isEditProfileModelOpen, isUserListModal, isNoteAddModelOpen, isUpdateNoteModalOpen, isLightboxOpen])
 
-  // Fetch user profile
+  // Close lightbox on Escape key
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape' && isLightboxOpen) {
+        setIsLightboxOpen(false)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [isLightboxOpen])
+
+  const toggleAddNoteModal = () => {
+    if (addNoteModalRef.current) {
+      addNoteModalRef.current.classList.toggle('hidden')
+      setIsNoteAddModelOpen(!addNoteModalRef.current.classList.contains('hidden'))
+    }
+  }
+
+  const toggleEditProfileModal = useCallback(() => {
+    setIsEditProfileModelOpen((prev) => {
+      if (!prev && user) {
+        setEditProfileData({ username: user.username || '', name: user.name || '' })
+      }
+      return !prev
+    })
+  }, [user])
+
+  const toggleUpdateNoteModal = () => {
+    if (updateNoteModalRef.current) {
+      updateNoteModalRef.current.classList.toggle('hidden')
+      setIsUpdateNoteModalOpen(!updateNoteModalRef.current.classList.contains('hidden'))
+    }
+  }
+
   const fetchUserProfile = useCallback(async (username) => {
     try {
       const response = await fetch(`${hostLink}/api/user/${username}`, {
@@ -68,7 +130,11 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
       })
 
       if (!response.ok) {
-        setError(response.status === 404 ? 'User not found.' : 'Failed to load user profile.')
+        if (response.status === 404) {
+          setError('User not found.')
+        } else {
+          setError('Failed to load user profile.')
+        }
         setUser(null)
         return
       }
@@ -80,13 +146,17 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
       console.error('Error fetching user profile:', error)
       setError('Something went wrong while loading the user profile.')
     }
-  }, [hostLink, setUser, setIsFollowing])
+  }, [hostLink])
 
-  // Load profile data when username changes
+  // Fetch user profile when username changes
   useEffect(() => {
     if (username) {
       fetchUserProfile(username)
+      // Reset modal states when username changes
       setIsEditProfileModelOpen(false)
+      setIsUserListModalOpen(false)
+      setModalType(null)
+      setCurrentNote(null)
     }
   }, [username, fetchUserProfile])
 
@@ -95,7 +165,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     setUsername(initialUsername)
   }, [initialUsername])
 
-  // Check if viewing own profile
+  // Check if viewing own profile and fetch notes
   useEffect(() => {
     const isOwn = loggedInUser?.username === username
     setIsOwnProfile(isOwn)
@@ -111,7 +181,22 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     }
   }, [user, username])
 
+  const updateNote = (note) => {
+    setCurrentNote(note)
+    toggleUpdateNoteModal()
+  }
+
+  const handleEditProfileChange = useCallback((e) => {
+    setEditProfileData(prev => ({ ...prev, [e.target.name]: e.target.value }))
+  }, [])
+
   const handleEditProfileSubmit = async (e) => {
+    e.preventDefault()
+    const updatedData = {
+      username: editProfileData.username || user.username,
+      name: editProfileData.name || user.name
+    }
+
     try {
       const response = await fetch(`${hostLink}/api/auth/updateprofile`, {
         method: 'PUT',
@@ -119,18 +204,17 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
           'Content-Type': 'application/json',
           'auth-token': localStorage.getItem('token')
         },
-        body: JSON.stringify(e)
+        body: JSON.stringify(updatedData)
       })
       const json = await response.json()
 
       if (json.success) {
-        if (e.username !== user.username) {
-          setUsername(e.username)
-          navigate(`/u/${e.username}`)
+        setUser(json.user)
+        toggleEditProfileModal()
+        if (updatedData.username !== user.username) {
+          setUsername(updatedData.username)
+          navigate(`/u/${updatedData.username}`)
           window.location.reload()
-        } else {
-          await fetchUserProfile(username)
-          toggleEditProfileModal()
         }
         showAlert('Profile updated successfully', '#D4EDDA')
       } else {
@@ -197,57 +281,60 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     return sortOrder === 'old' ? dateA - dateB : dateB - dateA
   })
 
-  const closeModal = () => {
-    setModalType(null)
-    setIsUserListModal(false)
+    // Error screen
+  if (error) {
+    return (
+      <div className='flex items-center justify-center min-h-screen bg-[#0a1122]'>
+        <div className='text-center text-gray-300'>
+          <h2 className='text-2xl font-bold mb-2'>
+            {error.includes('User') ? '404 User Not Found' : 'Unable to load user'}
+          </h2>
+          <p className='text-gray-400'>{error}</p>
+        </div>
+      </div>
+    )
   }
 
-  const toggleEditProfileModal = () => {
-    setIsEditProfileModelOpen(prev => !prev)
+  // Loading screen
+  if (!user) {
+    return <Loader />
   }
 
-  const toggleUpdateNoteModal = () => {
-    setIsUpdateNoteModalOpen(prev => !prev)
-  }
+  const userProfilePic = user.profilePic || `${imageAPI}${encodeURIComponent(username)}`
+  const notesList = isOwnProfile ? notes : user.publicNotes || []
 
-  const updateNote = (note) => {
-    setCurrentNoteForUpdate(note)
-    setIsUpdateNoteModalOpen(true)
-  }
+  const filteredNotesList = notesList.filter((note) =>
+    note.title.toLowerCase().includes(filterText.toLowerCase()) ||
+    note.description.toLowerCase().includes(filterText.toLowerCase()) ||
+    note.tag.toLowerCase().includes(filterText.toLowerCase())
+  )
+
+  const sortedNotesList = [...filteredNotesList].sort((a, b) => {
+    const dateA = new Date(a[sortCriteria] || a.date)
+    const dateB = new Date(b[sortCriteria] || b.date)
+    return sortOrder === 'old' ? dateA - dateB : dateB - dateA
+  })
 
   return (
-    <div className='min-h-screen'>
+    <div className="min-h-screen bg-[#0a1122]">
       <Search
         filterText={filterText}
         setFilterText={setFilterText}
         className='fixed left-0 w-full bg-gray-900 z-40 px-4 shadow-md'
       />
 
-      {isEditProfileModelOpen && (
-        <EditProfileModel
-          isOpen={isEditProfileModelOpen}
-          initialData={{
-            username: user.username,
-            name: user.name,
-            bio: user.bio
-          }}
-          onSubmit={handleEditProfileSubmit}
-          onClose={() => setIsEditProfileModelOpen(false)}
-        />
-      )}
-
-      {/* Note update modal (owner only) */}
-      <NoteUpdateModal
-        currentNote={currentNoteForUpdate}
-        editNote={editNote}
-        showAlert={showAlert}
-        toggleModal={toggleUpdateNoteModal}
-        isOpen={isUpdateNoteModalOpen}
+      {/* Profile Section */}
+      <EditProfileModel
+        isOpen={isEditProfileModelOpen}
+        onClose={() => setIsEditProfileModelOpen(false)}
+        initialData={editProfileData}
+        onChange={handleEditProfileChange}
+        onSubmit={handleEditProfileSubmit}
       />
 
       <ProfileHeader
         username={username}
-        profilePic={profilePic}
+        profilePic={userProfilePic}
         isOwnProfile={isOwnProfile}
         name={user.name}
         bio={user.bio}
@@ -257,13 +344,39 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
         followingCount={user.followingCount}
         loggedInUser={loggedInUser}
         userId={user.id}
-        isFollowing={isFollowing}
         setIsEditProfileModelOpen={setIsEditProfileModelOpen}
+        isFollowing={isFollowing}
         onFollowToggle={followUnfollow}
-        showAlert={showAlert}
         followerList={user.followerList}
         followingList={user.followingList}
+        showAlert={showAlert}
       />
+
+      {/* Note Modals */}
+      {isOwnProfile && (
+        <>
+          <Addnote
+            modalRef={addNoteModalRef}
+            showAlert={showAlert}
+            toggleModal={toggleAddNoteModal}
+            isOpen={isNoteAddModelOpen}
+          />
+
+          <NoteUpdateModal
+            modalRef={updateNoteModalRef}
+            currentNote={currentNote}
+            editNote={editNote}
+            showAlert={showAlert}
+            toggleModal={toggleUpdateNoteModal}
+            isOpen={isUpdateNoteModalOpen}
+          />
+        </>
+      )}
+
+      {/* Notes Section */}
+      <div className="container mx-auto px-4 mt-8">
+        </div>
+      </div>
 
       <div className='flex gap-2 mb-3 px-4'>
         <select
@@ -293,8 +406,8 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
                     <OwnNoteItem
                       key={note._id}
                       note={note}
-                      showAlert={showAlert}
                       updateNote={updateNote}
+                      showAlert={showAlert}
                       image={profilePic}
                       username={user.username}
                     />
@@ -308,10 +421,10 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
                       date={note.date}
                       modifiedDate={note.modifiedDate}
                       tag={note.tag}
-                      note={note}
-                      username={user.username}
-                      image={profilePic}
                       showAlert={showAlert}
+                      image={profilePic}
+                      username={user.username}
+                      note={note}
                     />
                     )
               )
@@ -320,6 +433,15 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
             <p className='text-center text-gray-400 w-full'>No notes available.</p>
             )}
       </div>
+
+      {loggedInUser && (
+        <button
+          onClick={toggleAddNoteModal}
+          className='fixed bottom-10 right-10 bg-blue-500 text-white rounded-full p-2 shadow-lg hover:bg-blue-600 focus:outline-none'
+        >
+          <Plus size={50} />
+        </button>
+      )}
 
       {modalType === 'followers' && isUserListModal && (
         <UserListModal
@@ -337,7 +459,7 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
           isOpen={isUserListModal}
         />
       )}
-    </div>
+    </>
   )
 }
 

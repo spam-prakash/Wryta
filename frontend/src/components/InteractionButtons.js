@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Heart, Copy, Download, Share2 } from 'lucide-react'
 import html2canvas from 'html2canvas'
-import UserListModal from './utils/UserListModal'
+import UserListModal from './models/UserListModal'
 
 const getUserIdFromToken = () => {
   try {

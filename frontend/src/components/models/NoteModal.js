@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import renderWithLinksAndMentions from './utils/renderWithLinksAndMentions'
+import renderWithLinksAndMentions from '../utils/renderWithLinksAndMentions'
 
 const NoteModal = ({ note, onClose, isOpen }) => {
   const modalRef = useRef(null)

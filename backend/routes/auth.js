@@ -276,7 +276,7 @@ router.put('/updateprofile', fetchuser, [
     return res.status(400).json({ errors: errors.array() })
   }
 
-  const { username, name } = req.body
+  const { username, name, bio } = req.body
   try {
     const user = await User.findById(req.user.id)
     if (!user) {
@@ -290,6 +290,7 @@ router.put('/updateprofile', fetchuser, [
 
     user.username = username
     user.name = name
+    user.bio = bio
     await user.save()
 
     res.json({ success: true, user })
