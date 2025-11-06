@@ -1,8 +1,10 @@
 import React, { useState, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Cropper from 'react-easy-crop'
 import { Loader2, CheckCircle, X, ImageUp } from 'lucide-react'
 
 const UploadImage = ({ user, setUser }) => {
+  const navigate = useNavigate()
   const [imageSrc, setImageSrc] = useState(null)
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
@@ -96,6 +98,8 @@ const UploadImage = ({ user, setUser }) => {
             localStorage.setItem('user', JSON.stringify(updated))
             return updated
           })
+          // Navigate to user's profile after successful upload
+          navigate(`/u/${user.username}`)
         }
       } else {
         setError(data.error || 'Upload failed.')
@@ -117,65 +121,65 @@ const UploadImage = ({ user, setUser }) => {
         {!imageSrc
           ? (
             <label className='cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-2xl p-6 w-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200'>
-    <ImageUp size={42} className='mb-2 text-gray-500 dark:text-gray-400' />
-    <p className='text-sm font-medium text-gray-500 dark:text-gray-400'>
-              Click to upload an image
-            </p>
-    <input
-              type='file'
-              accept='image/*'
-              className='hidden'
-              onChange={handleFileChange}
-            />
-  </label>
+              <ImageUp size={42} className='mb-2 text-gray-500 dark:text-gray-400' />
+              <p className='text-sm font-medium text-gray-500 dark:text-gray-400'>
+                Click to upload an image
+              </p>
+              <input
+                type='file'
+                accept='image/*'
+                className='hidden'
+                onChange={handleFileChange}
+              />
+            </label>
             )
           : (
             <div className='relative flex flex-col items-center'>
-    <div className='relative w-64 h-64 bg-black rounded-xl overflow-hidden'>
-              <Cropper
-                image={imageSrc}
-                crop={crop}
-                zoom={zoom}
-                aspect={1}
-                cropShape='round'
-                showGrid={false}
-                onCropChange={setCrop}
-                onZoomChange={setZoom}
-                onCropComplete={onCropComplete}
-              />
-            </div>
+              <div className='relative w-64 h-64 bg-black rounded-xl overflow-hidden'>
+                <Cropper
+                  image={imageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  cropShape='round'
+                  showGrid={false}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={onCropComplete}
+                />
+              </div>
 
-    <div className='w-48 mt-3'>
-              <input
-                type='range'
-                min={1}
-                max={3}
-                step={0.1}
-                value={zoom}
-                onChange={(e) => setZoom(e.target.value)}
-                className='w-full accent-blue-500'
-              />
-            </div>
+              <div className='w-48 mt-3'>
+                <input
+                  type='range'
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  value={zoom}
+                  onChange={(e) => setZoom(e.target.value)}
+                  className='w-full accent-blue-500'
+                />
+              </div>
 
-    <div className='flex justify-center mt-4 gap-3'>
-              <button
-                onClick={handleUpload}
-                disabled={uploading}
-                className='bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl flex items-center gap-2 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed'
-              >
-                {uploading ? <Loader2 className='animate-spin w-5 h-5' /> : 'Upload'}
-              </button>
-              <button
-                onClick={() => {
-                  setImageSrc(null)
-                  setZoom(1)
-                }}
-                className='bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-200'
-              >
-                <X className='w-4 h-4' /> Cancel
-              </button>
+              <div className='flex justify-center mt-4 gap-3'>
+                <button
+                  onClick={handleUpload}
+                  disabled={uploading}
+                  className='bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl flex items-center gap-2 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed'
+                >
+                  {uploading ? <Loader2 className='animate-spin w-5 h-5' /> : 'Upload'}
+                </button>
+                <button
+                  onClick={() => {
+                    setImageSrc(null)
+                    setZoom(1)
+                  }}
+                  className='bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-all duration-200'
+                >
+                  <X className='w-4 h-4' /> Cancel
+                </button>
+              </div>
             </div>
-  </div>
             )}
 
         {error && <p className='text-sm text-red-500 font-medium mt-3'>{error}</p>}
