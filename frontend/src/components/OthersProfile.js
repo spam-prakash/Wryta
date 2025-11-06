@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useEffect, useState, useContext, useCallback } from 'react'
+import { useEffect, useState, useContext, useCallback, useRef } from 'react'
 import noteContext from '../context/notes/NoteContext'
 import Search from './Search'
 import EditProfileModel from './models/EditProfileModel'
@@ -9,8 +9,10 @@ import ProfileHeader from './ProfileHeader'
 import OwnNoteItem from './NoteItems/OwnNoteItem'
 import OtherProfileNoteItem from './NoteItems/OtherProfileNoteItem'
 import UserListModal from './models/UserListModal'
+import Addnote from './Addnote'
+import { Plus } from 'lucide-react'
 
-const OthersProfile = ({ loggedInUser, showAlert }) => {
+const OthersProfile = ({ loggedInUser, showAlert, isAuthenticated }) => {
   const { notes, getNotes, editNote } = useContext(noteContext)
   const { username: initialUsername } = useParams()
   const [username, setUsername] = useState(initialUsername)
@@ -26,6 +28,8 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
   const [isUserListModal, setIsUserListModal] = useState(false)
   const [isUpdateNoteModalOpen, setIsUpdateNoteModalOpen] = useState(false)
   const [currentNoteForUpdate, setCurrentNoteForUpdate] = useState(null)
+  const addNoteModalRef = useRef(null)
+  const [isNoteAddModelOpen, setisNoteAddModelOpen] = useState(false)
 
   const hostLink = process.env.REACT_APP_HOSTLINK
   const imageAPI = process.env.REACT_APP_IMAGEAPI
@@ -163,10 +167,17 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
     }
   }
 
+  const toggleAddNoteModal = () => {
+    if (addNoteModalRef.current) {
+      addNoteModalRef.current.classList.toggle('hidden')
+      setisNoteAddModelOpen(!isNoteAddModelOpen)
+    }
+  }
+
   // Error screen
   if (error) {
     return (
-      <div className='flex items-center justify-center min-h-screen bg-[#0a1122]'>
+      <div className='flex items-center justify-center min-h-screen'>
         <div className='text-center text-gray-300'>
           <h2 className='text-2xl font-bold mb-2'>
             {error.includes('User') ? '404 User Not Found' : 'Unable to load user'}
@@ -221,6 +232,12 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
         filterText={filterText}
         setFilterText={setFilterText}
         className='fixed left-0 w-full bg-gray-900 z-40 px-4 shadow-md'
+      />
+      <Addnote
+        modalRef={addNoteModalRef}
+        showAlert={showAlert}
+        toggleModal={toggleAddNoteModal}
+        isOpen={isNoteAddModelOpen}
       />
 
       {isEditProfileModelOpen && (
@@ -336,6 +353,15 @@ const OthersProfile = ({ loggedInUser, showAlert }) => {
           onClose={closeModal}
           isOpen={isUserListModal}
         />
+      )}
+
+      {isAuthenticated && (
+        <button
+          onClick={toggleAddNoteModal}
+          className='fixed bottom-10 right-10 bg-blue-500 text-white rounded-full p-2 shadow-lg hover:bg-blue-600 focus:outline-none'
+        >
+          <Plus size={50} />
+        </button>
       )}
     </div>
   )

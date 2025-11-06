@@ -366,7 +366,7 @@ router.get('/note/:id', fetchuser, async (req, res) => {
       isMentioned = note.mentions.some(
         (mention) =>
           mention.toString().toLowerCase() === loggedInUserId.toString().toLowerCase()
-      )
+      ) 
     } else if (typeof note.description === 'string') {
       // If mentions are within text like @username
       const user = await User.findById(loggedInUserId)

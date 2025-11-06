@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { CameraIcon, Edit3 } from 'lucide-react'
+import { CameraIcon, Edit3, Share2 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import renderWithLinksAndMentions from './utils/renderWithLinksAndMentions'
 import UserListModal from './models/UserListModal'
@@ -32,6 +32,35 @@ const ProfileHeader = ({
   const [modalType, setModalType] = useState(null)
   const [isUserListModal, setIsUserListModalOpen] = useState(false)
 
+  // Share profile: copy link to clipboard and attempt Web Share API
+  const shareProfile = async () => {
+    const shareUrl = `${window.location.origin}/u/${username}`
+    const shareTitle = name || `@${username}`
+
+    // Try copying the URL to clipboard first (useful fallback)
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      if (showAlert) showAlert('Profile link copied to clipboard!', '#D4EDDA')
+    } catch (err) {
+      console.error('Failed to copy profile link to clipboard', err)
+    }
+
+    // If native share is available, open the share dialog
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${shareTitle} on Wryta`,
+          text: `Check out ${shareTitle} on Wryta`,
+          url: shareUrl
+        })
+        if (showAlert) showAlert('Profile shared successfully!', '#D4EDDA')
+      } catch (err) {
+        // User may have dismissed share dialog — not an error to surface
+        console.error('Web Share API error or dismissed', err)
+      }
+    }
+  }
+
   // Close modals when clicking outside
   const handleModalClose = () => {
     setModalType(null)
@@ -53,20 +82,20 @@ const ProfileHeader = ({
                 <div
                   className='relative overflow-hidden rounded-full border-2 border-gray-400'
                   style={{
-    width: 'clamp(80px, 24vw, 160px)',
-    height: 'clamp(80px, 24vw, 160px)'
-  }}
+                    width: 'clamp(80px, 24vw, 160px)',
+                    height: 'clamp(80px, 24vw, 160px)'
+                  }}
                 >
                   <img
-    src={profilePic}
-    alt={username}
-    className='w-full h-full object-cover'
-    onError={(e) => {
-      e.target.onerror = null
-      e.target.src = `${imageAPI}${encodeURIComponent(username)}`
-    }}
-  />
-                                </div>
+                    src={profilePic}
+                    alt={username}
+                    className='w-full h-full object-cover'
+                    onError={(e) => {
+                      e.target.onerror = null
+                      e.target.src = `${imageAPI}${encodeURIComponent(username)}`
+                    }}
+                  />
+                </div>
 
               </button>
 
@@ -137,41 +166,43 @@ const ProfileHeader = ({
             </div>
           )}
         </div>
-        <div className='actionBtn w-full flex flex-col items-center'>
-          {isOwnProfile ? (
-            <>
-              <button
-                onClick={() => setIsEditProfileModelOpen(true)}
-                className='w-full px-8 py-1.5 bg-gray-800 hover:bg-gray-700 text-sm flex items-center justify-center space-x-2 rounded-full shadow-sm transition-transform duration-150'
-              >
-                <span>Edit profile</span>
-                <Edit3 size={16} />
-              </button>
 
-              {/* Owner-only filter button: small, centered under edit */}
-              {typeof onTogglePublic === 'function' && (
+        <div className='actionBtn w-full flex gap-5 items-center'>
+          {isOwnProfile
+            ? (
+              <>
                 <button
-                  onClick={onTogglePublic}
-                  className={`mt-3 px-4 py-1 rounded-full text-sm font-medium focus:outline-none transition-colors ${showPublicOnly ? 'bg-blue-600 text-white' : 'bg-gray-700 text-white hover:bg-gray-600'}`}
+                  onClick={() => setIsEditProfileModelOpen(true)}
+                  className='w-full px-8 py-2 bg-gray-800 hover:bg-gray-700 text-sm flex items-center justify-center space-x-2 rounded-full shadow-sm transition-transform duration-150'
                 >
-                  {showPublicOnly ? 'Showing: Public' : 'Showing: All'}
+                  <span>Edit profile</span>
+                  <Edit3 size={16} />
                 </button>
+              </>
+              )
+            : (
+                loggedInUser && (
+                  <button
+                    onClick={onFollowToggle}
+                    className={`w-full px-8 py-2 rounded-full ${
+                  isFollowing
+                    ? 'bg-gray-800 hover:bg-gray-700'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                } text-base font-medium focus:outline-none transition-colors shadow-sm`}
+                  >
+                    {isFollowing ? 'Unfollow' : 'Follow'}
+                  </button>
+                )
               )}
-            </>
-          ) : (
-            loggedInUser && (
-              <button
-                onClick={onFollowToggle}
-                className={`w-full px-8 py-1.5 rounded-full ${
-                isFollowing
-                  ? 'bg-gray-800 hover:bg-gray-700'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              } text-base font-medium focus:outline-none transition-colors shadow-sm`}
-              >
-                {isFollowing ? 'Unfollow' : 'Follow'}
-              </button>
-            )
-          )}
+          <button
+            type='button'
+            onClick={shareProfile}
+            className='share bg-blue-600 hover:bg-blue-700 p-2 rounded-full focus:outline-none'
+            aria-label={`Share ${username} profile`}
+          >
+            <Share2 />
+          </button>
+
         </div>
       </div>
 

@@ -42,7 +42,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
 
     // initialize counts if available in note
     setCounts({
-      likes: note.likes ?? note.actions?.likes?.length ?? 0,
+      likes: note.actions?.likes?.length ?? 0,
       copies: note.copies ?? note.actions?.copies ?? 0,
       downloads: note.downloads ?? note.actions?.downloads ?? 0,
       shares: note.shares ?? note.actions?.shares ?? 0
