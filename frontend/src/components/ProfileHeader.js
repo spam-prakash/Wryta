@@ -50,17 +50,24 @@ const ProfileHeader = ({
                 className='focus:outline-none'
                 aria-label='Open full image'
               >
-                <img
-                  // size is relative to viewport width but clamped between 80px and 160px
-                  style={{ width: 'clamp(80px, 24vw, 160px)', height: 'clamp(80px, 24vw, 160px)' }}
-                  className='object-cover rounded-full border-2 border-gray-400'
-                  src={profilePic}
-                  onError={(e) => {
-                    e.target.onerror = null
-                    e.target.src = `${imageAPI}${encodeURIComponent(username)}`
-                  }}
-                  alt={username}
-                />
+                <div
+                  className='relative overflow-hidden rounded-full border-2 border-gray-400'
+                  style={{
+    width: 'clamp(80px, 24vw, 160px)',
+    height: 'clamp(80px, 24vw, 160px)'
+  }}
+                >
+                  <img
+    src={profilePic}
+    alt={username}
+    className='w-full h-full object-cover'
+    onError={(e) => {
+      e.target.onerror = null
+      e.target.src = `${imageAPI}${encodeURIComponent(username)}`
+    }}
+  />
+                                </div>
+
               </button>
 
               {isOwnProfile && (
