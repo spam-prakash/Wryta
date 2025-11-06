@@ -10,6 +10,7 @@ const OtherProfileNoteItem = ({
   description,
   date,
   modifiedDate,
+  publicDate,
   username,
   image,
   noteId,
@@ -99,14 +100,25 @@ const OtherProfileNoteItem = ({
 
         {/* Footer */}
         <div className='text-gray-400 text-xs px-4 pb-3'>
-          {note.modifiedDate && (
+          {/* {note.modifiedDate && (
             <p className='py-1'>
               Modified: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}
             </p>
-          )}
+          )} */}
           <p className='py-1'>
-            Created: {formatDate(note.date)} at {formatTime(note.date)}
+            {(() => {
+              const dates = [note.publicDate, note.modifiedDate, note.date]
+                .filter(Boolean)
+                .map((d) => new Date(d))
+                .filter((d) => !isNaN(d))
+
+              if (!dates.length) return 'Published: N/A'
+
+              const latest = new Date(Math.max(...dates.map((d) => d.getTime())))
+              return <>Published: {formatDate(latest)} at {formatTime(latest)}</>
+            })()}
           </p>
+
         </div>
 
         {/* Buttons */}
@@ -125,7 +137,7 @@ const OtherProfileNoteItem = ({
 
       {/* Read More Modal */}
       {isNoteModelOpen && (
-        <NoteModal note={{ title, description, date, modifiedDate, tag }} onClose={toggleModal} isOpen={isNoteModelOpen} />
+        <NoteModal note={{ title, description, date, modifiedDate, publicDate, tag }} onClose={toggleModal} isOpen={isNoteModelOpen} />
       )}
 
       {/* Offscreen Hidden Card for Download */}

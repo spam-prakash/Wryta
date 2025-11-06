@@ -198,13 +198,27 @@ const OthersProfile = ({ loggedInUser, showAlert, isAuthenticated }) => {
 
   const filteredNotes = notesToDisplay.filter((note) =>
     note.title.toLowerCase().includes(filterText.toLowerCase()) ||
-    note.description.toLowerCase().includes(filterText.toLowerCase()) ||
-    note.tag.toLowerCase().includes(filterText.toLowerCase())
+  note.description.toLowerCase().includes(filterText.toLowerCase()) ||
+  note.tag.toLowerCase().includes(filterText.toLowerCase())
   )
 
   const sortedNotesToDisplay = [...filteredNotes].sort((a, b) => {
-    const dateA = new Date(a[sortCriteria] || a.date)
-    const dateB = new Date(b[sortCriteria] || b.date)
+    const getRelevantDate = (note) => {
+      if (sortCriteria === 'modifiedDate') {
+      // Sort by publicDate → fallback to modifiedDate → createdDate
+        return new Date(note.publicDate || note.modifiedDate || note.date)
+      } else if (sortCriteria === 'date') {
+      // Sort by createdDate → fallback to modifiedDate
+        return new Date(note.date || note.modifiedDate)
+      } else {
+      // Default fallback
+        return new Date(note.publicDate || note.modifiedDate || note.date)
+      }
+    }
+
+    const dateA = getRelevantDate(a)
+    const dateB = getRelevantDate(b)
+
     return sortOrder === 'old' ? dateA - dateB : dateB - dateA
   })
 
@@ -324,6 +338,7 @@ const OthersProfile = ({ loggedInUser, showAlert, isAuthenticated }) => {
                       description={note.description}
                       date={note.date}
                       modifiedDate={note.modifiedDate}
+                      publicDate={note.publicDate}
                       tag={note.tag}
                       note={note}
                       username={user.username}

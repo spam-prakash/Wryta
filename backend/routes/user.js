@@ -62,6 +62,7 @@ router.get('/:username', fetchuser, async (req, res) => {
         description: note.description,
         date: note.date,
         modifiedDate: note.modifiedDate,
+        publicDate: note.publicDate,
         likes: note.likes,
         copies: note.copies,
         downloads: note.downloads,

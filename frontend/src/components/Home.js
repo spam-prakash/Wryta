@@ -57,11 +57,12 @@ const Home = (props) => {
 
       if (response.ok) {
         // Sort the notes by modifiedDate in descending order
-        const sortedNotes = data.notes.sort((a, b) => {
-          const dateA = new Date(a.modifiedDate || a.date)
-          const dateB = new Date(b.modifiedDate || b.date)
-          return dateB - dateA // Descending order
+        const sortedNotes = [...data.notes].sort((a, b) => {
+          const dateA = new Date(a.publicDate || a.modifiedDate || a.date)
+          const dateB = new Date(b.publicDate || b.modifiedDate || b.date)
+          return dateB - dateA // latest (newest) note first
         })
+
         setPublicNotes(sortedNotes)
         setHasMore(data.hasMore)
       } else {

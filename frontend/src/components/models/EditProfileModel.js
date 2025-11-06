@@ -59,7 +59,7 @@ const EditProfileModel = ({ isOpen, onClose, onSubmit, initialData }) => {
             />
           </div>
           <div className='mb-4'>
-            <label htmlFor='name' className='block text-sm font-medium text-gray-300'>
+            <label htmlFor='bio' className='block text-sm font-medium text-gray-300'>
               Bio
             </label>
             <textarea
@@ -67,11 +67,16 @@ const EditProfileModel = ({ isOpen, onClose, onSubmit, initialData }) => {
               name='bio'
               value={formData.bio}
               onChange={handleChange}
+              maxLength={250}
               className='mt-1 block w-full rounded-md border-gray-600 bg-[#374151] text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2'
-              placeholder={initialData.bio}
+              placeholder={initialData.bio || 'Write something about yourself...'}
               rows={4}
             />
+            <div className='text-right text-xs text-gray-400 mt-1'>
+              {formData.bio.length}/250
+            </div>
           </div>
+
           <div className='flex justify-end space-x-3'>
             <button
               type='button'

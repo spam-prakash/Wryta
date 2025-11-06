@@ -45,9 +45,17 @@ const HiddenDownloadCard = forwardRef(({ note, username, image, formatDate, form
           <div className='flex flex-col justify-center'>
             <p className='font-semibold text-gray-200 leading-tight'>@{username}</p>
             <p className='text-gray-400 text-xs leading-tight mt-1'>
-              {modifiedDate
-                ? `Modified: ${formatDate(modifiedDate)} at ${formatTime(modifiedDate)}`
-                : `Created: ${formatDate(date)} at ${formatTime(date)}`}
+              {(() => {
+                const dates = [note.publicDate, note.modifiedDate, note.date]
+                  .filter(Boolean)
+                  .map((d) => new Date(d))
+                  .filter((d) => !isNaN(d))
+
+                if (!dates.length) return 'Published: N/A'
+
+                const latest = new Date(Math.max(...dates.map((d) => d.getTime())))
+                return <>Published: {formatDate(latest)} at {formatTime(latest)}</>
+              })()}
             </p>
           </div>
         </div>

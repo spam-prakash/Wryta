@@ -184,7 +184,12 @@ const OwnNoteItem = (props) => {
             <div>
               {note.modifiedDate && (
                 <p>
-                  Modified: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}
+                  Updated: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}
+                </p>
+              )}
+              {note.publicDate && (
+                <p>
+                  Published: {formatDate(note.publicDate)} at {formatTime(note.publicDate)}
                 </p>
               )}
               <p>

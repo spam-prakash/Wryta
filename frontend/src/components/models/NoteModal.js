@@ -3,6 +3,7 @@ import renderWithLinksAndMentions from '../utils/renderWithLinksAndMentions'
 
 const NoteModal = ({ note, onClose, isOpen }) => {
   const modalRef = useRef(null)
+  // console.log(note)
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : 'auto'
@@ -51,10 +52,20 @@ const NoteModal = ({ note, onClose, isOpen }) => {
         </span>
         <p className='mb-4 font-normal text-white whitespace-pre-wrap'>{renderWithLinksAndMentions(note.description)}</p>
         <div className='mt-4'>
-          {note.modifiedDate && (
-            <p className='text-xs mt-2 text-slate-500'>Modified: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}</p>
-          )}
-          <p className='text-xs mt-2 text-slate-500'>Created: {formatDate(note.date)} at {formatTime(note.date)}</p>
+          <p className='text-xs mt-2 text-slate-500'>
+            {(() => {
+              const dates = [note.publicDate, note.modifiedDate, note.date]
+                .filter(Boolean)
+                .map((d) => new Date(d))
+                .filter((d) => !isNaN(d))
+
+              if (!dates.length) return 'Published: N/A'
+
+              const latest = new Date(Math.max(...dates.map((d) => d.getTime())))
+              return <>Published: {formatDate(latest)} at {formatTime(latest)}</>
+            })()}
+          </p>
+
         </div>
       </div>
     </div>

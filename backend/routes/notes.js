@@ -297,14 +297,25 @@ router.put('/visibility/:id', fetchuser, async (req, res) => {
     // Convert isPublic to boolean
     const visibility = isPublic === 'true' || isPublic === true
 
-    // Update only the isPublic field without modifying modifiedDate
+    // Set or remove publicDate based on visibility
+    const updateFields = {
+      isPublic: visibility,
+      publicDate: visibility ? new Date() : null
+    }
+
+    // Update the note without modifying modifiedDate
     await Note.findByIdAndUpdate(
       noteId,
-      { $set: { isPublic: visibility } }, // Only update isPublic
-      { new: true, timestamps: false } // Prevents modifiedDate from updating
+      { $set: updateFields },
+      { new: true, timestamps: false }
     )
 
-    res.json({ success: true, message: 'Visibility updated successfully' })
+    res.json({
+      success: true,
+      message: visibility
+        ? 'Note made public'
+        : 'Note made private'
+    })
   } catch (error) {
     console.error(error.message)
     res.status(500).send('Internal Server Error')
@@ -366,7 +377,7 @@ router.get('/note/:id', fetchuser, async (req, res) => {
       isMentioned = note.mentions.some(
         (mention) =>
           mention.toString().toLowerCase() === loggedInUserId.toString().toLowerCase()
-      ) 
+      )
     } else if (typeof note.description === 'string') {
       // If mentions are within text like @username
       const user = await User.findById(loggedInUserId)

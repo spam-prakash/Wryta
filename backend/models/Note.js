@@ -20,6 +20,7 @@ const NoteSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  publicDate: Date,
   likes: {
     type: Number,
     default: 0
