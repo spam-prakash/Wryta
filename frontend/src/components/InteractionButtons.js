@@ -178,7 +178,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
         console.log('Sharing as:', ownerName)
         await navigator.share({
           title: `Note by @${ownerName}`,
-          text: `Check out this note: "${note.title}" by @${ownerName}`,
+          text: `Check out this note: "${note.title}" by @${ownerName}\n Link: `,
           url: shareUrl
         })
       }

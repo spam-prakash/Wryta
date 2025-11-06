@@ -50,7 +50,7 @@ const ProfileHeader = ({
       try {
         await navigator.share({
           title: `${shareTitle} on Wryta`,
-          text: `Check out ${shareTitle} on Wryta`,
+          text: `Check out ${shareTitle} on Wryta\n Link: `,
           url: shareUrl
         })
         if (showAlert) showAlert('Profile shared successfully!', '#D4EDDA')
