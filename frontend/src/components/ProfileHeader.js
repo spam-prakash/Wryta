@@ -45,46 +45,50 @@ const ProfileHeader = ({
           <div className='left relative flex flex-col items-center'>
             <div className='relative'>
               <button
-                  type='button'
-                  onClick={() => setIsLightboxOpen(true)}
-                  className='focus:outline-none'
-                  aria-label='Open full image'
-                >
-                  <img
-                  className='w-24 h-24 md:w-40 md:h-40 object-cover rounded-full border-2 border-gray-400'
+                type='button'
+                onClick={() => setIsLightboxOpen(true)}
+                className='focus:outline-none'
+                aria-label='Open full image'
+              >
+                <img
+                  // size is relative to viewport width but clamped between 80px and 160px
+                  style={{ width: 'clamp(80px, 24vw, 160px)', height: 'clamp(80px, 24vw, 160px)' }}
+                  className='object-cover rounded-full border-2 border-gray-400'
                   src={profilePic}
                   onError={(e) => {
                     e.target.onerror = null
                     e.target.src = `${imageAPI}${encodeURIComponent(username)}`
                   }}
-                  alt='Profile'
+                  alt={username}
                 />
-                </button>
+              </button>
 
               {isOwnProfile && (
                 <button
                   type='button'
                   onClick={() => navigate('/upload-image')}
-                  className='absolute bottom-0 right-0 w-8 h-8 md:w-10 md:h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-md border border-gray-400 hover:scale-105 transition-transform'
+                  // size is relative to viewport width but clamped between 32px and 40px
+                  style={{ width: 'clamp(32px, 6vw, 36px)', height: 'clamp(32px, 6vw, 36px)' }}
+                  className='absolute bottom-1 right-1 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-md border border-gray-400 hover:scale-105 transition-transform'
                   aria-label='Upload profile picture'
                 >
-                  <CameraIcon className='w-4 h-4 md:w-5 md:h-5 text-gray-700 dark:text-gray-200' />
+                  <CameraIcon style={{ width: 'clamp(16px, 3.5vw, 24px)', height: 'clamp(16px, 3.5vw, 24px)' }} className='text-gray-700 dark:text-gray-200' />
                 </button>
               )}
             </div>
 
             <div className='name mt-2 md:mt-0 text-center md:text-left font-medium text-xl'>
-                {name}
-              </div>
+              {name}
+            </div>
           </div>
 
           <div className='right flex-grow'>
             <div className='flex flex-col space-y-4 md:space-y-9 w-full md:w-auto'>
-                <div className='flex justify-center items-center space-x-4'>
+              <div className='flex justify-center items-center space-x-4'>
                 <h2 className='text-xl font-normal'>{username}</h2>
               </div>
 
-                <div className='flex justify-center items-center flex-wrap gap-y-2 md:flex-nowrap md:space-x-12 '>
+              <div className='flex justify-center items-center flex-wrap gap-y-2 md:flex-nowrap md:space-x-12 '>
                 <div className='w-1/2 md:w-auto text-center flex flex-col'>
                   <span className='font-semibold'>{totalNotes}</span>
                   <span className='text-sm text-gray-300 ml-1'>notes</span>
@@ -115,7 +119,7 @@ const ProfileHeader = ({
                 </div>
               </div>
 
-              </div>
+            </div>
           </div>
         </div>
 
