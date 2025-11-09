@@ -1,18 +1,15 @@
 import React, { useEffect, useState, useRef, useContext } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import noteContext from '../context/notes/NoteContext'
-import InteractionButtons from './InteractionButtons'
-import renderWithLinksAndMentions from './utils/renderWithLinksAndMentions'
 import Addnote from './Addnote'
 import Loader from './utils/Loader'
 import { Plus } from 'lucide-react'
 import Search from './Search'
 import HomeNoteItem from './NoteItems/HomeNoteItem'
-import OwnNoteItem from './NoteItems/OwnNoteItem'
 import NoteUpdateModal from './models/NoteUpdateModal'
 
 const SharedNote = (props) => {
-  const { notes, getNotes, editNote } = useContext(noteContext)
+  const { editNote } = useContext(noteContext)
   const { loggedInUser, showAlert } = props
   const { id } = useParams()
   const [note, setNote] = useState(null)
@@ -27,20 +24,6 @@ const SharedNote = (props) => {
   const hostLink = process.env.REACT_APP_HOSTLINK
   const imageAPI = process.env.REACT_APP_IMAGEAPI
   const token = localStorage.getItem('token')
-
-  // GET USER ID FROM LOACLSTORAGE TOKEN
-  let userId = null
-
-  if (token) {
-    try {
-      const base64Url = token.split('.')[1]
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-      const decodedPayload = JSON.parse(window.atob(base64))
-      userId = decodedPayload.user?.id || decodedPayload.id
-    } catch (error) {
-      console.error('Error decoding token:', error)
-    }
-  }
 
   useEffect(() => {
     const fetchNote = async () => {
@@ -137,42 +120,23 @@ const SharedNote = (props) => {
 
       {/* Main Note Card */}
       <div className='flex flex-col items-center justify-center min-h-screen pt-20'>
-        {
-          userId === note.user._id
-            ? (
-              <OwnNoteItem
-                key={note._id}
-                note={note}
-                updateNote={updateNote}
-                noteId={note._id}
-                title={note.title}
-                description={note.description}
-                date={note.date}
-                modifiedDate={note.modifiedDate}
-                tag={note.tag}
-                name={note.user.name}
-                username={note.user.username}
-                image={note.user.image}
-                showAlert={showAlert}
-              />
-              )
-            : (
-              <HomeNoteItem
-                key={note._id}
-                note={note}
-                noteId={note._id}
-                title={note.title}
-                description={note.description}
-                date={note.date}
-                modifiedDate={note.modifiedDate}
-                tag={note.tag}
-                name={note.user.name}
-                username={note.user.username}
-                image={note.user.image}
-                showAlert={showAlert}
-              />
-              )
-        }
+
+        <HomeNoteItem
+          updateNote={updateNote}
+          key={note._id}
+          note={note}
+          noteId={note._id}
+          title={note.title}
+          description={note.description}
+          date={note.date}
+          modifiedDate={note.modifiedDate}
+          tag={note.tag}
+          userIdThroughProps={note.user._id}
+          name={note.user.name}
+          username={note.user.username}
+          image={note.user.image}
+          showAlert={showAlert}
+        />
       </div>
 
       {/* Hidden Card for Download */}

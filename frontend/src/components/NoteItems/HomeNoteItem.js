@@ -1,11 +1,34 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useContext } from 'react'
+import deleteIcon from '../../assets/delete.png'
+import editIcon from '../../assets/edit.png'
+import noteContext from '../../context/notes/NoteContext'
 import NoteModal from '../models/NoteModal'
 import { Link } from 'react-router-dom'
 import InteractionButtons from '../InteractionButtons'
 import HiddenDownloadCard from '../utils/HiddenDownloadCard'
 import renderWithLinksAndMentions from '../utils/renderWithLinksAndMentions'
+import { LockOpen, Lock } from 'lucide-react'
 
-const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, username, image, showAlert, noteId, note }) => {
+const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, username, image, showAlert, noteId, note, updateNote, userIdThroughProps }) => {
+  const context = useContext(noteContext)
+  const { deleteNote, updateVisibility } = context
+  // console.log(note)
+
+  // GET USER ID FROM LOACLSTORAGE TOKEN
+  const token = localStorage.getItem('token')
+  let userId = null
+
+  if (token) {
+    try {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const decodedPayload = JSON.parse(window.atob(base64))
+      userId = decodedPayload.user?.id || decodedPayload.id
+    } catch (error) {
+      console.error('Error decoding token:', error)
+    }
+  }
+
   const imageAPI = process.env.REACT_APP_IMAGEAPI
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A'
@@ -19,7 +42,6 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
     return new Date(dateString).toLocaleTimeString(undefined, options)
   }
 
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const [isOverflowing, setIsOverflowing] = useState(false)
   const contentRef = useRef(null)
   const cardRef = useRef(null) // Ref for the card container  const
@@ -37,6 +59,37 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
     setisNoteModalOpen(!isNoteModalOpen)
   }
 
+  const [isVisibilityModalOpen, setIsVisibilityModalOpen] = useState(false)
+  const modalRef = useRef(null)
+  const toggleVisibilityModal = () => setIsVisibilityModalOpen(!isVisibilityModalOpen)
+
+  const handleVisibilityChange = (newVisibility) => {
+    updateVisibility(note._id, newVisibility)
+    setIsVisibilityModalOpen(false)
+  }
+
+  useEffect(() => {
+    if (contentRef.current) {
+      setIsOverflowing(contentRef.current.scrollHeight > contentRef.current.clientHeight)
+    }
+  }, [note.description])
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        setIsVisibilityModalOpen(false)
+      }
+    }
+
+    if (isVisibilityModalOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isVisibilityModalOpen])
+
   return (
     <>
       <div
@@ -44,7 +97,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
         className='w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 text-white flex flex-col'
       >
         {/* Header (User Info) */}
-        <div className='flex flex-col p-4 pb-1 border-b border-gray-700'>
+        <div className='flex flex-row justify-between p-4 pb-1 border-b border-gray-700'>
           <div className='flex items-center mb-1'>
             <Link to={`/u/${username}`}>
               <img
@@ -73,6 +126,28 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
               </div>
             </div>
           </div>
+          {userIdThroughProps === userId && (
+
+            <div className='flex gap-3'>
+              <img
+                onClick={() => {
+                  deleteNote(note._id)
+                  showAlert('Note deleted!', '#D4EDDA')
+                }}
+                src={deleteIcon}
+                className='size-6 cursor-pointer'
+                alt='Delete'
+              />
+              <img
+                onClick={() => {
+                  updateNote(note)
+                }}
+                src={editIcon}
+                className='size-6 cursor-pointer'
+                alt='Edit'
+              />
+            </div>
+          )}
 
         </div>
 
@@ -102,9 +177,29 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
               Modified: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}
             </p>
           )} */}
-          <p className='text-xs mt-2 text-slate-500'>
-            Published: {formatDate(note.publicDate || note.date)} at {formatTime(note.publicDate || note.date)}
-          </p>
+          <div className='flex items-center justify-between'>
+
+            <p className='text-xs mt-2 text-slate-500'>
+              Published: {formatDate(note.publicDate || note.date)} at {formatTime(note.publicDate || note.date)}
+            </p>
+
+            {userIdThroughProps === userId && (
+              <div className='mt-2 flex items-center justify-end'>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    toggleVisibilityModal()
+                  }}
+                  className='p-2 rounded-full hover:bg-gray-800 transition'
+                  title={note.isPublic ? 'Make Private' : 'Make Public'}
+                >
+                  {note.isPublic
+                    ? <LockOpen size={22} color='#00ff40' />
+                    : <Lock size={22} color='red' />}
+                </button>
+              </div>
+            )}
+          </div>
 
         </div>
 
@@ -119,7 +214,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
           noteId={noteId} // Pass the noteId for sharing
           note={note} // Pass the note object for sharing
           // onInteraction={fetchAllNotes}
-          ownerName={note.userDetails.username}
+          ownerName={note.user.username}
         />
       </div>
 
@@ -137,6 +232,31 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
         formatDate={formatDate}
         formatTime={formatTime}
       />
+
+      {isVisibilityModalOpen && (
+        <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50'>
+          <div ref={modalRef} className='bg-[#111827] p-6 rounded-xl text-center'>
+            <h3 className='text-lg font-semibold mb-4 text-gray-100'>Change Note Visibility</h3>
+            <p className='text-sm text-gray-400 mb-5'>
+              Current: <strong>{note.isPublic ? 'Public' : 'Private'}</strong>
+            </p>
+            <div className='flex justify-center gap-4'>
+              <button
+                onClick={() => handleVisibilityChange(true)}
+                className='px-4 py-2 bg-green-600 rounded-lg text-white hover:bg-green-700'
+              >
+                {note.isPublic ? 'Keep Public' : 'Make Public'}
+              </button>
+              <button
+                onClick={() => handleVisibilityChange(false)}
+                className='px-4 py-2 bg-red-600 rounded-lg text-white hover:bg-red-700'
+              >
+                {note.isPublic ? 'Make Private' : 'Keep Private'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </>
   )

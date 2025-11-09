@@ -219,39 +219,26 @@ const OwnNoteItem = (props) => {
       {isNoteModelOpen && <NoteModal note={note} onClose={toggleModal} isOpen={isNoteModelOpen} />}
 
       {isVisibilityModalOpen && (
-        <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center px-4'>
-          <div
-            ref={modalRef}
-            className='bg-[#121a2f] p-6 rounded-lg shadow-lg w-full max-w-sm border border-gray-600'
-          >
-            <div className='flex justify-between items-center border-b border-gray-700 pb-3'>
-              <h3 className='text-white text-lg font-semibold'>Change Visibility</h3>
-              <button onClick={toggleVisibilityModal} className='text-gray-400 hover:text-white'>
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className='mt-4 flex flex-col gap-3'>
+        <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50'>
+          <div ref={modalRef} className='bg-[#111827] p-6 rounded-xl text-center'>
+            <h3 className='text-lg font-semibold mb-4'>Change Note Visibility</h3>
+            <p className='text-sm text-gray-400 mb-5'>
+              Current: <strong>{note.isPublic ? 'Public' : 'Private'}</strong>
+            </p>
+            <div className='flex justify-center gap-4'>
               <button
-                className='w-full bg-green-600 px-4 py-2 rounded-lg text-white text-sm hover:bg-green-700 transition'
                 onClick={() => handleVisibilityChange(true)}
+                className='px-4 py-2 bg-green-600 rounded-lg text-white hover:bg-green-700'
               >
-                Make Public
+                {note.isPublic ? 'Keep Public' : 'Make Public'}
               </button>
               <button
-                className='w-full bg-red-600 px-4 py-2 rounded-lg text-white text-sm hover:bg-red-700 transition'
                 onClick={() => handleVisibilityChange(false)}
+                className='px-4 py-2 bg-red-600 rounded-lg text-white hover:bg-red-700'
               >
-                Make Private
+                {note.isPublic ? 'Make Private' : 'Keep Private'}
               </button>
             </div>
-
-            <button
-              className='mt-4 w-full text-gray-400 text-sm hover:underline'
-              onClick={toggleVisibilityModal}
-            >
-              Cancel
-            </button>
           </div>
         </div>
       )}

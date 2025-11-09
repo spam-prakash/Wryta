@@ -144,40 +144,23 @@ const Home = (props) => {
 
         <div className='w-full flex flex-wrap text-white gap-3 mt-28'>
           {filteredNotes.map((note) =>
-            userId === note.userDetails._id
-              ? (
-                <OwnNoteItem
-                  key={note._id}
-                  note={note}
-                  updateNote={updateNote}
-                  noteId={note._id}
-                  title={note.title}
-                  description={note.description}
-                  date={note.date}
-                  modifiedDate={note.modifiedDate}
-                  tag={note.tag}
-                  name={note.userDetails.name}
-                  username={note.userDetails.username}
-                  image={note.userDetails.image}
-                  showAlert={props.showAlert}
-                />
-                )
-              : (
-                <HomeNoteItem
-                  key={note._id}
-                  note={note}
-                  noteId={note._id}
-                  title={note.title}
-                  description={note.description}
-                  date={note.date}
-                  modifiedDate={note.modifiedDate}
-                  tag={note.tag}
-                  name={note.userDetails.name}
-                  username={note.userDetails.username}
-                  image={note.userDetails.image}
-                  showAlert={props.showAlert}
-                />
-                )
+
+            <HomeNoteItem
+              updateNote={updateNote}
+              key={note._id}
+              note={note}
+              noteId={note._id}
+              title={note.title}
+              description={note.description}
+              date={note.date}
+              modifiedDate={note.modifiedDate}
+              tag={note.tag}
+              userIdThroughProps={note.userDetails._id}
+              name={note.userDetails.name}
+              username={note.userDetails.username}
+              image={note.userDetails.image}
+              showAlert={props.showAlert}
+            />
           )}
 
         </div>
