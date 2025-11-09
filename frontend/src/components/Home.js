@@ -5,6 +5,7 @@ import Search from './Search' // Import the new Search component
 import { Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Loader from './utils/Loader'
+import OwnNoteItem from './NoteItems/OwnNoteItem'
 
 const Home = (props) => {
   const [publicNotes, setPublicNotes] = useState([])
@@ -15,6 +16,21 @@ const Home = (props) => {
   const addNoteModalRef = useRef(null)
   const [isNoteAddModelOpen, setisNoteAddModelOpen] = useState(false)
   // console.log('Image API:', process.env.REACT_APP_IMAGEAPI)
+
+  // GET USER ID FROM LOACLSTORAGE TOKEN
+  const token = localStorage.getItem('token')
+  let userId = null
+
+  if (token) {
+    try {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const decodedPayload = JSON.parse(window.atob(base64))
+      userId = decodedPayload.user?.id || decodedPayload.id
+    } catch (error) {
+      console.error('Error decoding token:', error)
+    }
+  }
 
   const navigate = useNavigate()
   const location = window.location
@@ -104,23 +120,28 @@ const Home = (props) => {
       <div className='mx-auto py-4 pt-10 sm:px-2 lg:px-4'>
 
         <div className='w-full flex flex-wrap text-white gap-3 mt-28'>
-          {filteredNotes.map((note) => (
-            <HomeNoteItem
-              note={note}
-              key={note._id}
-              noteId={note._id}
-              title={note.title}
-              description={note.description}
-              date={note.date}
-              modifiedDate={note.modifiedDate}
-              tag={note.tag}
-              name={note.userDetails.name}
-              username={note.userDetails.username}
-              image={note.userDetails.image}
-              showAlert={props.showAlert}
-            />
-          ))}
+          {filteredNotes.map((note) => {
+            const isOwnNote = note.user === userId // compare logged-in user with note owner
 
+            const NoteComponent = isOwnNote ? OwnNoteItem : HomeNoteItem
+
+            return (
+              <NoteComponent
+                key={note._id}
+                note={note}
+                noteId={note._id}
+                title={note.title}
+                description={note.description}
+                date={note.date}
+                modifiedDate={note.modifiedDate}
+                tag={note.tag}
+                name={note.userDetails.name}
+                username={note.userDetails.username}
+                image={note.userDetails.image}
+                showAlert={props.showAlert}
+              />
+            )
+          })}
         </div>
 
       </div>

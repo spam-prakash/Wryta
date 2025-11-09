@@ -6,6 +6,8 @@ import Addnote from './Addnote'
 import Loader from './utils/Loader'
 import { Plus } from 'lucide-react'
 import Search from './Search'
+import HomeNoteItem from './NoteItems/HomeNoteItem'
+import OwnNoteItem from './NoteItems/OwnNoteItem'
 
 const SharedNote = (props) => {
   const { loggedInUser, showAlert } = props
@@ -20,6 +22,20 @@ const SharedNote = (props) => {
   const hostLink = process.env.REACT_APP_HOSTLINK
   const imageAPI = process.env.REACT_APP_IMAGEAPI
   const token = localStorage.getItem('token')
+
+  // GET USER ID FROM LOACLSTORAGE TOKEN
+  let userId = null
+
+  if (token) {
+    try {
+      const base64Url = token.split('.')[1]
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+      const decodedPayload = JSON.parse(window.atob(base64))
+      userId = decodedPayload.user?.id || decodedPayload.id
+    } catch (error) {
+      console.error('Error decoding token:', error)
+    }
+  }
 
   useEffect(() => {
     const fetchNote = async () => {
@@ -77,6 +93,8 @@ const SharedNote = (props) => {
     )
   }
 
+  // console.log(note.user.username)
+
   if (!note) return <Loader />
 
   return (
@@ -97,57 +115,42 @@ const SharedNote = (props) => {
       )}
 
       {/* Main Note Card */}
-      <div className='flex items-center justify-center min-h-screen z-20 inset-0 bg-opacity-50'>
-        <div className='text-white w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 flex flex-col mt-20'>
-          {/* Header */}
-          <div className='flex flex-col p-4 pb-1 border-b border-gray-700'>
-            <div className='flex items-center mb-1'>
-              <Link to={`/u/${note.user.username}`}>
-                <img
-                  src={note.user.image ? note.user.image : `${imageAPI}${encodeURIComponent(note.user.username)}`}
-                  onError={(e) => {
-                    e.target.onerror = null
-                    e.target.src = `${imageAPI}${encodeURIComponent(note.user.username)}`
-                  }}
-                  alt={note.user.username}
-                  className='w-10 h-10 rounded-full object-cover'
-                />
-              </Link>
-
-              <div>
-                <Link to={`/u/${note.user.username}`} className='ml-3 font-semibold text-gray-200 hover:underline'>
-                  @{note.user.username}
-                </Link>
-                <div className='text-gray-400 text-xs ml-4'>
-                  {note.modifiedDate
-                    ? <p>{formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}</p>
-                    : <p>{formatDate(note.date)} at {formatTime(note.date)}</p>}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Note Content */}
-          <div className='p-4'>
-            <h5 className='text-lg font-bold text-white'>{note.title}</h5>
-            {note.tag && <p className='text-[#FDC116] font-medium text-sm'># {note.tag}</p>}
-            <p className='mt-2 font-normal text-white whitespace-pre-wrap'>
-              {renderWithLinksAndMentions(note.description)}
-            </p>
-          </div>
-
-          {/* Buttons */}
-          <InteractionButtons
-            className='border-t border-gray-700 mt-auto'
-            title={note.title}
-            tag={note.tag}
-            cardRef={hiddenCardRef}
-            description={note.description}
-            showAlert={showAlert}
-            noteId={note._id}
-            note={note}
-          />
-        </div>
+      <div className='flex flex-col items-center justify-center min-h-screen pt-20'>
+        {
+          userId === note.user._id
+            ? (
+              <OwnNoteItem
+                key={note._id}
+                note={note}
+                noteId={note._id}
+                title={note.title}
+                description={note.description}
+                date={note.date}
+                modifiedDate={note.modifiedDate}
+                tag={note.tag}
+                name={note.user.name}
+                username={note.user.username}
+                image={note.user.image}
+                showAlert={showAlert}
+              />
+              )
+            : (
+              <HomeNoteItem
+                key={note._id}
+                note={note}
+                noteId={note._id}
+                title={note.title}
+                description={note.description}
+                date={note.date}
+                modifiedDate={note.modifiedDate}
+                tag={note.tag}
+                name={note.user.name}
+                username={note.user.username}
+                image={note.user.image}
+                showAlert={showAlert}
+              />
+              )
+        }
       </div>
 
       {/* Hidden Card for Download */}
