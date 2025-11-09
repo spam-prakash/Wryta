@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef, useContext } from 'react'
+import noteContext from '../context/notes/NoteContext'
 import HomeNoteItem from './NoteItems/HomeNoteItem'
 import Addnote from './Addnote'
 import Search from './Search' // Import the new Search component
@@ -6,8 +7,10 @@ import { Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Loader from './utils/Loader'
 import OwnNoteItem from './NoteItems/OwnNoteItem'
+import NoteUpdateModal from './models/NoteUpdateModal'
 
 const Home = (props) => {
+  const { notes, getNotes, editNote } = useContext(noteContext)
   const [publicNotes, setPublicNotes] = useState([])
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false)
@@ -15,6 +18,8 @@ const Home = (props) => {
   const hostLink = process.env.REACT_APP_HOSTLINK
   const addNoteModalRef = useRef(null)
   const [isNoteAddModelOpen, setisNoteAddModelOpen] = useState(false)
+  const [isUpdateNoteModalOpen, setIsUpdateNoteModalOpen] = useState(false)
+  const [currentNoteForUpdate, setCurrentNoteForUpdate] = useState(null)
   // console.log('Image API:', process.env.REACT_APP_IMAGEAPI)
 
   // GET USER ID FROM LOACLSTORAGE TOKEN
@@ -97,6 +102,15 @@ const Home = (props) => {
     }
   }
 
+  const toggleUpdateNoteModal = () => {
+    setIsUpdateNoteModalOpen(prev => !prev)
+  }
+
+  const updateNote = (note) => {
+    setCurrentNoteForUpdate(note)
+    setIsUpdateNoteModalOpen(true)
+  }
+
   // Filter the notes based on the filter text
   const filteredNotes = publicNotes.filter((note) =>
     note.title.toLowerCase().includes(filterText.toLowerCase()) ||
@@ -104,6 +118,8 @@ const Home = (props) => {
     note.tag.toLowerCase().includes(filterText.toLowerCase()) ||
     note.userDetails.username.toLowerCase().includes(filterText.toLowerCase()) // Search by username
   )
+
+  // console.log(filteredNotes)
 
   return (
     <>
@@ -114,34 +130,56 @@ const Home = (props) => {
         toggleModal={toggleAddNoteModal}
         isOpen={isNoteAddModelOpen}
       />
-
+      {/* Note update modal (owner only) */}
+      <NoteUpdateModal
+        currentNote={currentNoteForUpdate}
+        editNote={editNote}
+        showAlert={props.showAlert}
+        toggleModal={toggleUpdateNoteModal}
+        isOpen={isUpdateNoteModalOpen}
+      />
       {/* Integrate the Search component */}
       <Search filterText={filterText} setFilterText={setFilterText} />
       <div className='mx-auto py-4 pt-10 sm:px-2 lg:px-4'>
 
         <div className='w-full flex flex-wrap text-white gap-3 mt-28'>
-          {filteredNotes.map((note) => {
-            const isOwnNote = note.user === userId // compare logged-in user with note owner
+          {filteredNotes.map((note) =>
+            userId === note.userDetails._id
+              ? (
+                <OwnNoteItem
+                  key={note._id}
+                  note={note}
+                  updateNote={updateNote}
+                  noteId={note._id}
+                  title={note.title}
+                  description={note.description}
+                  date={note.date}
+                  modifiedDate={note.modifiedDate}
+                  tag={note.tag}
+                  name={note.userDetails.name}
+                  username={note.userDetails.username}
+                  image={note.userDetails.image}
+                  showAlert={props.showAlert}
+                />
+                )
+              : (
+                <HomeNoteItem
+                  key={note._id}
+                  note={note}
+                  noteId={note._id}
+                  title={note.title}
+                  description={note.description}
+                  date={note.date}
+                  modifiedDate={note.modifiedDate}
+                  tag={note.tag}
+                  name={note.userDetails.name}
+                  username={note.userDetails.username}
+                  image={note.userDetails.image}
+                  showAlert={props.showAlert}
+                />
+                )
+          )}
 
-            const NoteComponent = isOwnNote ? OwnNoteItem : HomeNoteItem
-
-            return (
-              <NoteComponent
-                key={note._id}
-                note={note}
-                noteId={note._id}
-                title={note.title}
-                description={note.description}
-                date={note.date}
-                modifiedDate={note.modifiedDate}
-                tag={note.tag}
-                name={note.userDetails.name}
-                username={note.userDetails.username}
-                image={note.userDetails.image}
-                showAlert={props.showAlert}
-              />
-            )
-          })}
         </div>
 
       </div>

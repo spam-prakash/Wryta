@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef, useContext } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import noteContext from '../context/notes/NoteContext'
 import InteractionButtons from './InteractionButtons'
 import renderWithLinksAndMentions from './utils/renderWithLinksAndMentions'
 import Addnote from './Addnote'
@@ -8,8 +9,10 @@ import { Plus } from 'lucide-react'
 import Search from './Search'
 import HomeNoteItem from './NoteItems/HomeNoteItem'
 import OwnNoteItem from './NoteItems/OwnNoteItem'
+import NoteUpdateModal from './models/NoteUpdateModal'
 
 const SharedNote = (props) => {
+  const { notes, getNotes, editNote } = useContext(noteContext)
   const { loggedInUser, showAlert } = props
   const { id } = useParams()
   const [note, setNote] = useState(null)
@@ -18,6 +21,8 @@ const SharedNote = (props) => {
   const addNoteModalRef = useRef(null)
   const [filterText, setFilterText] = useState('')
   const [isNoteAddModelOpen, setisNoteAddModelOpen] = useState(false)
+  const [isUpdateNoteModalOpen, setIsUpdateNoteModalOpen] = useState(false)
+  const [currentNoteForUpdate, setCurrentNoteForUpdate] = useState(null)
 
   const hostLink = process.env.REACT_APP_HOSTLINK
   const imageAPI = process.env.REACT_APP_IMAGEAPI
@@ -69,6 +74,14 @@ const SharedNote = (props) => {
       setisNoteAddModelOpen(!isNoteAddModelOpen)
     }
   }
+  const toggleUpdateNoteModal = () => {
+    setIsUpdateNoteModalOpen(prev => !prev)
+  }
+
+  const updateNote = (note) => {
+    setCurrentNoteForUpdate(note)
+    setIsUpdateNoteModalOpen(true)
+  }
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A'
@@ -103,6 +116,14 @@ const SharedNote = (props) => {
       <Addnote modalRef={addNoteModalRef} showAlert={showAlert} toggleModal={toggleAddNoteModal} isOpen={isNoteAddModelOpen} />
 
       <Search filterText={filterText} setFilterText={setFilterText} />
+      {/* Note update modal (owner only) */}
+      <NoteUpdateModal
+        currentNote={currentNoteForUpdate}
+        editNote={editNote}
+        showAlert={showAlert}
+        toggleModal={toggleUpdateNoteModal}
+        isOpen={isUpdateNoteModalOpen}
+      />
 
       {/* ✅ Add Note Button only for logged-in users */}
       {loggedInUser && (
@@ -122,6 +143,7 @@ const SharedNote = (props) => {
               <OwnNoteItem
                 key={note._id}
                 note={note}
+                updateNote={updateNote}
                 noteId={note._id}
                 title={note.title}
                 description={note.description}
