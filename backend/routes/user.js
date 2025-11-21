@@ -132,7 +132,11 @@ router.post('/follow/:userId', fetchuser, async (req, res) => {
     `
 
     if (user._id.toString() !== followerId.toString()) {
-      sendMail(user.email, subject, '', html)
+      try {
+        await sendMail(user.email, subject, '', html)
+      } catch (err) {
+        console.error('Failed to Follow mail:', err.message)
+      }
     }
 
     res.json({ success: true, message: 'Followed successfully' })

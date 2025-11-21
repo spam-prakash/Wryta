@@ -73,7 +73,11 @@ router.post('/addnote', [
               </body>
             </html>
           `
-          await sendMail(mentionedUser.email, subject, '', html)
+          try {
+            await sendMail(mentionedUser.email, subject, '', html)
+          } catch (err) {
+            console.error('Failed to send mention email:', err.message)
+          }
         }
       }
     }
@@ -106,7 +110,11 @@ router.post('/addnote', [
       for (const followerId of followers) {
         const follower = await User.findById(followerId).select('email')
         if (follower && follower.email) {
-          await sendMail(follower.email, subject, '', html)
+          try {
+            await sendMail(follower.email, subject, '', html)
+          } catch (err) {
+            console.error('Failed to send follower email:', err.message)
+          }
         }
       }
     }
@@ -194,7 +202,11 @@ router.put('/updatenote/:id', [
             </body>
           </html>
         `
-        await sendMail(mentionedUser.email, subject, '', html)
+        try {
+          await sendMail(mentionedUser.email, subject, '', html)
+        } catch (err) {
+          console.error('Failed to send new mention email:', err.message)
+        }
       }
     }
 
@@ -224,7 +236,11 @@ router.put('/updatenote/:id', [
             </body>
           </html>
         `
-        await sendMail(mentionedUser.email, subject, '', html)
+        try {
+          await sendMail(mentionedUser.email, subject, '', html)
+        } catch (err) {
+          console.error('Failed to send new mention email:', err.message)
+        }
       }
     }
 

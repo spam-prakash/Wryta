@@ -29,7 +29,13 @@ router.post('/generateotp', [
   }
 
   const { email } = req.body
-  const otp = otpGenerator.generate(6, { lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false })
+
+  const otp = otpGenerator.generate(6, {
+    lowerCaseAlphabets: false,
+    upperCaseAlphabets: false,
+    specialChars: false
+  })
+
   otpStore[email] = otp
 
   const subject = 'Your OTP for wryta Signup'
@@ -38,10 +44,18 @@ router.post('/generateotp', [
 
   try {
     await sendMail(email, subject, text, html)
-    res.json({ success: true, message: 'OTP sent to email' })
+
+    return res.json({
+      success: true,
+      message: 'OTP sent to email'
+    })
   } catch (error) {
-    console.error(error.message)
-    res.status(500).send('Internal Server Error')
+    console.error('Error sending mail:', error)
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to send OTP. Please try again.'
+    })
   }
 })
 
@@ -102,7 +116,18 @@ router.post('/createuser', [
     const subject = 'Welcome to wryta'
     const text = `Hello ${user.name},\n\nThank you for signing up for wryta. We are excited to have you on board!\n\nBest regards,\nThe wryta Team`
     const html = `<p>Hello ${user.name},</p><p>Thank you for signing up for wryta. We are excited to have you on board!</p><p>Best regards,<br>The wryta Team</p>`
-    await sendMail(user.email, subject, text, html)
+    const result = await sendMail(email, subject, text, html)
+
+    if (!result.success) {
+      console.error('Email failed:', result.error)
+      return res.status(200).json({
+        success: false,
+        message: 'OTP generated but sending email failed',
+        error: result.error
+      })
+    }
+
+    res.json({ success: true, message: 'OTP sent to email' })
 
     // Clear OTP from store
     delete otpStore[email]
@@ -206,8 +231,18 @@ router.post('/request-reset-password', [
   const html = `<p>You requested a password reset. Click the link below to reset your password:</p><p><a href="${resetLink}">${resetLink}</a></p><p>If you did not request this, please ignore this email.</p>`
 
   try {
-    await sendMail(email, subject, text, html)
-    res.json({ success: true, message: 'Password reset link sent to email' })
+    const result = await sendMail(email, subject, text, html)
+
+    if (!result.success) {
+      console.error('Email failed:', result.error)
+      return res.status(200).json({
+        success: false,
+        message: 'OTP generated but sending email failed',
+        error: result.error
+      })
+    }
+
+    res.json({ success: true, message: 'OTP sent to email' })
   } catch (error) {
     console.error(error.message)
     res.status(500).send('Internal Server Error')
