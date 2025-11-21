@@ -52,7 +52,9 @@ router.post('/addnote', [
     // If mentions exist, notify mentioned users
     if (mentionedUsernames.length > 0) {
       for (const username of mentionedUsernames) {
-        const mentionedUser = await User.findOne({ username }).select('email name')
+        const mentionedUser = await User.findOne({
+          username: { $regex: new RegExp(`^${username}$`, 'i') }
+        }).select('email name')
         if (mentionedUser && mentionedUser.email) {
           const subject = `${user.name} mentioned you in a note`
           const html = `
@@ -181,7 +183,9 @@ router.put('/updatenote/:id', [
     // 🆕 Send email to newly mentioned users
     // --------------------------------------------
     for (const username of newlyMentioned) {
-      const mentionedUser = await User.findOne({ username }).select('email name')
+      const mentionedUser = await User.findOne({
+        username: { $regex: new RegExp(`^${username}$`, 'i') }
+      }).select('email name')
       if (mentionedUser && mentionedUser.email) {
         const subject = `${user.name} mentioned you in a note`
         const html = `
@@ -214,7 +218,9 @@ router.put('/updatenote/:id', [
     // ✏️ Send email to previously mentioned users
     // --------------------------------------------
     for (const username of previouslyMentioned) {
-      const mentionedUser = await User.findOne({ username }).select('email name')
+      const mentionedUser = await User.findOne({
+        username: { $regex: new RegExp(`^${username}$`, 'i') }
+      }).select('email name')
       if (mentionedUser && mentionedUser.email) {
         const subject = '✏️ A note you were mentioned in was updated'
         const html = `

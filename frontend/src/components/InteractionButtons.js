@@ -31,6 +31,8 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
   const hostLink = process.env.REACT_APP_HOSTLINK
   const userId = getUserIdFromToken()
 
+  const canDownload = note.user === userId || note.visibility === 'public'
+
   // ✅ Determine liked status on mount or when note changes
   useEffect(() => {
     if (!note) return
@@ -144,6 +146,11 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
   }
 
   const downloadCardAsImage = async () => {
+    if (!canDownload) {
+      showAlert('You are not allowed to download this note.', '#F8D7DA')
+      return
+    }
+
     try {
       if (cardRef.current) {
         const canvas = await html2canvas(cardRef.current, {
