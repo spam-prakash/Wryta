@@ -20,6 +20,7 @@
     "express-validator": "^7.1.0",
     "git-filter-repo": "^0.0.30",
     "googleapis": "^164.0.0",
+    "http": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.7.0",
     "mongoose": "^8.4.4",
@@ -34,6 +35,7 @@
     "passport-google-oauth2": "^0.2.0",
     "passport-google-oauth20": "^2.0.0",
     "resend": "^6.2.0",
+    "socket.io": "^4.8.3",
     "vercel": "^37.4.2"
   }
 }

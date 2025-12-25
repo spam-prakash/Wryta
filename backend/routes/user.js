@@ -8,6 +8,7 @@ const sendMail = require('./mailer')
 // const jwt = require('jsonwebtoken')
 // const fetchuser = require('../middleware/fetchUser')
 const fetchuser = require('../middleware/fetchuser')
+const { getIO, onlineUsers, emitNotification } = require('../socket')
 const liveLink = process.env.REACT_APP_LIVE_LINK
 
 router.get('/:username', fetchuser, async (req, res) => {
@@ -80,7 +81,7 @@ router.get('/:username', fetchuser, async (req, res) => {
 
 router.post('/follow/:userId', fetchuser, async (req, res) => {
   try {
-    const userId = req.params.userId // person to follow
+    const userId = req.params.userId // person being followed
     const followerId = req.user.id // logged-in user
 
     if (userId === followerId) {
@@ -94,7 +95,7 @@ router.post('/follow/:userId', fetchuser, async (req, res) => {
       return res.status(404).json({ error: 'User not found' })
     }
 
-    // ✅ Check if already following
+    // ✅ Already following check
     const alreadyFollowing = user.follower.list.some(
       id => id.toString() === followerId.toString()
     )
@@ -103,13 +104,12 @@ router.post('/follow/:userId', fetchuser, async (req, res) => {
       return res.status(400).json({ error: 'Already following this user.' })
     }
 
-    // ✅ Add follower to user's list
+    // ✅ Update DB
     await User.findByIdAndUpdate(userId, {
       $addToSet: { 'follower.list': followerId },
       $inc: { 'follower.count': 1 }
     })
 
-    // ✅ Add following to follower's list
     await User.findByIdAndUpdate(followerId, {
       $addToSet: { 'following.list': userId },
       $inc: { 'following.count': 1 }
@@ -118,15 +118,25 @@ router.post('/follow/:userId', fetchuser, async (req, res) => {
     const Notification = require('../models/Notification')
 
     // --------------------------------------------
-    // 🔔 FOLLOW NOTIFICATION (same as notes.js)
+    // 🔔 CREATE FOLLOW NOTIFICATION
     // --------------------------------------------
-    if (user._id.toString() !== followerId) {
-      await Notification.create({
-        user: user._id, // receiver
-        sender: followerId, // who followed
+    if (userId.toString() !== followerId.toString()) {
+      const notification = await Notification.create({
+        user: userId, // receiver
+        sender: followerId, // actor
         type: 'follow',
+        redirectType: 'user',
+        redirectId: req.user.id,
         message: 'started following you'
       })
+
+      // --------------------------------------------
+      // ⚡ REAL-TIME SOCKET EMIT
+      // --------------------------------------------
+      const populatedNotification = await Notification.findById(notification._id)
+        .populate('sender', 'name username image') // populate sender info
+
+      emitNotification(notification.user, populatedNotification)
     }
 
     res.json({ success: true, message: 'Followed successfully' })

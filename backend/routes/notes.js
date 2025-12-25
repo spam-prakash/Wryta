@@ -6,6 +6,7 @@ const Note = require('../models/Note')
 const User = require('../models/User')
 const Notification = require('../models/Notification')
 const { body, validationResult } = require('express-validator')
+const { getIO, onlineUsers, emitNotification } = require('../socket')
 const liveLink = process.env.REACT_APP_LIVE_LINK
 
 // ROUTE: 1 GET ALL NOTES GET:"/api/notes/fetchallnotes" LOGIN REQUIRED
@@ -20,14 +21,11 @@ router.get('/fetchallnotes', fetchuser, async (req, res) => {
 })
 
 // ROUTE: 2 ADD A NEW NOTE POST:"/api/notes/addnote" LOGIN REQUIRED
-router.post('/addnote', [
-  body('description', 'Description must be at least 3 characters').isLength({ min: 3 })
-], fetchuser, async (req, res) => {
+router.post('/addnote', [body('description').isLength({ min: 3 })], fetchuser, async (req, res) => {
   try {
     const { title, description, tag, isPublic } = req.body
 
-    // Create and save the note
-    const note = new Note({
+    const note = await Note.create({
       title,
       description,
       tag,
@@ -35,158 +33,135 @@ router.post('/addnote', [
       user: req.user.id,
       date: Date.now()
     })
-    const savedNote = await note.save()
-
-    const user = await User.findById(req.user.id).select('name username follower list email')
-
-    // ----------------------------------------
-    // ✳️ Detect mentions (@username)
-    // ----------------------------------------
+    // ----------------------------
+    // 🔔 MENTION NOTIFICATIONS
+    // ----------------------------
     const mentionPattern = /@([a-zA-Z0-9._-]+)/g
-    const mentionedUsernames = []
-    let match
-    while ((match = mentionPattern.exec(description)) !== null) {
-      mentionedUsernames.push(match[1])
-    }
+    const mentionedUsernames = [...description.matchAll(mentionPattern)].map(
+      m => m[1]
+    )
 
-    // If mentions exist, notify mentioned users
-    if (mentionedUsernames.length > 0) {
-      for (const username of mentionedUsernames) {
-        const mentionedUser = await User.findOne({
-          username: { $regex: new RegExp(`^${username}$`, 'i') }
-        }).select('_id')
-
-        if (
-          mentionedUser &&
-      mentionedUser._id.toString() !== req.user.id
-        ) {
-          await Notification.create({
-            user: mentionedUser._id,
-            sender: req.user.id,
-            type: 'mention',
-            note: savedNote._id,
-            message: 'mentioned you in a note'
-          })
-        }
-      }
-    }
-
-    // ----------------------------------------
-    // 🔔 Notify followers if note is public
-    // ----------------------------------------
-    if (isPublic) {
-      const followers = user.follower?.list || []
-
-      if (followers.length > 0) {
-        const notifications = followers
-          .filter(followerId => followerId.toString() !== req.user.id)
-          .map(followerId => ({
-            user: followerId, // receiver (follower)
-            sender: req.user.id, // note creator
-            type: 'new_note',
-            note: savedNote._id,
-            message: 'posted a new public note'
-          }))
-
-        if (notifications.length > 0) {
-          await Notification.insertMany(notifications)
-        }
-      }
-    }
-
-    res.json(savedNote)
-  } catch (error) {
-    console.error(error.message)
-    res.status(500).send('Internal Server Error')
-  }
-})
-
-// ROUTE: 3 UPDATE A NOTE PUT:"/api/notes/updatenote/:id" LOGIN REQUIRED
-router.put('/updatenote/:id', [
-  body('description', 'Description must be at least 3 characters').isLength({ min: 3 })
-], fetchuser, async (req, res) => {
-  const { title, description, tag } = req.body
-
-  try {
-    let note = await Note.findById(req.params.id)
-    if (!note) {
-      return res.status(404).send('Not Found')
-    }
-
-    if (note.user.toString() !== req.user.id) {
-      return res.status(401).send('Not Allowed')
-    }
-
-    // Find the user performing the edit
-    const user = await User.findById(req.user.id).select('name username email')
-
-    // Extract mentions from previous note
-    const oldMentionPattern = /@([a-zA-Z0-9._-]+)/g
-    const oldMentions = []
-    let match
-    while ((match = oldMentionPattern.exec(note.description)) !== null) {
-      oldMentions.push(match[1])
-    }
-
-    // Extract mentions from updated note description
-    const newMentionPattern = /@([a-zA-Z0-9._-]+)/g
-    const newMentions = []
-    while ((match = newMentionPattern.exec(description)) !== null) {
-      newMentions.push(match[1])
-    }
-
-    // Find which mentions are new and which are old
-    const newlyMentioned = newMentions.filter(u => !oldMentions.includes(u))
-    const previouslyMentioned = oldMentions.filter(u => newMentions.includes(u))
-
-    // Update the note
-    const newNote = {
-      title,
-      description,
-      tag,
-      modifiedDate: Date.now()
-    }
-
-    note = await Note.findByIdAndUpdate(req.params.id, { $set: newNote }, { new: true })
-
-    // Base link for emails
-    const noteLink = `${liveLink}/note/${note._id}`
-
-    // --------------------------------------------
-    // 🆕 Send notification to newly mentioned users
-    // --------------------------------------------
-    for (const username of newlyMentioned) {
+    for (const username of mentionedUsernames) {
       const mentionedUser = await User.findOne({
-        username: { $regex: new RegExp(`^${username}$`, 'i') }
+        username: new RegExp(`^${username}$`, 'i')
       }).select('_id')
 
-      if (
-        mentionedUser &&
-    mentionedUser._id.toString() !== req.user.id
-      ) {
-        await Notification.create({
-          user: mentionedUser._id,
+      if (!mentionedUser || mentionedUser._id.toString() === req.user.id) { continue }
+
+      const notification = await Notification.create({
+        user: mentionedUser._id,
+        sender: req.user.id,
+        type: 'mention',
+        note: note._id,
+        redirectType: 'note',
+        redirectId: note._id,
+        message: 'mentioned you in a note'
+      })
+
+      // ⚡ SOCKET EMIT
+      const populatedNotification = await Notification.findById(notification._id)
+        .populate('sender', 'name username image') // populate sender info
+        .populate('note', '_id')
+
+      emitNotification(notification.user, populatedNotification)
+    }
+
+    // ----------------------------
+    // 🔔 FOLLOWERS (PUBLIC NOTE)
+    // ----------------------------
+    if (isPublic) {
+      const user = await User.findById(req.user.id).select('follower')
+
+      for (const followerId of user.follower?.list || []) {
+        if (followerId.toString() === req.user.id) continue
+
+        const notification = await Notification.create({
+          user: followerId,
           sender: req.user.id,
-          type: 'mention',
+          type: 'new_note',
           note: note._id,
-          message: 'mentioned you in an updated note'
+          redirectType: 'note',
+          redirectId: note._id,
+          message: 'posted a new public note'
         })
+
+        const populatedNotification = await Notification.findById(notification._id)
+          .populate('sender', 'name username image') // populate sender info
+          .populate('note', '_id')
+
+        emitNotification(notification.user, populatedNotification)
       }
     }
-    await Notification.create({
-      user: mentionedUser._id,
-      sender: req.user.id,
-      type: 'note_updated',
-      note: note._id,
-      message: 'updated a note you were mentioned in'
-    })
 
     res.json(note)
   } catch (error) {
-    console.error(error.message)
+    console.error(error)
     res.status(500).send('Internal Server Error')
   }
-})
+}
+)
+
+// ROUTE: 3 UPDATE A NOTE PUT:"/api/notes/updatenote/:id" LOGIN REQUIRED
+router.put('/updatenote/:id', [body('description').isLength({ min: 3 })], fetchuser, async (req, res) => {
+  try {
+    const { title, description, tag } = req.body
+    let note = await Note.findById(req.params.id)
+
+    if (!note) return res.status(404).send('Not Found')
+    if (note.user.toString() !== req.user.id) { return res.status(401).send('Not Allowed') }
+
+    const oldMentions =
+        note.description.match(/@([a-zA-Z0-9._-]+)/g)?.map(m => m.slice(1)) || []
+
+    const newMentions =
+        description.match(/@([a-zA-Z0-9._-]+)/g)?.map(m => m.slice(1)) || []
+
+    const newlyMentioned = newMentions.filter(u => !oldMentions.includes(u))
+
+    note = await Note.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          title,
+          description,
+          tag,
+          modifiedDate: Date.now()
+        }
+      },
+      { new: true }
+    )
+
+    for (const username of newlyMentioned) {
+      const mentionedUser = await User.findOne({
+        username: new RegExp(`^${username}$`, 'i')
+      }).select('_id')
+
+      if (!mentionedUser || mentionedUser._id.toString() === req.user.id) { continue }
+
+      const notification = await Notification.create({
+        user: mentionedUser._id,
+        sender: req.user.id,
+        type: 'mention',
+        note: note._id,
+        redirectType: 'note',
+        redirectId: note._id,
+        message: 'mentioned you in an updated note'
+      })
+
+      const populatedNotification = await Notification.findById(notification._id)
+        .populate('sender', 'name username image') // populate sender info
+        .populate('note', '_id')
+
+      emitNotification(notification.user, populatedNotification)
+    }
+
+    res.json(note)
+  } catch (error) {
+    console.error(error)
+    res.status(500).send('Internal Server Error')
+  }
+}
+)
 
 // ROUTE: 4 DELETE A NOTES DELETE:"/api/notes/deletenote" LOGIN REQUIRED
 router.delete('/deletenote/:id', fetchuser, async (req, res) => {
@@ -422,15 +397,21 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
 
       // ✉️ Send notification only if not a self-like
       if (noteOwner._id.toString() !== likingUserId.toString()) {
-        await Notification.create({
+        const notification = await Notification.create({
           user: noteOwner._id,
           sender: likingUserId,
           type: 'like',
           note: noteId,
+          redirectType: 'note',
+          redirectId: note._id,
           message: 'liked your note'
         })
-      }
+        const populatedNotification = await Notification.findById(notification._id)
+          .populate('sender', 'name username image') // populate sender info
+          .populate('note', '_id')
 
+        emitNotification(notification.user, populatedNotification)
+      }
       return res.json({ success: true, message: 'Note liked' })
     }
   } catch (error) {
@@ -471,13 +452,20 @@ router.post('/note/:id/share', fetchuser, async (req, res) => {
     )
 
     if (note.user.toString() !== userId.toString()) {
-      await Notification.create({
+      const notification = await Notification.create({
         user: note.user,
         sender: userId,
         type: 'share',
         note: noteId,
+        redirectType: 'note',
+        redirectId: note._id,
         message: 'shared your note'
       })
+      const populatedNotification = await Notification.findById(notification._id)
+        .populate('sender', 'name username image') // populate sender info
+        .populate('note', '_id')
+
+      emitNotification(notification.user, populatedNotification)
     }
 
     return res.json({ success: true, message: 'Note shared successfully' })

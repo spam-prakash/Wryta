@@ -8,7 +8,9 @@ const userdb = require('./models/User')
 const passport = require('passport')
 const GoogleStrategy = require('passport-google-oauth2').Strategy
 const sendMail = require('./routes/mailer') // Import the mailer module
-
+const { initSocket } = require('./socket')
+const http = require('http')
+const { getIO, onlineUsers, emitNotification } = require('./socket')
 // Dynamic Port for Production/Local
 const port = process.env.PORT || 8000
 
@@ -64,6 +66,11 @@ app.options('*', (req, res) => {
   res.setHeader('Access-Control-Allow-Credentials', 'true')
   res.sendStatus(200)
 })
+
+// Socket IO Implemantion
+const server = http.createServer(app)
+
+initSocket(server)
 
 app.use(passport.initialize()) // Initialize passport without session
 
@@ -172,6 +179,17 @@ app.get('/', (req, res) => {
 })
 
 // Start Server
-app.listen(port, () => {
-  console.log(`Website rendered to http://localhost:${port}`)
+server.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`)
+})
+
+// Example in Node.js
+emitNotification('newNotification', {
+  _id: '123',
+  type: 'like',
+  message: 'John liked your note',
+  sender: { username: 'john', name: 'John Doe', image: '' },
+  note: { _id: '456', content: 'Hello world!' },
+  isRead: false,
+  createdAt: new Date()
 })
