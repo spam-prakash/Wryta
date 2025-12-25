@@ -6,16 +6,32 @@ let io
 const onlineUsers = new Map()
 
 const initSocket = (server) => {
+  // Define allowed origins for Socket.io
+  const allowedOrigins = [
+    'https://wryta-frontend.vercel.app',
+    'https://theprakash.xyz',
+    'http://localhost:3006'
+  ]
+
   io = new Server(server, {
     cors: {
-      origin: process.env.FRONTEND_URL || 'http://localhost:3006',
+      origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true)
+
+        if (allowedOrigins.indexOf(origin) === -1) {
+          const msg = 'The CORS policy for this site does not allow access from the specified Origin.'
+          return callback(new Error(msg), false)
+        }
+        return callback(null, true)
+      },
       methods: ['GET', 'POST'],
       credentials: true
     }
   })
 
   io.on('connection', (socket) => {
-    console.log('🔌 Socket connected:', socket.id)
+    // console.log('🔌 Socket connected:', socket.id)
 
     /**
      * Client emits:

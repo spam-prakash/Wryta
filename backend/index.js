@@ -50,22 +50,33 @@ if (environment === 'production') {
   app.use(morgan('combined'))
 }
 
+// Define your allowed origins array
+const allowedOrigins = [
+  'https://theprakash.xyz',
+  'https://wryta-frontend.vercel.app',
+  'http://localhost:3006'
+]
+
 const corsOptions = {
-  origin: ['https://theprakash.xyz', 'https://wryta-frontend.vercel.app', 'http://localhost:3006'], // Add allowed origins
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true)
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`
+      return callback(new Error(msg), false)
+    }
+    return callback(null, true)
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'auth-token', 'Access-Control-Allow-Origin'],
-  credentials: true // Allow cookies and credentials
+  allowedHeaders: ['Content-Type', 'Authorization', 'auth-token'],
+  credentials: true
 }
 
 app.use(cors(corsOptions))
 
-app.options('*', (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://theprakash.xyz') // Allow specific origin
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Access-Control-Allow-Origin')
-  res.setHeader('Access-Control-Allow-Credentials', 'true')
-  res.sendStatus(200)
-})
+// Update the OPTIONS handler
+app.options('*', cors(corsOptions))
 
 // Socket IO Implemantion
 const server = http.createServer(app)
@@ -181,15 +192,4 @@ app.get('/', (req, res) => {
 // Start Server
 server.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`)
-})
-
-// Example in Node.js
-emitNotification('newNotification', {
-  _id: '123',
-  type: 'like',
-  message: 'John liked your note',
-  sender: { username: 'john', name: 'John Doe', image: '' },
-  note: { _id: '456', content: 'Hello world!' },
-  isRead: false,
-  createdAt: new Date()
 })
