@@ -80,8 +80,8 @@ router.get('/:username', fetchuser, async (req, res) => {
 
 router.post('/follow/:userId', fetchuser, async (req, res) => {
   try {
-    const userId = req.params.userId
-    const followerId = req.user.id
+    const userId = req.params.userId // person to follow
+    const followerId = req.user.id // logged-in user
 
     if (userId === followerId) {
       return res.status(400).json({ error: 'You cannot follow yourself.' })
@@ -96,7 +96,7 @@ router.post('/follow/:userId', fetchuser, async (req, res) => {
 
     // ✅ Check if already following
     const alreadyFollowing = user.follower.list.some(
-      (id) => id.toString() === followerId.toString()
+      id => id.toString() === followerId.toString()
     )
 
     if (alreadyFollowing) {
@@ -115,28 +115,18 @@ router.post('/follow/:userId', fetchuser, async (req, res) => {
       $inc: { 'following.count': 1 }
     })
 
-    // ✉️ Send email notification (avoid self-mail)
-    const subject = `${follower.name} just followed you!`
-    const html = `
-      <h2>🎉 You just got a new follower!</h2>
-      <p>Hi <strong>${user.name}</strong>,</p>
-      <p>
-        <strong>${follower.name}</strong> (@${follower.username}) just started following you on <strong>Wryta</strong>.
-      </p>
-      <a href="${liveLink}/u/${follower.username}"
-        style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
-        View Profile
-      </a>
-      <p>Keep sharing your notes and inspiring others!</p>
-      <p style="font-size:0.9em;color:#777;">– The Wryta Team</p>
-    `
+    const Notification = require('../models/Notification')
 
-    if (user._id.toString() !== followerId.toString()) {
-      try {
-        await sendMail(user.email, subject, '', html)
-      } catch (err) {
-        console.error('Failed to Follow mail:', err.message)
-      }
+    // --------------------------------------------
+    // 🔔 FOLLOW NOTIFICATION (same as notes.js)
+    // --------------------------------------------
+    if (user._id.toString() !== followerId) {
+      await Notification.create({
+        user: user._id, // receiver
+        sender: followerId, // who followed
+        type: 'follow',
+        message: 'started following you'
+      })
     }
 
     res.json({ success: true, message: 'Followed successfully' })

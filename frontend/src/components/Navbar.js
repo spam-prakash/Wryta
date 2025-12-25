@@ -1,14 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { FiUser, FiLogOut, FiHome, FiInfo, FiLogIn, FiUserPlus } from 'react-icons/fi' // Icons
-import defaultUserIcon from '../assets/user.png' // Default user icon
-import notebook from '../assets/notes.png' // Notebook logo
+import { FiUser, FiLogOut, FiHome, FiInfo, FiLogIn, FiUserPlus } from 'react-icons/fi'
+import defaultUserIcon from '../assets/user.png'
+import notebook from '../assets/notes.png'
+import NotificationBell from './utils/NotificationBell'
+import NotificationDropdown from './utils/NotificationDropdown'
 
 const Navbar = (props) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768)
   const navigate = useNavigate()
   const location = useLocation()
   const profileRef = useRef(null)
+  const notificationButtonRef = useRef(null)
   const imageAPI = process.env.REACT_APP_IMAGEAPI
 
   const user = props.user
@@ -26,12 +31,27 @@ const Navbar = (props) => {
       const img = new Image()
       img.src = user.image
 
-      img.onload = () => setImage(user.image) // Google image works fine
-      img.onerror = () => setImage(fallback) // Fallback if Google image fails
+      img.onload = () => setImage(user.image)
+      img.onerror = () => setImage(fallback)
     } else {
       setImage(fallback)
     }
   }, [user, imageAPI])
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      const desktop = window.innerWidth >= 768
+      setIsDesktop(desktop)
+      // Close dropdown if switching to mobile
+      if (!desktop && showNotifications) {
+        setShowNotifications(false)
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [showNotifications])
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -39,36 +59,85 @@ const Navbar = (props) => {
     navigate('/login')
     props.showAlert('Logged Out!', '#D4EDDA')
     setIsProfileOpen(false)
-    props.setIsAuthenticated(false) // Reset authentication state
-    props.setUser(null) // Reset user state
+    setShowNotifications(false)
+    props.setIsAuthenticated(false)
+    props.setUser(null)
   }
 
   const toggleProfileMenu = () => {
     setIsProfileOpen(!isProfileOpen)
+    setShowNotifications(false)
   }
 
-  // Close dropdown when clicking outside
+  const toggleNotifications = (e) => {
+    // Prevent event from bubbling up
+    e?.stopPropagation()
+
+    if (isDesktop) {
+      // Desktop: toggle dropdown
+      setShowNotifications(!showNotifications)
+      setIsProfileOpen(false)
+    } else {
+      // Mobile: navigate to notifications page
+      navigate('/notifications')
+    }
+  }
+
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Close profile dropdown
       if (profileRef.current && !profileRef.current.contains(event.target)) {
         setIsProfileOpen(false)
       }
+
+      // Close notification dropdown (only on desktop)
+      if (showNotifications && isDesktop) {
+        // Check if click is on the notification bell button
+        const isNotificationButton = notificationButtonRef.current?.contains(event.target)
+
+        if (!isNotificationButton) {
+          // Check if click is inside the dropdown (which handles its own closing)
+          const dropdownElement = document.querySelector('.notification-dropdown')
+          const isInsideDropdown = dropdownElement?.contains(event.target)
+
+          if (!isInsideDropdown) {
+            setShowNotifications(false)
+          }
+        }
+      }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+    // Handle ESC key
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape') {
+        setIsProfileOpen(false)
+        setShowNotifications(false)
+      }
     }
-  }, [])
+
+    // Add event listeners
+    document.addEventListener('click', handleClickOutside)
+    document.addEventListener('keydown', handleEscKey)
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside)
+      document.removeEventListener('keydown', handleEscKey)
+    }
+  }, [showNotifications, isDesktop])
 
   const handleProfileClick = () => {
     if (user && user.username) {
       navigate(`/u/${user.username}`)
-      // window.location.reload() // Force reload to ensure the profile page updates
     }
   }
 
   const isLoggedIn = !!localStorage.getItem('token')
+
+  // Create a proper close function for the notification dropdown
+  const closeNotificationDropdown = () => {
+    setShowNotifications(false)
+  }
 
   return (
     <nav className='z-30 flex bg-black py-3 justify-between fixed w-full items-center px-4 md:px-8'>
@@ -105,6 +174,24 @@ const Navbar = (props) => {
           </Link>
         )}
 
+        {isLoggedIn && (
+          <div className='relative'>
+            {/* Notification Bell - with separate ref */}
+            <div ref={notificationButtonRef} onClick={toggleNotifications}>
+              <NotificationBell
+                isActive={showNotifications}
+              />
+            </div>
+
+            {/* Notifications Dropdown - only show on desktop */}
+            {showNotifications && isDesktop && (
+              <NotificationDropdown
+                onClose={closeNotificationDropdown}
+              />
+            )}
+          </div>
+        )}
+
         {!isLoggedIn ? (
           <>
             {location.pathname !== '/login' && (
@@ -135,15 +222,15 @@ const Navbar = (props) => {
               className='w-10 h-10 rounded-full object-cover cursor-pointer'
               onClick={toggleProfileMenu}
               onError={(e) => {
-                e.target.src = defaultUserIcon // Fallback to default image if the user's image fails to load
+                e.target.src = defaultUserIcon
               }}
             />
 
             {/* Profile Dropdown */}
             {isProfileOpen && (
-              <div className='absolute right-0 mt-2 w-36 bg-[#0a1122] rounded-lg shadow-md z-100'>
+              <div className='absolute right-0 mt-2 w-36 bg-[#0a1122] rounded-lg shadow-md z-50 border border-gray-800'>
                 <span
-                  className='flex cursor-pointer items-center text-white hover:bg-[#28254a5e] px-4 py-2'
+                  className='flex cursor-pointer items-center text-white hover:bg-[#28254a5e] px-4 py-2 rounded-t-lg'
                   onClick={() => {
                     setIsProfileOpen(false)
                     handleProfileClick()
@@ -153,7 +240,7 @@ const Navbar = (props) => {
                   <span className=''>My Profile</span>
                 </span>
                 <button
-                  className='flex items-center w-full text-left text-white hover:bg-[#28254a5e] px-4 py-2'
+                  className='flex items-center w-full text-left text-white hover:bg-[#28254a5e] px-4 py-2 rounded-b-lg'
                   onClick={handleLogout}
                 >
                   <FiLogOut className='mr-2' />

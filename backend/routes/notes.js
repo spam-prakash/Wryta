@@ -4,7 +4,7 @@ const router = express.Router()
 const fetchuser = require('../middleware/fetchuser')
 const Note = require('../models/Note')
 const User = require('../models/User')
-const sendMail = require('./mailer')
+const Notification = require('../models/Notification')
 const { body, validationResult } = require('express-validator')
 const liveLink = process.env.REACT_APP_LIVE_LINK
 
@@ -54,69 +54,42 @@ router.post('/addnote', [
       for (const username of mentionedUsernames) {
         const mentionedUser = await User.findOne({
           username: { $regex: new RegExp(`^${username}$`, 'i') }
-        }).select('email name')
-        if (mentionedUser && mentionedUser.email) {
-          const subject = `${user.name} mentioned you in a note`
-          const html = `
-            <html>
-              <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                <h2>📩 You were mentioned in a note!</h2>
-                <p>Hi <strong>${mentionedUser.name}</strong>,</p>
-                <p>
-                  <strong><a href="${liveLink}/u/${user.username}">${user.name}</a></strong>
-                  mentioned you in a note:
-                </p>
-                <a href="${liveLink}/note/${savedNote._id}"
-                   style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
-                   View Note
-                </a>
-                <br><br>
-                <p style="font-size:0.9em;color:#777;">– The Wryta Team</p>
-              </body>
-            </html>
-          `
-          try {
-            await sendMail(mentionedUser.email, subject, '', html)
-          } catch (err) {
-            console.error('Failed to send mention email:', err.message)
-          }
+        }).select('_id')
+
+        if (
+          mentionedUser &&
+      mentionedUser._id.toString() !== req.user.id
+        ) {
+          await Notification.create({
+            user: mentionedUser._id,
+            sender: req.user.id,
+            type: 'mention',
+            note: savedNote._id,
+            message: 'mentioned you in a note'
+          })
         }
       }
     }
 
     // ----------------------------------------
-    // 📢 Send mail to followers if note is public
+    // 🔔 Notify followers if note is public
     // ----------------------------------------
     if (isPublic) {
-      const followers = user.follower.list || []
-      const subject = `📝 New Note Added by ${user.name}`
-      const html = `
-        <html>
-          <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <h2>🆕 New Note Added!</h2>
-            <p>Hi,</p>
-            <p>
-              <strong><a href="${liveLink}/u/${user.username}">${user.name}</a></strong>
-              has added a new note titled <em>“${title}”</em>.
-            </p>
-            <a href="${liveLink}/note/${savedNote._id}"
-               style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
-               View Note
-            </a>
-            <br><br>
-            <p style="font-size:0.9em;color:#777;">– The Wryta Team</p>
-          </body>
-        </html>
-      `
+      const followers = user.follower?.list || []
 
-      for (const followerId of followers) {
-        const follower = await User.findById(followerId).select('email')
-        if (follower && follower.email) {
-          try {
-            await sendMail(follower.email, subject, '', html)
-          } catch (err) {
-            console.error('Failed to send follower email:', err.message)
-          }
+      if (followers.length > 0) {
+        const notifications = followers
+          .filter(followerId => followerId.toString() !== req.user.id)
+          .map(followerId => ({
+            user: followerId, // receiver (follower)
+            sender: req.user.id, // note creator
+            type: 'new_note',
+            note: savedNote._id,
+            message: 'posted a new public note'
+          }))
+
+        if (notifications.length > 0) {
+          await Notification.insertMany(notifications)
         }
       }
     }
@@ -180,75 +153,33 @@ router.put('/updatenote/:id', [
     const noteLink = `${liveLink}/note/${note._id}`
 
     // --------------------------------------------
-    // 🆕 Send email to newly mentioned users
+    // 🆕 Send notification to newly mentioned users
     // --------------------------------------------
     for (const username of newlyMentioned) {
       const mentionedUser = await User.findOne({
         username: { $regex: new RegExp(`^${username}$`, 'i') }
-      }).select('email name')
-      if (mentionedUser && mentionedUser.email) {
-        const subject = `${user.name} mentioned you in a note`
-        const html = `
-          <html>
-            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-              <h2>📩 You were mentioned in a note!</h2>
-              <p>Hi <strong>${mentionedUser.name}</strong>,</p>
-              <p>
-                <strong><a href="${liveLink}/u/${user.username}">${user.name}</a></strong>
-                mentioned you in an updated note:
-              </p>
-              <a href="${noteLink}"
-                 style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
-                 View Note
-              </a>
-              <br><br>
-              <p style="font-size:0.9em;color:#777;">– The Wryta Team</p>
-            </body>
-          </html>
-        `
-        try {
-          await sendMail(mentionedUser.email, subject, '', html)
-        } catch (err) {
-          console.error('Failed to send new mention email:', err.message)
-        }
-      }
-    }
+      }).select('_id')
 
-    // --------------------------------------------
-    // ✏️ Send email to previously mentioned users
-    // --------------------------------------------
-    for (const username of previouslyMentioned) {
-      const mentionedUser = await User.findOne({
-        username: { $regex: new RegExp(`^${username}$`, 'i') }
-      }).select('email name')
-      if (mentionedUser && mentionedUser.email) {
-        const subject = '✏️ A note you were mentioned in was updated'
-        const html = `
-          <html>
-            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-              <h2>✏️ A note was updated!</h2>
-              <p>Hi <strong>${mentionedUser.name}</strong>,</p>
-              <p>
-                The note where you were mentioned by 
-                <strong><a href="${liveLink}/u/${user.username}">${user.name}</a></strong> 
-                has been updated.
-              </p>
-              <a href="${noteLink}"
-                 style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
-                 View Updated Note
-              </a>
-              <br><br>
-              <p style="font-size:0.9em;color:#777;">– The Wryta Team</p>
-            </body>
-          </html>
-        `
-        try {
-          await sendMail(mentionedUser.email, subject, '', html)
-        } catch (err) {
-          console.error('Failed to send new mention email:', err.message)
-        }
+      if (
+        mentionedUser &&
+    mentionedUser._id.toString() !== req.user.id
+      ) {
+        await Notification.create({
+          user: mentionedUser._id,
+          sender: req.user.id,
+          type: 'mention',
+          note: note._id,
+          message: 'mentioned you in an updated note'
+        })
       }
     }
+    await Notification.create({
+      user: mentionedUser._id,
+      sender: req.user.id,
+      type: 'note_updated',
+      note: note._id,
+      message: 'updated a note you were mentioned in'
+    })
 
     res.json(note)
   } catch (error) {
@@ -476,7 +407,7 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
 
       return res.json({ success: true, message: 'Note unliked' })
     } else {
-      // ❤️ Like
+      //  Like
       await Note.findByIdAndUpdate(noteId, {
         $addToSet: { 'actions.likes': likingUserId },
         $inc: { likes: 1 }
@@ -489,29 +420,15 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
       const updatedNote = await Note.findById(noteId)
       const totalLikes = updatedNote?.likes || 0
 
-      // ✉️ Send mail only if not a self-like
+      // ✉️ Send notification only if not a self-like
       if (noteOwner._id.toString() !== likingUserId.toString()) {
-        const email = noteOwner.email
-        const subject = 'Your note just got a like! 🎉'
-        const html = `
-          <html>
-            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-              <h2>🎉 Your note just got a like!</h2>
-              <p>Hi <strong>${noteOwner.name}</strong>,</p>
-              <p>
-                <strong><a href="${liveLink}/u/${likingUser.username}">${likingUser.name}</a></strong>
-                just liked your note: <em>“${note.title}”</em>.
-              </p>
-              <a href="${liveLink}/note/${noteId}"
-                 style="background:#4F46E5;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">
-                 View Note
-              </a>
-              <p>Total Likes: ${totalLikes}</p>
-              <br>
-              <p style="font-size:0.9em;color:#777;">– The Wryta Team</p>
-            </body>
-          </html>`
-        sendMail(email, subject, '', html)
+        await Notification.create({
+          user: noteOwner._id,
+          sender: likingUserId,
+          type: 'like',
+          note: noteId,
+          message: 'liked your note'
+        })
       }
 
       return res.json({ success: true, message: 'Note liked' })
@@ -552,6 +469,16 @@ router.post('/note/:id/share', fetchuser, async (req, res) => {
       { _id: userId, 'actions.shares': { $ne: noteId } },
       { $addToSet: { 'actions.shares': noteId } }
     )
+
+    if (note.user.toString() !== userId.toString()) {
+      await Notification.create({
+        user: note.user,
+        sender: userId,
+        type: 'share',
+        note: noteId,
+        message: 'shared your note'
+      })
+    }
 
     return res.json({ success: true, message: 'Note shared successfully' })
   } catch (error) {

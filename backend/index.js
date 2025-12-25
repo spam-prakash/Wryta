@@ -157,6 +157,7 @@ app.get('/auth/google/callback',
 app.use('/api/auth', require('./routes/auth'))
 app.use('/api/notes', require('./routes/notes'))
 app.use('/api/user', require('./routes/user')) // Ensure this line exists
+app.use('/api/notification', require('./routes/notification')) // Ensure this line exists
 app.use('/api/search', require('./routes/search')) // Ensure this line exists
 app.use('/api/upload', require('./routes/upload'))
 // Inside your index.js (after app is defined)

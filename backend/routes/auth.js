@@ -189,6 +189,7 @@ router.post('/login', [
   }
 })
 
+
 // ROUTE 4: GET LOGGEDIN USER DETAILS POST: "/api/auth/getuser" LOGIN REQUIRE
 router.post('/getuser', fetchuser, async (req, res) => {
   try {
