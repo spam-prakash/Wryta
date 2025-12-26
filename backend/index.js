@@ -7,31 +7,25 @@ const app = express()
 const userdb = require('./models/User')
 const passport = require('passport')
 const GoogleStrategy = require('passport-google-oauth2').Strategy
-const sendMail = require('./routes/mailer') // Import the mailer module
+const sendMail = require('./routes/mailer')
 const { initSocket } = require('./socket')
 const http = require('http')
 const { getIO, onlineUsers, emitNotification } = require('./socket')
+
 // Dynamic Port for Production/Local
 const port = process.env.PORT || 8000
 
 // Connect to MongoDB
 connectToMongo()
 
-// const liveLink=process.env.REACT_APP_LIVE_LINK
-// const clientID = process.env.REACT_APP_CLINTID
-// const clientSecret = process.env.REACT_APP_CLINT_SECRET
 const liveLink = process.env.REACT_APP_LIVE_LINK
 const JWT_SECRET = process.env.JWT_SECRET
 const hostLink = process.env.REACT_APP_HOSTLINK
-// console.log('Host Link:', hostLink) // Debugging
+const environment = process.env.NODE_ENV || 'development'
 
-const environment = process.env.NODE_ENV || 'development' // Or however you determine environment
-// console.log('Environment:', environment)
 let redirectURL = process.env.REDIRECT_URL || '/auth/google/callback'
-// console.log('Redirect URL:', redirectURL)
-
-// let googleClientId;
 let clientID, clientSecret
+
 if (environment === 'production') {
   clientID = process.env.REACT_APP_CLINTID_PRODUCTION
   clientSecret = process.env.REACT_APP_CLINT_SECRET_PRODUCTION
@@ -42,6 +36,16 @@ if (environment === 'production') {
   redirectURL = '/auth/google/callback'
 }
 
+// Define your allowed origins array
+const allowedOrigins = [
+  'https://theprakash.xyz',
+  'https://wryta-frontend.vercel.app',
+  'http://localhost:3006'
+]
+
+// Create HTTP server FIRST
+const server = http.createServer(app)
+
 // Middleware for parsing JSON
 app.use(express.json())
 
@@ -50,40 +54,65 @@ if (environment === 'production') {
   app.use(morgan('combined'))
 }
 
-// Define your allowed origins array
-const allowedOrigins = [
-  'https://theprakash.xyz',
-  'https://wryta-frontend.vercel.app',
-  'http://localhost:3006'
-]
-
+// Enhanced CORS configuration that accepts ALL headers
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true)
-    
+
     if (allowedOrigins.indexOf(origin) === -1) {
       const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`
       return callback(new Error(msg), false)
     }
     return callback(null, true)
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'auth-token'],
-  credentials: true
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD'],
+  // Accept ALL headers including the problematic one
+  allowedHeaders: '*', // This accepts any header
+  exposedHeaders: [
+    'auth-token',
+    'Authorization',
+    'x-auth-token'
+  ],
+  credentials: true,
+  optionsSuccessStatus: 204,
+  preflightContinue: false
 }
 
+// Apply CORS middleware globally
 app.use(cors(corsOptions))
 
-// Update the OPTIONS handler
+// Handle preflight requests explicitly
 app.options('*', cors(corsOptions))
 
-// Socket IO Implemantion
-const server = http.createServer(app)
+// Custom middleware to handle CORS headers properly
+app.use((req, res, next) => {
+  const origin = req.headers.origin
 
+  // Allow the origin if it's in our allowed list
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin)
+  }
+
+  res.header('Access-Control-Allow-Credentials', 'true')
+
+  // Accept ALL headers from frontend
+  res.header('Access-Control-Allow-Headers', '*')
+
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD')
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end()
+  }
+
+  next()
+})
+
+// Initialize Socket.io
 initSocket(server)
 
-app.use(passport.initialize()) // Initialize passport without session
+app.use(passport.initialize())
 
 // Passport Google Strategy
 passport.use(
@@ -96,22 +125,18 @@ passport.use(
     },
     async (request, accessToken, refreshToken, profile, done) => {
       try {
-        // Try finding by googleId first
         let user = await userdb.findOne({ googleId: profile.id })
 
-        // If no user found with googleId, check for existing email
         if (!user) {
           user = await userdb.findOne({ email: profile.emails[0].value })
 
           if (user) {
-            // User exists via email signup — link Google ID
             user.googleId = profile.id
             if (!user.image && profile.photos && profile.photos[0]) {
-              user.image = profile.photos[0].value // Add image if missing
+              user.image = profile.photos[0].value
             }
             await user.save()
           } else {
-            // Create a new user
             user = new userdb({
               googleId: profile.id,
               name: profile.displayName,
@@ -121,7 +146,6 @@ passport.use(
             })
             await user.save()
 
-            // Send welcome email
             const subject = 'Welcome to Wryta'
             const text = `Hello ${user.name},\n\nThank you for signing up for Wryta. We're excited to have you on board!\n\nBest regards,\nThe Wryta Team`
             const html = `<p>Hello ${user.name},</p><p>Thank you for signing up for <strong>Wryta</strong>. We're excited to have you on board!</p><p>Best regards,<br>The Wryta Team</p>`
@@ -129,7 +153,6 @@ passport.use(
           }
         }
 
-        // Generate JWT Token
         const token = jwt.sign(
           {
             user: {
@@ -143,7 +166,6 @@ passport.use(
           { expiresIn: '30d' }
         )
 
-        // Attach user and token to done callback
         return done(null, { user, token })
       } catch (error) {
         console.error('Google Auth Error:', error)
@@ -159,37 +181,48 @@ app.get('/auth/google', passport.authenticate('google', { scope: ['email', 'prof
 app.get('/auth/google/callback',
   passport.authenticate('google', { session: false }),
   (req, res) => {
-    // console.log('User Object from Passport:', req.user) // Debugging
-
     if (!req.user || !req.user.token) {
       return res.redirect(`${liveLink}/login?error=token_missing`)
     }
 
-    // Send JWT token to frontend
-    res.redirect(`${liveLink}/login-success?token=${req.user.token}`) // Change this to frontend URL
-    // console.log(`Redirecting to: ${liveLink}/login-success?token=${req.user.token}`);
+    res.redirect(`${liveLink}/login-success?token=${req.user.token}`)
   }
 )
 
 // Available Routes
 app.use('/api/auth', require('./routes/auth'))
 app.use('/api/notes', require('./routes/notes'))
-app.use('/api/user', require('./routes/user')) // Ensure this line exists
-app.use('/api/notification', require('./routes/notification')) // Ensure this line exists
-app.use('/api/search', require('./routes/search')) // Ensure this line exists
+app.use('/api/user', require('./routes/user'))
+app.use('/api/notification', require('./routes/notification'))
+app.use('/api/search', require('./routes/search'))
 app.use('/api/upload', require('./routes/upload'))
-// Inside your index.js (after app is defined)
+
+// Health check endpoint
 app.get('/ping', (req, res) => {
   console.log('Ping received at', new Date())
   res.status(200).send('Backend is awake')
 })
 
-// Test Route (Optional)
+// Test Route
 app.get('/', (req, res) => {
   res.send('Hello World!')
+})
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  if (err.message.includes('CORS')) {
+    console.error('CORS Error:', err.message)
+    return res.status(200).json({
+      success: false,
+      error: 'CORS Error',
+      message: err.message
+    })
+  }
+  next(err)
 })
 
 // Start Server
 server.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`)
+  console.log('Allowed origins:', allowedOrigins)
 })

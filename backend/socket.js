@@ -1,12 +1,9 @@
 const { Server } = require('socket.io')
 
 let io
-
-// userId -> Set of socketIds (supports multiple tabs/devices)
 const onlineUsers = new Map()
 
 const initSocket = (server) => {
-  // Define allowed origins for Socket.io
   const allowedOrigins = [
     'https://wryta-frontend.vercel.app',
     'https://theprakash.xyz',
@@ -15,28 +12,18 @@ const initSocket = (server) => {
 
   io = new Server(server, {
     cors: {
-      origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true)
-
-        if (allowedOrigins.indexOf(origin) === -1) {
-          const msg = 'The CORS policy for this site does not allow access from the specified Origin.'
-          return callback(new Error(msg), false)
-        }
-        return callback(null, true)
-      },
-      methods: ['GET', 'POST'],
-      credentials: true
-    }
+      origin: allowedOrigins,
+      methods: ['GET', 'POST', 'OPTIONS'],
+      credentials: true,
+      allowedHeaders: '*' // Accept all headers
+    },
+    transports: ['websocket', 'polling'],
+    allowEIO3: true
   })
 
   io.on('connection', (socket) => {
-    // console.log('🔌 Socket connected:', socket.id)
+    console.log('🔌 Socket connected:', socket.id)
 
-    /**
-     * Client emits:
-     * socket.emit('register', userId)
-     */
     socket.on('register', (userId) => {
       if (!userId) return
 
@@ -67,9 +54,6 @@ const initSocket = (server) => {
   })
 }
 
-/**
- * 🔔 Emit notification to a specific user
- */
 const emitNotification = (userId, notification) => {
   const socketSet = onlineUsers.get(userId.toString())
   if (!socketSet || !io) return
@@ -79,9 +63,6 @@ const emitNotification = (userId, notification) => {
   })
 }
 
-/**
- * Optional helpers
- */
 const isUserOnline = (userId) => {
   return onlineUsers.has(userId.toString())
 }
