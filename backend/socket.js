@@ -22,7 +22,7 @@ const initSocket = (server) => {
   })
 
   io.on('connection', (socket) => {
-    console.log('🔌 Socket connected:', socket.id)
+    // console.log('🔌 Socket connected:', socket.id)
 
     socket.on('register', (userId) => {
       if (!userId) return
@@ -34,7 +34,7 @@ const initSocket = (server) => {
       }
 
       onlineUsers.get(uid).add(socket.id)
-      console.log(`✅ User ${uid} registered with socket ${socket.id}`)
+      // console.log(`✅ User ${uid} registered with socket ${socket.id}`)
     })
 
     socket.on('disconnect', () => {
@@ -46,7 +46,7 @@ const initSocket = (server) => {
             onlineUsers.delete(userId)
           }
 
-          console.log(`❌ Socket ${socket.id} disconnected for user ${userId}`)
+          // console.log(`❌ Socket ${socket.id} disconnected for user ${userId}`)
           break
         }
       }

@@ -110,14 +110,20 @@ router.put('/updatenote/:id', [body('description').isLength({ min: 3 })], fetchu
     if (!note) return res.status(404).send('Not Found')
     if (note.user.toString() !== req.user.id) { return res.status(401).send('Not Allowed') }
 
+    // Extract mentions from old and new descriptions
     const oldMentions =
         note.description.match(/@([a-zA-Z0-9._-]+)/g)?.map(m => m.slice(1)) || []
 
     const newMentions =
         description.match(/@([a-zA-Z0-9._-]+)/g)?.map(m => m.slice(1)) || []
 
+    // Find users who were newly mentioned
     const newlyMentioned = newMentions.filter(u => !oldMentions.includes(u))
 
+    // Find users who were mentioned before AND are still mentioned now
+    const stillMentioned = newMentions.filter(u => oldMentions.includes(u))
+
+    // Update the note
     note = await Note.findByIdAndUpdate(
       req.params.id,
       {
@@ -131,6 +137,7 @@ router.put('/updatenote/:id', [body('description').isLength({ min: 3 })], fetchu
       { new: true }
     )
 
+    // Notification 1: For newly mentioned users
     for (const username of newlyMentioned) {
       const mentionedUser = await User.findOne({
         username: new RegExp(`^${username}$`, 'i')
@@ -145,11 +152,36 @@ router.put('/updatenote/:id', [body('description').isLength({ min: 3 })], fetchu
         note: note._id,
         redirectType: 'note',
         redirectId: note._id,
-        message: 'mentioned you in an updated note'
+        message: 'mentioned you in a note'
       })
 
       const populatedNotification = await Notification.findById(notification._id)
-        .populate('sender', 'name username image') // populate sender info
+        .populate('sender', 'name username image')
+        .populate('note', '_id')
+
+      emitNotification(notification.user, populatedNotification)
+    }
+
+    // Notification 2: For users who were mentioned before and are still mentioned
+    for (const username of stillMentioned) {
+      const mentionedUser = await User.findOne({
+        username: new RegExp(`^${username}$`, 'i')
+      }).select('_id')
+
+      if (!mentionedUser || mentionedUser._id.toString() === req.user.id) { continue }
+
+      const notification = await Notification.create({
+        user: mentionedUser._id,
+        sender: req.user.id,
+        type: 'mention_update',
+        note: note._id,
+        redirectType: 'note',
+        redirectId: note._id,
+        message: 'updated a note that mentions you'
+      })
+
+      const populatedNotification = await Notification.findById(notification._id)
+        .populate('sender', 'name username image')
         .populate('note', '_id')
 
       emitNotification(notification.user, populatedNotification)
@@ -160,8 +192,7 @@ router.put('/updatenote/:id', [body('description').isLength({ min: 3 })], fetchu
     console.error(error)
     res.status(500).send('Internal Server Error')
   }
-}
-)
+})
 
 // ROUTE: 4 DELETE A NOTES DELETE:"/api/notes/deletenote" LOGIN REQUIRED
 router.delete('/deletenote/:id', fetchuser, async (req, res) => {
