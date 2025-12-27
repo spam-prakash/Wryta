@@ -173,7 +173,8 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
   }
 
   const shareNote = async () => {
-    const shareUrl = `${window.location.origin}/note/${noteId}`
+    // console.log(userId)
+    const shareUrl = `${window.location.origin}/note/${noteId}?sharedBy=${userId}`
     const shareText = `Check out this note: "${note.title}" by @${ownerName}\n\n${shareUrl}`
 
     // Always copy the full text to clipboard (works even if share dialog doesn't)
@@ -182,7 +183,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
 
     try {
       if (navigator.share) {
-        console.log('Sharing as:', ownerName)
+        // console.log('Sharing as:', ownerName)
         await navigator.share({
           title: `Note by @${ownerName}`,
           text: `Check out this note: "${note.title}" by @${ownerName}\n Link: `,

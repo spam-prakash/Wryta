@@ -224,5 +224,5 @@ app.use((err, req, res, next) => {
 // Start Server
 server.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`)
-  console.log('Allowed origins:', allowedOrigins)
+  // console.log('Allowed origins:', allowedOrigins)
 })

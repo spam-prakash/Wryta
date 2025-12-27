@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useContext } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useLocation } from 'react-router-dom'
 import noteContext from '../context/notes/NoteContext'
 import Addnote from './Addnote'
 import Loader from './utils/Loader'
@@ -9,6 +9,7 @@ import HomeNoteItem from './NoteItems/HomeNoteItem'
 import NoteUpdateModal from './models/NoteUpdateModal'
 
 const SharedNote = (props) => {
+  const location = useLocation()
   const { editNote } = useContext(noteContext)
   const { loggedInUser, showAlert } = props
   const { id } = useParams()
@@ -21,6 +22,10 @@ const SharedNote = (props) => {
   const [isUpdateNoteModalOpen, setIsUpdateNoteModalOpen] = useState(false)
   const [currentNoteForUpdate, setCurrentNoteForUpdate] = useState(null)
 
+  // Parse query parameters from the URL
+  const queryParams = new URLSearchParams(location.search)
+  const sharedByIdFromUrl = queryParams.get('sharedBy')
+
   const hostLink = process.env.REACT_APP_HOSTLINK
   const imageAPI = process.env.REACT_APP_IMAGEAPI
   const token = localStorage.getItem('token')
@@ -28,7 +33,7 @@ const SharedNote = (props) => {
   useEffect(() => {
     const fetchNote = async () => {
       try {
-        const response = await fetch(`${hostLink}/api/notes/note/${id}`, {
+        const response = await fetch(`${hostLink}/api/notes/note/${id}?sharedBy=${sharedByIdFromUrl}`, {
           method: 'GET',
           headers: {
             'auth-token': token || ''

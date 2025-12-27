@@ -288,6 +288,13 @@ router.get('/public', async (req, res) => {
 })
 
 router.get('/note/:id', fetchuser, async (req, res) => {
+  // console.log('Full URL:', req.protocol + '://' + req.get('host') + req.originalUrl)
+  // const { id } = req.params
+  // console.log(id)
+  // console.log('Query params:', req.query)
+  const { sharedBy } = req.query
+  const sharedById = sharedBy ? sharedBy.toString() : null
+  // console.log(sharedById)
   try {
     const note = await Note.findById(req.params.id).populate('user', '-password -tokens')
 
@@ -319,7 +326,8 @@ router.get('/note/:id', fetchuser, async (req, res) => {
     // 1. The note is public
     // 2. OR the note belongs to the logged-in user
     // 3. OR the user is mentioned
-    if (!note.isPublic && note.user._id.toString() !== loggedInUserId && !isMentioned) {
+    // 4. If Shared by Note Owner
+    if (!note.isPublic && note.user._id.toString() !== loggedInUserId && !isMentioned && sharedById !== note.user._id.toString()) {
       return res
         .status(401)
         .json({ success: false, message: 'Access denied — private note' })
