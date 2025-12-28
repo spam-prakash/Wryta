@@ -16,6 +16,24 @@ const gmail = google.gmail({ version: 'v1', auth: oAuth2Client })
 
 const sendMail = async (to, subject, text, html) => {
   try {
+    // ===== ADDED: Basic validation =====
+    if (!to || typeof to !== 'string' || !to.includes('@')) {
+      return {
+        success: false,
+        error: 'Invalid recipient email address'
+      }
+    }
+
+    if (!subject || subject.trim() === '') {
+      return {
+        success: false,
+        error: 'Email subject cannot be empty'
+      }
+    }
+
+    // ===== ADDED: Ensure we have content =====
+    const emailContent = html || text || 'No content provided'
+
     const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`
     const messageParts = [
       `From: Wryta <${process.env.EMAIL_USER}>`,
@@ -24,11 +42,13 @@ const sendMail = async (to, subject, text, html) => {
       'MIME-Version: 1.0',
       `Subject: ${utf8Subject}`,
       '',
-      html
+      emailContent
     ]
 
     const message = messageParts.join('\n')
-    const encodedMessage = Buffer.from(message)
+
+    // ===== FIXED: More robust base64 encoding =====
+    const encodedMessage = Buffer.from(message, 'utf-8')
       .toString('base64')
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
@@ -39,15 +59,38 @@ const sendMail = async (to, subject, text, html) => {
       requestBody: { raw: encodedMessage }
     })
 
-    console.log('✅ Email sent:', result.data.id)
-    return { success: true, id: result.data.id }
+    console.log(`✅ Email sent to ${to}:`, result.data.id)
+    return {
+      success: true,
+      id: result.data.id,
+      message: 'Email sent successfully'
+    }
   } catch (err) {
-    console.error('❌ Error sending email:', err?.message || err)
+    console.error('❌ Error sending email to', to, ':', err?.message || err)
+
+    // ===== ADDED: Better error categorization =====
+    let errorMessage = err?.message || 'Unknown email sending error'
+    let errorCode = err?.code
+
+    // Check for common errors
+    if (err.message?.includes('invalid_grant') || err.code === 401) {
+      errorMessage = 'Authentication error - refresh token may have expired'
+      errorCode = 'AUTH_ERROR'
+      console.log('🔐 Please generate a new refresh token')
+    } else if (err.message?.includes('quota')) {
+      errorMessage = 'Gmail API quota exceeded'
+      errorCode = 'QUOTA_EXCEEDED'
+    } else if (err.message?.includes('rate limit')) {
+      errorMessage = 'Rate limit exceeded, please try again later'
+      errorCode = 'RATE_LIMIT'
+    }
 
     // ❗ DO NOT throw error → it will crash the server
     return {
       success: false,
-      error: err?.message || 'Unknown email sending error'
+      error: errorMessage,
+      code: errorCode,
+      originalError: process.env.NODE_ENV === 'development' ? err.message : undefined
     }
   }
 }
