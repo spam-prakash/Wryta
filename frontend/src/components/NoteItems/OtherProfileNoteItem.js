@@ -3,6 +3,8 @@ import NoteModal from '../models/NoteModal'
 import InteractionButtons from '../InteractionButtons'
 import renderWithLinksAndMentions from '../utils/renderWithLinksAndMentions'
 import HiddenDownloadCard from '../utils/HiddenDownloadCard'
+import { useNoteView } from '../../hooks/useNoteView'
+import { trackNoteView } from '../../utils/batchViewTracking'
 
 const OtherProfileNoteItem = ({
   title,
@@ -28,7 +30,7 @@ const OtherProfileNoteItem = ({
     return new Date(dateString).toLocaleDateString(undefined, options)
   }
 
-  // console.log(note)
+  // console.log(note.isPublic)
 
   const formatTime = (dateString) => {
     if (!dateString) return 'N/A'
@@ -41,7 +43,10 @@ const OtherProfileNoteItem = ({
   const contentRef = useRef(null)
   const cardRef = useRef(null) // Visible card
   const hiddenCardRef = useRef(null) // Hidden copy for download
-  // console.log(note)
+  
+  // Track note view when it becomes visible (700ms + repeatable)
+  const viewRef = useNoteView(note._id, trackNoteView, false)
+  // console.log(note.isPublic)
   useEffect(() => {
     if (contentRef.current) {
       setIsOverflowing(contentRef.current.scrollHeight > contentRef.current.clientHeight)
@@ -59,7 +64,10 @@ const OtherProfileNoteItem = ({
       {/* Visible Note Card */}
       <div
         className='w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 text-white flex flex-col'
-        ref={cardRef}
+        ref={(el) => {
+          cardRef.current = el
+          if (viewRef) viewRef.current = el
+        }}
       >
         {/* Header */}
         {/* <div className='flex items-center p-4 border-b border-gray-700'>

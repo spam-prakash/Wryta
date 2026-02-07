@@ -54,7 +54,7 @@ const SharedNote = (props) => {
     }
 
     fetchNote()
-  }, [id])
+  }, [id, hostLink, sharedByIdFromUrl, token])
 
   const toggleAddNoteModal = () => {
     if (addNoteModalRef.current) {

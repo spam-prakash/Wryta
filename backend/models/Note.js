@@ -37,11 +37,20 @@ const NoteSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  views:{
+    type:Number,
+    default:0
+  },
+  engagementScore:{
+    type: Number,
+    default: 0
+  },
   actions: {
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     shares: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     copies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    downloads: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+    downloads: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    views: [{type: mongoose.Schema.Types.ObjectId, ref:'User'}]
   }
 
 })

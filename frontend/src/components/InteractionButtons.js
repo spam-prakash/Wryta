@@ -24,14 +24,15 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
   const [counts, setCounts] = useState({
     likes: note.likes || 0,
     copies: note.copies || 0,
+    views: note.views || 0,
     downloads: note.downloads || 0,
     shares: note.shares || 0
   })
 
   const hostLink = process.env.REACT_APP_HOSTLINK
   const userId = getUserIdFromToken()
-
-  const canDownload = note.user === userId || note.visibility === 'public'
+  // console.log(note)
+  const canDownload = note.user === userId || note.isPublic
 
   // ✅ Determine liked status on mount or when note changes
   useEffect(() => {
@@ -46,6 +47,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
     setCounts({
       likes: note.actions?.likes?.length ?? 0,
       copies: note.copies ?? note.actions?.copies ?? 0,
+      views: note.views ?? note.actions?.views ?? 0,
       downloads: note.downloads ?? note.actions?.downloads ?? 0,
       shares: note.shares ?? note.actions?.shares ?? 0
     })

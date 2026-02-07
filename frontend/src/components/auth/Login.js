@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useLocation, Link, useNavigate } from 'react-router-dom'
 import Loader from '../utils/Loader' // Import the Loader component
 
-const Login = (props) => {
+const Login = ({ showAlert = () => {}, setUser = () => {}, ...props }) => {
   useEffect(() => {
     document.title = 'Login | Wryta'
   }, [])
@@ -39,7 +39,7 @@ const Login = (props) => {
     try {
       window.open(`${hostLink}/auth/google`, '_self')
     } catch (error) {
-      props.showAlert('An error occurred during Google login!', '#F8D7DA')
+      showAlert('An error occurred during Google login!', '#F8D7DA')
     } finally {
       setLoading(false)
     }
@@ -69,7 +69,7 @@ const Login = (props) => {
         localStorage.setItem('token', json.authToken)
 
         // ✅ Update user state immediately with accurate data from backend
-        props.setUser({
+        setUser({
           email: json.email,
           name: json.name,
           image: json.image || '',
@@ -78,13 +78,13 @@ const Login = (props) => {
         })
 
         // ✅ Navigate to the logged-in user's profile
-        props.showAlert('Logged in successfully!', '#D4EDDA')
+        showAlert('Logged in successfully!', '#D4EDDA')
         navigate('/')
       } else {
-        props.showAlert('Invalid Credentials!', '#F8D7DA')
+        showAlert('Invalid Credentials!', '#F8D7DA')
       }
     } catch (error) {
-      props.showAlert('An error occurred during login!', '#F8D7DA')
+      showAlert('An error occurred during login!', '#F8D7DA')
     } finally {
       setLoading(false)
     }

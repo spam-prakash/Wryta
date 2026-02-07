@@ -8,6 +8,8 @@ import InteractionButtons from '../InteractionButtons'
 import HiddenDownloadCard from '../utils/HiddenDownloadCard'
 import renderWithLinksAndMentions from '../utils/renderWithLinksAndMentions'
 import { LockOpen, Lock } from 'lucide-react'
+import { useNoteView } from '../../hooks/useNoteView'
+import { trackNoteView } from '../../utils/batchViewTracking'
 
 const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, username, image, showAlert, noteId, note, updateNote, userIdThroughProps }) => {
   const context = useContext(noteContext)
@@ -47,6 +49,10 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
   const cardRef = useRef(null) // Ref for the card container  const
   const hiddenCardRef = useRef(null) // Hidden copy for download
   const [isNoteModalOpen, setisNoteModalOpen] = useState(false)
+  
+  // Track note view when it becomes visible (700ms + repeatable)
+  const isOwner = userIdThroughProps === userId
+  const viewRef = useNoteView(note._id, trackNoteView, isOwner)
 
   useEffect(() => {
     if (contentRef.current) {
@@ -93,7 +99,10 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
   return (
     <>
       <div
-        ref={cardRef} // Assign the cardRef to the card container
+        ref={(el) => {
+          cardRef.current = el
+          if (viewRef) viewRef.current = el
+        }}
         className='w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 text-white flex flex-col'
       >
         {/* Header (User Info) */}

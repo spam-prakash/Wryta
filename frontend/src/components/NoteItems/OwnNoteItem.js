@@ -15,6 +15,7 @@ const OwnNoteItem = (props) => {
   const imageAPI = process.env.REACT_APP_IMAGEAPI
   const image = props.image || `${imageAPI}${encodeURIComponent(username)}`
   const { note, updateNote, showAlert } = props
+  // console.log(note)
   const context = useContext(noteContext)
   const { deleteNote, updateVisibility } = context
 
@@ -42,13 +43,6 @@ const OwnNoteItem = (props) => {
   const toggleModal = () => setIsNoteModelOpen(!isNoteModelOpen)
   const toggleVisibilityModal = () => setIsVisibilityModalOpen(!isVisibilityModalOpen)
 
-  const copyToClipboard = () => {
-    const textToCopy = `Title: ${note.title}\nTag: ${note.tag}\n\nDescription:\n${note.description}`
-    navigator.clipboard
-      .writeText(textToCopy)
-      .then(() => showAlert('Note successfully copied!', '#D4EDDA'))
-      .catch(() => showAlert('Failed to copy note.', '#F8D7DA'))
-  }
 
   // ✅ Improved download with guaranteed profile image rendering
   const handleImageDownload = async () => {
@@ -86,27 +80,6 @@ const OwnNoteItem = (props) => {
         console.error('Image download error:', err)
         showAlert('Failed to download note as image.', '#F8D7DA')
       })
-  }
-
-  const shareNote = async () => {
-    const shareUrl = `${window.location.origin}/note/${note._id}`
-
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: note.title || 'Shared Note',
-          text: `Check out this note: ${note.title}`,
-          url: shareUrl
-        })
-        showAlert('Note shared successfully!', '#D4EDDA')
-      } else {
-        await navigator.clipboard.writeText(shareUrl)
-        showAlert('Note link copied to clipboard!', '#D4EDDA')
-      }
-    } catch (error) {
-      console.error('Error sharing note:', error)
-      showAlert('Failed to share note. Please try again.', '#F8D7DA')
-    }
   }
 
   const handleVisibilityChange = (newVisibility) => {

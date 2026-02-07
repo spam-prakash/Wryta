@@ -239,7 +239,7 @@ const OthersProfile = ({ loggedInUser, showAlert, isAuthenticated }) => {
     setCurrentNoteForUpdate(note)
     setIsUpdateNoteModalOpen(true)
   }
-
+  // console.log("Stored",sortedNotesToDisplay)
   return (
     <div className='min-h-screen'>
       <Search

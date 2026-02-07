@@ -5,9 +5,20 @@ const fetchuser = require('../middleware/fetchuser')
 const Note = require('../models/Note')
 const User = require('../models/User')
 const Notification = require('../models/Notification')
+// const ENGAGEMENT_WEIGHTS=require('../utils/engagement')
 const { body, validationResult } = require('express-validator')
 const { getIO, onlineUsers, emitNotification } = require('../socket')
 const liveLink = process.env.REACT_APP_LIVE_LINK
+
+
+const ENGAGEMENT_WEIGHTS = {
+  view: 1,
+  copy: 3,
+  like: 4,
+  share: 5,
+  download: 6
+}
+
 
 // ROUTE: 1 GET ALL NOTES GET:"/api/notes/fetchallnotes" LOGIN REQUIRED
 router.get('/fetchallnotes', fetchuser, async (req, res) => {
@@ -364,6 +375,16 @@ router.get('/note/:id', fetchuser, async (req, res) => {
         .json({ success: false, message: 'Access denied — private note' })
     }
 
+    // // 🔥 VIEW TRACKING LOGIC
+    // const isOwner = note.user._id.toString() === loggedInUserId
+    // const hasViewed = note.actions.views.includes(loggedInUserId)
+
+    // if (!isOwner && !hasViewed) {
+    //   note.views += 1
+    //   note.actions.views.push(loggedInUserId)
+    //   await note.save()
+    // }
+
     res.status(200).json({ success: true, note })
   } catch (error) {
     console.error(error.message)
@@ -373,7 +394,7 @@ router.get('/note/:id', fetchuser, async (req, res) => {
 
 router.get('/note/:id/counts', async (req, res) => {
   try {
-    const note = await Note.findById(req.params.id).select('likes shares copies downloads')
+    const note = await Note.findById(req.params.id).select('likes shares copies downloads views')
     if (!note) {
       return res.status(404).json({ error: 'Note not found' })
     }
@@ -389,7 +410,7 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
   try {
     const noteId = req.params.id
     const likingUserId = req.user?.id
-
+    
     if (!noteId || !likingUserId) {
       return res.status(400).json({ success: false, message: 'Invalid request data' })
     }
@@ -412,7 +433,8 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
       // 🧹 Unlike
       await Note.findByIdAndUpdate(noteId, {
         $pull: { 'actions.likes': likingUserId },
-        $inc: { likes: -1 }
+        $inc: { likes: -1 },
+        $inc: { engagementScore: -ENGAGEMENT_WEIGHTS.like}
       })
 
       await User.findByIdAndUpdate(likingUserId, {
@@ -424,7 +446,8 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
       //  Like
       await Note.findByIdAndUpdate(noteId, {
         $addToSet: { 'actions.likes': likingUserId },
-        $inc: { likes: 1 }
+        $inc: { likes: 1 },
+  $inc: { engagementScore: ENGAGEMENT_WEIGHTS.like }
       })
 
       await User.findByIdAndUpdate(likingUserId, {
@@ -476,7 +499,11 @@ router.post('/note/:id/share', fetchuser, async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'User not found' })
 
     // ✅ Always increment share count
-    await Note.findByIdAndUpdate(noteId, { $inc: { shares: 1 } })
+    await Note.findByIdAndUpdate(noteId, { 
+      $inc: {
+      shares: 1,
+      engagementScore: ENGAGEMENT_WEIGHTS.share,
+    } })
 
     // ✅ Add userId to shares list only if not already present
     await Note.updateOne(
@@ -531,7 +558,11 @@ router.post('/note/:id/copy', fetchuser, async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'User not found' })
 
     // ✅ Always increment copy count
-    await Note.findByIdAndUpdate(noteId, { $inc: { copies: 1 } })
+    await Note.findByIdAndUpdate(noteId, {
+    $inc: {
+      copies: 1,
+      engagementScore: ENGAGEMENT_WEIGHTS.copy,
+    }})
 
     // ✅ Add userId to copies list only if not already there
     await Note.updateOne(
@@ -569,7 +600,12 @@ router.post('/note/:id/download', fetchuser, async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'User not found' })
 
     // ✅ Always increase download count
-    await Note.findByIdAndUpdate(noteId, { $inc: { downloads: 1 } })
+    await Note.findByIdAndUpdate(noteId, { 
+      $inc: {
+      downloads: 1,
+      engagementScore: ENGAGEMENT_WEIGHTS.download,
+    }
+    })
 
     // ✅ Add userId to note's downloads (only if not already added)
     await Note.updateOne(
@@ -634,10 +670,47 @@ router.get('/fetchallnoteswithactions', fetchuser, async (req, res) => {
       .populate('actions.shares.userId', 'username name image')
       .populate('actions.copies.userId', 'username name image')
       .populate('actions.downloads.userId', 'username name image')
+      .populate('actions.views.userId', 'username name image')
     res.json(notes)
   } catch (error) {
     console.error('Error fetching notes with actions:', error.message)
     res.status(500).send('Internal Server Error')
+  }
+})
+
+// ROUTE: Batch track note views POST:"/api/notes/views/batch" LOGIN REQUIRED
+router.post('/views/batch', fetchuser, async (req, res) => {
+  try {
+    const { noteIds } = req.body
+    const userId = req.user.id
+
+    // Validate input
+    if (!Array.isArray(noteIds) || noteIds.length === 0) {
+      return res.status(200).json({ success: true, message: 'No views to track' })
+    }
+
+    // Bulk write operation to track views
+    // Only counts for non-owner views
+    // $addToSet ensures user is only added once to actions.views
+    // But views counter increments every time
+    const bulkOps = noteIds.map((noteId) => ({
+      updateOne: {
+        filter: { _id: noteId, user: { $ne: userId } },
+        update: {
+          $inc: { views: 1 },
+          $addToSet: {
+            'actions.views': userId
+          }
+        }
+      }
+    }))
+
+    await Note.bulkWrite(bulkOps)
+
+    res.status(200).json({ success: true, message: 'Views tracked' })
+  } catch (error) {
+    console.error('Error tracking batch views:', error.message)
+    res.status(500).json({ success: false, message: 'Internal Server Error' })
   }
 })
 
