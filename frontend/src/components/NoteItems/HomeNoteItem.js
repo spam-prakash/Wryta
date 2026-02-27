@@ -7,11 +7,11 @@ import { Link } from 'react-router-dom'
 import InteractionButtons from '../InteractionButtons'
 import HiddenDownloadCard from '../utils/HiddenDownloadCard'
 import renderWithLinksAndMentions from '../utils/renderWithLinksAndMentions'
-import { LockOpen, Lock } from 'lucide-react'
+import { LockOpen, Lock, ViewIcon, View, Share, ChartNoAxesColumn } from 'lucide-react'
 import { useNoteView } from '../../hooks/useNoteView'
 import { trackNoteView } from '../../utils/batchViewTracking'
 
-const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, username, image, showAlert, noteId, note, updateNote, userIdThroughProps }) => {
+const HomeNoteItem = ({ title, tag, description, date, modifiedDate, views, name, username, image, showAlert, noteId, note, updateNote, userIdThroughProps }) => {
   const context = useContext(noteContext)
   const { deleteNote, updateVisibility } = context
   // console.log(note)
@@ -49,7 +49,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
   const cardRef = useRef(null) // Ref for the card container  const
   const hiddenCardRef = useRef(null) // Hidden copy for download
   const [isNoteModalOpen, setisNoteModalOpen] = useState(false)
-  
+
   // Track note view when it becomes visible (700ms + repeatable)
   const isOwner = userIdThroughProps === userId
   const viewRef = useNoteView(note._id, trackNoteView, isOwner)
@@ -180,36 +180,33 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, name, usern
         </div>
 
         {/* Timestamp - Shows Both Created & Modified Dates */}
-        <div className='text-gray-400 text-xs px-4 pb-3'>
-          {/* {note.modifiedDate && (
-            <p className='py-1'>
-              Modified: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}
-            </p>
-          )} */}
-          <div className='flex items-center justify-between'>
+        <div className='flex items-center justify-between text-gray-400 text-xs px-4 pb-3'>
+          <div className='flex items-center justify-between gap-3'>
 
-            <p className='text-xs mt-2 text-slate-500'>
+            <p className='text-xs text-slate-500'>
               Published: {formatDate(note.publicDate || note.date)} at {formatTime(note.publicDate || note.date)}
             </p>
-
-            {userIdThroughProps === userId && (
-              <div className='mt-2 flex items-center justify-end'>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    toggleVisibilityModal()
-                  }}
-                  className='p-2 rounded-full hover:bg-gray-800 transition'
-                  title={note.isPublic ? 'Make Private' : 'Make Public'}
-                >
-                  {note.isPublic
-                    ? <LockOpen size={22} color='#00ff40' />
-                    : <Lock size={22} color='red' />}
-                </button>
-              </div>
-            )}
+            <p className='text-xs text-slate-300 flex items-center'>
+              <ChartNoAxesColumn className='mr-1' /> {note.views} views
+            </p>
           </div>
 
+          {userIdThroughProps === userId && (
+            <div className='mt-2 flex items-center justify-end'>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  toggleVisibilityModal()
+                }}
+                className='p-2 rounded-full hover:bg-gray-800 transition'
+                title={note.isPublic ? 'Make Private' : 'Make Public'}
+              >
+                {note.isPublic
+                  ? <LockOpen size={22} color='#00ff40' />
+                  : <Lock size={22} color='red' />}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Like, Download, Copy - Stick to Bottom */}

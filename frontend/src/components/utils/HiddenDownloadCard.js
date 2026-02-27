@@ -1,5 +1,6 @@
 import React, { forwardRef } from 'react'
 import InteractionButtons from '../InteractionButtons'
+import renderWithLinksAndMentions from './renderWithLinksAndMentions'
 
 const HiddenDownloadCard = forwardRef(({ note, username, image, formatDate, formatTime }, ref) => {
   const imageAPI = process.env.REACT_APP_IMAGEAPI
@@ -64,7 +65,7 @@ const HiddenDownloadCard = forwardRef(({ note, username, image, formatDate, form
         <div className='p-4 flex-grow'>
           <h5 className='text-lg font-bold uppercase leading-tight'>{title}</h5>
           {tag?.length > 2 && <span className='text-[#FDC116] font-medium text-sm leading-tight'># {tag}</span>}
-          <p className='mb-0 mt-2 font-normal text-white whitespace-pre-wrap leading-relaxed'>{description}</p>
+          <p className='mb-0 mt-2 font-normal text-white whitespace-pre-wrap leading-relaxed'>{renderWithLinksAndMentions(description)}</p>
         </div>
 
         {/* Interaction buttons - wrapped in a container with explicit styling */}

@@ -5,6 +5,7 @@ import renderWithLinksAndMentions from '../utils/renderWithLinksAndMentions'
 import HiddenDownloadCard from '../utils/HiddenDownloadCard'
 import { useNoteView } from '../../hooks/useNoteView'
 import { trackNoteView } from '../../utils/batchViewTracking'
+import { ChartNoAxesColumn } from 'lucide-react'
 
 const OtherProfileNoteItem = ({
   title,
@@ -43,7 +44,7 @@ const OtherProfileNoteItem = ({
   const contentRef = useRef(null)
   const cardRef = useRef(null) // Visible card
   const hiddenCardRef = useRef(null) // Hidden copy for download
-  
+
   // Track note view when it becomes visible (700ms + repeatable)
   const viewRef = useNoteView(note._id, trackNoteView, false)
   // console.log(note.isPublic)
@@ -107,7 +108,7 @@ const OtherProfileNoteItem = ({
         </div>
 
         {/* Footer */}
-        <div className='text-gray-400 text-xs px-4 pb-3'>
+        <div className='flex items-center justify-between text-gray-400 text-xs px-4 pb-3'>
           {/* {note.modifiedDate && (
             <p className='py-1'>
               Modified: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}
@@ -126,7 +127,9 @@ const OtherProfileNoteItem = ({
               return <>Published: {formatDate(latest)} at {formatTime(latest)}</>
             })()}
           </p>
-
+          <p className='text-xs text-slate-300 flex items-end'>
+            <ChartNoAxesColumn className='mr-1' /> {note.views} views
+          </p>
         </div>
 
         {/* Buttons */}

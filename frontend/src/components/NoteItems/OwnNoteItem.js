@@ -3,7 +3,7 @@ import deleteIcon from '../../assets/delete.png'
 import editIcon from '../../assets/edit.png'
 import noteContext from '../../context/notes/NoteContext'
 import NoteModal from '../models/NoteModal'
-import { Lock, LockOpen, X, Copy, Download, Share2 } from 'lucide-react'
+import { Lock, LockOpen, X, Copy, Download, Share2, ChartNoAxesColumn } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import InteractionButtons from '../InteractionButtons'
 import HiddenDownloadCard from '../utils/HiddenDownloadCard'
@@ -42,7 +42,6 @@ const OwnNoteItem = (props) => {
 
   const toggleModal = () => setIsNoteModelOpen(!isNoteModelOpen)
   const toggleVisibilityModal = () => setIsVisibilityModalOpen(!isVisibilityModalOpen)
-
 
   // ✅ Improved download with guaranteed profile image rendering
   const handleImageDownload = async () => {
@@ -154,21 +153,27 @@ const OwnNoteItem = (props) => {
         {/* Footer */}
         <div className='px-2 pb-3 border-t border-gray-700 flex flex-col'>
           <div className='text-gray-400 text-xs border-b border-gray-700 pb-2 flex justify-between items-center pt-2'>
-            <div>
-              {note.modifiedDate && (
+            <div className='left flex items-end justify-between text-gray-400 text-xs gap-3'>
+              <div className='dates'>
+                {note.modifiedDate && (
+                  <p>
+                    Updated: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}
+                  </p>
+                )}
+                {note.publicDate && (
+                  <p>
+                    Published: {formatDate(note.publicDate)} at {formatTime(note.publicDate)}
+                  </p>
+                )}
                 <p>
-                  Updated: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}
+                  Created: {formatDate(note.date)} at {formatTime(note.date)}
                 </p>
-              )}
-              {note.publicDate && (
-                <p>
-                  Published: {formatDate(note.publicDate)} at {formatTime(note.publicDate)}
-                </p>
-              )}
-              <p>
-                Created: {formatDate(note.date)} at {formatTime(note.date)}
+              </div>
+              <p className='text-xs text-slate-300 flex items-end'>
+                <ChartNoAxesColumn className='mr-1' /> {note.views} views
               </p>
             </div>
+
             <button onClick={toggleVisibilityModal} className='text-xs p-2 mr-3 rounded-full transition '>
               {note.isPublic ? <LockOpen size={24} color='#00ff40' /> : <Lock size={24} color='red' />}
             </button>
