@@ -17,15 +17,20 @@ const hostLink = process.env.REACT_APP_HOSTLINK
 // Path logic: from /backend/routes/notes.js to /backend/fonts/
 const fontsDir = path.join(__dirname, '../fonts')
 
-// skia-canvas uses FontLibrary.use to register a family with multiple weights
 try {
+  /* ⭐ MAIN FONT (Hindi + English rendering also fine) */
   FontLibrary.use('WrytaFont', [
     path.join(fontsDir, 'NotoSansDevanagari_Condensed-Regular.ttf'),
     { path: path.join(fontsDir, 'NotoSansDevanagari_Condensed-Bold.ttf'), weight: 'bold' },
-    { path: path.join(fontsDir, 'NotoSansDevanagari_Condensed-Medium.ttf'), weight: '500' },
-    path.join(fontsDir, 'NotoColorEmoji.ttf') // Included as part of the family fallback
+    { path: path.join(fontsDir, 'NotoSansDevanagari_Condensed-Medium.ttf'), weight: '500' }
   ])
-  console.log('🔥 Skia Fonts Loaded (Wryta + Emojis)')
+
+  /* ⭐ EMOJI FALLBACK MUST BE SEPARATE */
+  FontLibrary.use('EmojiFont', [
+    path.join(fontsDir, 'NotoColorEmoji.ttf')
+  ])
+
+  console.log('🔥 Skia Fonts Loaded Correctly')
 } catch (e) {
   console.error('❌ FONT LOAD FAILED', e)
 }
@@ -761,7 +766,7 @@ router.get('/og-image/:id', async (req, res) => {
     ctx.textBaseline = 'top'
     ctx.textAlign = 'left'
 
-    ctx.font = '700 64px NotoSansDevanagari'
+    ctx.font = '700 64px "WrytaFont","EmojiFont"'
     let x = 80
     ctx.fillStyle = '#ffffff'
     ctx.fillText('Wry', x, 70)
@@ -784,7 +789,7 @@ router.get('/og-image/:id', async (req, res) => {
       .trim()
 
     ctx.fillStyle = '#ffffff'
-    ctx.font = '700 56px NotoSansDevanagari'
+    ctx.font = '700 56px "WrytaFont","EmojiFont"'
 
     const maxTitleWidth = 1040
 
@@ -798,7 +803,7 @@ router.get('/og-image/:id', async (req, res) => {
 
     // Description
     ctx.fillStyle = '#94a3b8'
-    ctx.font = '400 32px NotoSansDevanagari'
+    ctx.font = '400 32px "WrytaFont","EmojiFont"'
 
     const desc = note.description || ''
     const maxWidth = 1040
@@ -843,7 +848,7 @@ router.get('/og-image/:id', async (req, res) => {
       ctx.fillRect(80, height - 110, 30, 4)
 
       ctx.fillStyle = '#f8fafc'
-      ctx.font = '500 30px NotoSansDevanagari'
+      ctx.font = '500 30px "WrytaFont","EmojiFont"'
 
       ctx.fillText(
         `@${note.user.username || note.user.name}`,
@@ -854,7 +859,7 @@ router.get('/og-image/:id', async (req, res) => {
 
     ctx.textAlign = 'right'
     ctx.fillStyle = 'rgba(148,163,184,0.5)'
-    ctx.font = '400 24px NotoSansDevanagari'
+    ctx.font = '400 24px "WrytaFont","EmojiFont"'
     ctx.fillText('wryta', 1120, height - 70)
 
     const buffer = await canvas.toBuffer('png')
