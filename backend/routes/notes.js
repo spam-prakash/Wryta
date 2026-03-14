@@ -8,7 +8,7 @@ const Notification = require('../models/Notification')
 // const ENGAGEMENT_WEIGHTS=require('../utils/engagement')
 const { body, validationResult } = require('express-validator')
 const { getIO, onlineUsers, emitNotification } = require('../socket')
-const { createCanvas, registerFont } = require('canvas')
+const { Canvas, FontLibrary } = require('skia-canvas')
 const path = require('path')
 const fs = require('fs')
 const liveLink = process.env.REACT_APP_LIVE_LINK
@@ -17,23 +17,15 @@ const hostLink = process.env.REACT_APP_HOSTLINK
 // Path logic: from /backend/routes/notes.js to /backend/fonts/
 const fontsDir = path.join(__dirname, '../fonts')
 
+// skia-canvas uses FontLibrary.use to register a family with multiple weights
 try {
-  // Use unique names that DON'T overlap with system font names or keywords
-  registerFont(path.join(fontsDir, 'NotoSansDevanagari_Condensed-Regular.ttf'), {
-    family: 'WrytaMainRegular'
-  })
-
-  registerFont(path.join(fontsDir, 'NotoSansDevanagari_Condensed-Bold.ttf'), {
-    family: 'WrytaMainBold'
-  })
-
-  registerFont(path.join(fontsDir, 'NotoSansDevanagari_Condensed-Medium.ttf'), {
-    family: 'WrytaMainMedium'
-  })
-
-  registerFont(path.join(fontsDir, 'NotoColorEmoji.ttf'), { family: 'EmojiFont' })
-
-  console.log('🔥 OG Fonts Registered Successfully')
+  FontLibrary.use('WrytaFont', [
+    path.join(fontsDir, 'NotoSansDevanagari_Condensed-Regular.ttf'),
+    { path: path.join(fontsDir, 'NotoSansDevanagari_Condensed-Bold.ttf'), weight: 'bold' },
+    { path: path.join(fontsDir, 'NotoSansDevanagari_Condensed-Medium.ttf'), weight: '500' },
+    path.join(fontsDir, 'NotoColorEmoji.ttf') // Included as part of the family fallback
+  ])
+  console.log('🔥 Skia Fonts Loaded (Wryta + Emojis)')
 } catch (e) {
   console.error('❌ FONT LOAD FAILED', e)
 }
@@ -750,7 +742,7 @@ router.get('/og-image/:id', async (req, res) => {
 
     const width = 1200
     const height = 630
-    const canvas = createCanvas(width, height)
+    const canvas = new Canvas(width, height)
     const ctx = canvas.getContext('2d')
 
     // 1. Background & Aesthetic Glow
@@ -767,23 +759,32 @@ router.get('/og-image/:id', async (req, res) => {
     ctx.fillRect(0, 0, width, height)
 
     // 2. Header Branding
-    ctx.font = 'bold 64px sans-serif'; ctx.textBaseline = 'top'
-    let curX = 80;
+    ctx.textBaseline = 'top'
+    let curX = 80
+    ctx.font = 'bold 64px Wryta';
     [['Wry', '#fff'], ['ta', '#FDC116']].forEach(([txt, col]) => {
-      ctx.fillStyle = col; ctx.fillText(txt, curX, 70)
+      ctx.fillStyle = col
+      ctx.fillText(txt, curX, 70)
       curX += ctx.measureText(txt).width
     })
 
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)'; ctx.lineWidth = 1; ctx.beginPath()
-    ctx.moveTo(80, 160); ctx.lineTo(1120, 140); ctx.stroke()
+    // Horizontal Line (Fixed Y-coordinate for straightness)
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)'
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(80, 155)
+    ctx.lineTo(1120, 155)
+    ctx.stroke()
 
-    // 3. TITLE: Using WrytaMainBold (No 'bold' keyword)
+    // 3. TITLE: Sanitized to prevent gaps
     ctx.fillStyle = '#ffffff'
-    const maxTitleWidth = 720
-    const titleY = 200
-    ctx.font = '48px WrytaMainBold'
+    ctx.font = 'bold 56px Wryta'
+    const maxTitleWidth = 1040
 
-    let titleText = (note.title || 'Untitled Note').replace(/\r?\n/g, ' ')
+    // Remove all newlines and multiple spaces to prevent rendering gaps
+    let titleText = (note.title || 'Untitled Note')
+      .replace(/\s+/g, ' ')
+      .trim()
 
     if (ctx.measureText(titleText).width > maxTitleWidth) {
       while (ctx.measureText(titleText + '...').width > maxTitleWidth && titleText.length > 0) {
@@ -791,58 +792,77 @@ router.get('/og-image/:id', async (req, res) => {
       }
       titleText += '...'
     }
-    ctx.fillText(titleText, 80, titleY)
+    ctx.fillText(titleText, 80, 210)
 
-    // 4. DESCRIPTION: Using WrytaMainRegular
+    // 4. DESCRIPTION/BIO: Multi-line & Poem Aware
     ctx.fillStyle = '#94a3b8'
-    ctx.font = '32px EmojiFont, WrytaMainRegular'
+    ctx.font = '32px Wryta'
     const maxDescWidth = 1040
     const descLineHeight = 48
-    const descStartY = 280
+    const descStartY = 300
 
-    const rawParagraphs = (note.description || 'Read this thought on Wryta.').split(/\r?\n/)
-    let descLines = []
+    // SPLIT by actual newlines first to preserve poem structure
+    const paragraphs = (note.description || '').split(/\r?\n/)
+    const finalLines = []
 
-    for (const p of rawParagraphs) {
-      const words = p.split(' '); let currentLine = ''
+    for (const p of paragraphs) {
+    // If it's an empty line, add an empty string to maintain the gap
+      if (p.trim() === '') {
+        finalLines.push('')
+        continue
+      }
+
+      // Wrap the individual line if it's too long
+      const words = p.trim().split(' ')
+      let currentLine = ''
+
       for (const word of words) {
-        const testLine = currentLine + word + ' '
+        const testLine = currentLine ? `${currentLine} ${word}` : word
         if (ctx.measureText(testLine).width > maxDescWidth && currentLine !== '') {
-          descLines.push(currentLine.trim())
-          currentLine = word + ' '
+          finalLines.push(currentLine)
+          currentLine = word
         } else {
           currentLine = testLine
         }
       }
-      if (currentLine.trim()) descLines.push(currentLine.trim())
+      if (currentLine) finalLines.push(currentLine)
     }
 
-    if (descLines.length > 4) {
-      descLines = descLines.slice(0, 4)
-      descLines[3] = descLines[3].replace(/\s+$/, '') + '...'
-    }
+    // Render the lines, respecting the limit of 6 lines for poems/long notes
+    const maxVisibleLines = 4
+    finalLines.slice(0, maxVisibleLines).forEach((line, i) => {
+    // Truncate only the very last allowed line if there's more content
+      if (i === maxVisibleLines - 1 && finalLines.length > maxVisibleLines) {
+        line = line.substring(0, line.length - 3) + '...'
+      }
 
-    descLines.forEach((line, i) => {
-      ctx.fillText(line, 80, descStartY + (i * descLineHeight))
+      // Only draw if the line isn't just a manual spacer
+      if (line !== '') {
+        ctx.fillText(line, 80, descStartY + (i * descLineHeight))
+      }
     })
 
-    // 5. FOOTER: Using WrytaMainMedium
+    // 5. FOOTER
     if (note.user) {
-      ctx.fillStyle = '#38bdf8'; ctx.fillRect(80, height - 115, 30, 4)
+      ctx.fillStyle = '#38bdf8'
+      ctx.fillRect(80, height - 115, 30, 4)
       ctx.fillStyle = '#f8fafc'
-      ctx.font = '30px WrytaMainMedium'
-      ctx.fillText(`@${note.user.username || note.user.name}`, 80, height - 70)
+      ctx.font = '500 30px Wryta'
+      ctx.fillText(`@${note.user.username || note.user.name}`, 80, height - 75)
     }
 
     ctx.fillStyle = 'rgba(148, 163, 184, 0.5)'
-    ctx.font = '30px WrytaMainMedium'
-    ctx.fillText('Wryta', 1040, height - 70)
+    ctx.font = '24px Wryta'
+    ctx.textAlign = 'right'
+    ctx.fillText('wryta', 1120, height - 75)
 
-    res.setHeader('Content-Type', 'image/png')
-    res.setHeader('Cache-Control', 'public, max-age=86400')
-    canvas.createPNGStream().pipe(res)
+    // 6. RESPONSE
+    const buffer = await canvas.toBuffer('png')
+    res.set('Content-Type', 'image/png')
+    res.set('Cache-Control', 'public, max-age=86400')
+    res.send(buffer)
   } catch (err) {
-    console.error(err)
+    console.error('OG Generation Error:', err)
     res.status(500).send('Error generating OG image')
   }
 })

@@ -36,6 +36,7 @@
     "passport-google-oauth2": "^0.2.0",
     "passport-google-oauth20": "^2.0.0",
     "resend": "^6.2.0",
+    "skia-canvas": "^3.0.8",
     "socket.io": "^4.8.3",
     "vercel": "^37.4.2"
   }
