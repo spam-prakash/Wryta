@@ -269,7 +269,7 @@ app.get('/user/:username', async (req, res) => {
       return res.redirect(`${liveLink}/404`)
     }
 
-    const bio = user.bio
+    const bio = user.bio || 'Read more from this user.'
     const imageUrl = `${hostLink}/api/user/og-image/${username}`
     const url = `${hostLink}/u/${username}`
 

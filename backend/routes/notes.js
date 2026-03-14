@@ -766,7 +766,7 @@ router.get('/og-image/:id', async (req, res) => {
     ctx.textBaseline = 'top'
     ctx.textAlign = 'left'
 
-    ctx.font = '700 64px "WrytaFont","EmojiFont"'
+    ctx.font = '700 64px NotoSansDevanagari'
     let x = 80
     ctx.fillStyle = '#ffffff'
     ctx.fillText('Wry', x, 70)
@@ -783,7 +783,7 @@ router.get('/og-image/:id', async (req, res) => {
     ctx.stroke()
 
     // Title
-    let title = (note.title || 'Untitled')
+    let title = (note.title || 'Untitled Note')
       .replace(/[\u200B-\u200D\uFEFF]/g, '')
       .replace(/\s+/g, ' ')
       .trim()
