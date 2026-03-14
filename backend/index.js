@@ -212,36 +212,44 @@ app.get('/note/:id', async (req, res) => {
     const imageUrl = `${hostLink}/api/notes/og-image/${note._id}`
     const url = `${hostLink}/note/${note._id}`
 
-    const html = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${title} - Wryta</title>
-        
-        <!-- Open Graph Meta Tags -->
-        <meta property="og:title" content="${title}" />
-        <meta property="og:description" content="${description}" />
-        <meta property="og:image" content="${imageUrl}" />
-        <meta property="og:url" content="${url}" />
-        <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="Wryta" />
-        
-        <!-- Twitter Card (optional, for Twitter) -->
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="${title}" />
-        <meta name="twitter:description" content="${description}" />
-        <meta name="twitter:image" content="${imageUrl}" />
-        
-        <!-- Redirect to React app after meta tags are read -->
-        <script>window.location.href = '${liveLink}/note/${note._id}';</script>
-      </head>
-      <body>
-        <p>Redirecting to Wryta...</p>
-      </body>
-      </html>
-    `
+    // Check if request is from a crawler/bot
+    const userAgent = req.get('User-Agent') || ''
+    const isCrawler = /bot|crawler|spider|facebook|twitter|linkedin|whatsapp|telegram|discord/i.test(userAgent)
+
+    let html
+    if (isCrawler) {
+      // Serve static HTML with meta tags for crawlers
+      html = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${title} - Wryta</title>
+          
+          <!-- Open Graph Meta Tags -->
+          <meta property="og:title" content="${title}" />
+          <meta property="og:description" content="${description}" />
+          <meta property="og:image" content="${imageUrl}" />
+          <meta property="og:url" content="${url}" />
+          <meta property="og:type" content="article" />
+          <meta property="og:site_name" content="Wryta" />
+          
+          <!-- Twitter Card -->
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content="${title}" />
+          <meta name="twitter:description" content="${description}" />
+          <meta name="twitter:image" content="${imageUrl}" />
+        </head>
+        <body>
+          <p>Loading Wryta...</p>
+        </body>
+        </html>
+      `
+    } else {
+      // Redirect users to the frontend
+      return res.redirect(`${liveLink}/note/${note._id}`)
+    }
 
     res.send(html)
   } catch (error) {
