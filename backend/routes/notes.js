@@ -147,10 +147,10 @@ router.put('/updatenote/:id', [body('description').isLength({ min: 3 })], fetchu
 
     // Extract mentions from old and new descriptions
     const oldMentions =
-        note.description.match(/@([a-zA-Z0-9._-]+)/g)?.map(m => m.slice(1)) || []
+      note.description.match(/@([a-zA-Z0-9._-]+)/g)?.map(m => m.slice(1)) || []
 
     const newMentions =
-        description.match(/@([a-zA-Z0-9._-]+)/g)?.map(m => m.slice(1)) || []
+      description.match(/@([a-zA-Z0-9._-]+)/g)?.map(m => m.slice(1)) || []
 
     // Find users who were newly mentioned
     const newlyMentioned = newMentions.filter(u => !oldMentions.includes(u))
@@ -765,19 +765,20 @@ router.get('/og-image/:id', async (req, res) => {
     ctx.fillRect(0, 0, width, height)
 
     // 2. Header Branding
-    ctx.fillStyle = '#ffffff'
-    ctx.font = 'bold 64px sans-serif' // System font for logo is safe with 'bold'
-    ctx.fillText('Wry', 80, 120)
-    ctx.fillStyle = '#FDC116'
-    ctx.fillText('ta', 210, 120)
+    ctx.font = 'bold 64px sans-serif'; ctx.textBaseline = 'top'
+    let curX = 80;
+    [['Wry', '#fff'], ['ta', '#FDC116']].forEach(([txt, col]) => {
+      ctx.fillStyle = col; ctx.fillText(txt, curX, 70)
+      curX += ctx.measureText(txt).width
+    })
 
     ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)'; ctx.lineWidth = 1; ctx.beginPath()
-    ctx.moveTo(80, 140); ctx.lineTo(1120, 140); ctx.stroke()
+    ctx.moveTo(80, 160); ctx.lineTo(1120, 140); ctx.stroke()
 
     // 3. TITLE: Using WrytaMainBold (No 'bold' keyword)
     ctx.fillStyle = '#ffffff'
     const maxTitleWidth = 720
-    const titleY = 240
+    const titleY = 200
     ctx.font = '48px WrytaMainBold'
 
     let titleText = (note.title || 'Untitled Note').replace(/\r?\n/g, ' ')
@@ -795,7 +796,7 @@ router.get('/og-image/:id', async (req, res) => {
     ctx.font = '32px WrytaMainRegular'
     const maxDescWidth = 1040
     const descLineHeight = 48
-    const descStartY = 330
+    const descStartY = 280
 
     const rawParagraphs = (note.description || 'Read this thought on Wryta.').split(/\r?\n/)
     let descLines = []
