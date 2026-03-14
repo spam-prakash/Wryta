@@ -269,147 +269,169 @@ router.get('/useraction/likednotes', fetchuser, async (req, res) => {
 // ROUTE: Generate OG Image for a User
 router.get('/og-image/:username', async (req, res) => {
   const { username } = req.params
+
   try {
     const user = await User.findOne({
       username: { $regex: `^${username}$`, $options: 'i' }
-    }).select('name username bio notes follower following').lean()
+    })
+      .select('name username bio follower following')
+      .lean()
 
     if (!user) return res.status(404).send('User not found')
 
-    const notes = await Note.find({ user: user._id })
-    const totalNotes = notes.length
-    const publicNotes = notes.filter((note) => note.isPublic).length
+    /* ✅ FAST COUNTS (no heavy filtering loop) */
+    const totalNotes = await Note.countDocuments({ user: user._id })
+    const publicNotes = await Note.countDocuments({
+      user: user._id,
+      isPublic: true
+    })
+
     const followersCount = user.follower?.list?.length || 0
     const followingCount = user.following?.list?.length || 0
 
     const width = 1200
     const height = 630
+
     const canvas = new Canvas(width, height)
     const ctx = canvas.getContext('2d')
 
-    // 1. Background & Aesthetic Glow
+    /* ================= BACKGROUND ================= */
     const bg = ctx.createLinearGradient(0, 0, width, height)
-    bg.addColorStop(0, '#020617'); bg.addColorStop(1, '#0f172a')
-    ctx.fillStyle = bg; ctx.fillRect(0, 0, width, height)
+    bg.addColorStop(0, '#020617')
+    bg.addColorStop(1, '#0f172a')
+    ctx.fillStyle = bg
+    ctx.fillRect(0, 0, width, height)
 
     const glow = ctx.createRadialGradient(1000, 100, 50, 1000, 100, 600)
-    glow.addColorStop(0, 'rgba(56, 189, 248, 0.15)'); glow.addColorStop(1, 'rgba(0,0,0,0)')
-    ctx.fillStyle = glow; ctx.fillRect(0, 0, width, height)
+    glow.addColorStop(0, 'rgba(56,189,248,0.15)')
+    glow.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = glow
+    ctx.fillRect(0, 0, width, height)
 
-    // 2. Header Branding
     ctx.textBaseline = 'top'
-    let curX = 80
-    ctx.font = 'bold 64px WrytaFont';
-    [['Wry', '#fff'], ['ta', '#FDC116']].forEach(([txt, col]) => {
-      ctx.fillStyle = col
-      ctx.fillText(txt, curX, 70)
-      curX += ctx.measureText(txt).width
-    })
+    ctx.textAlign = 'left'
 
-    // Horizontal Line (Fixed Y-coordinate for straightness)
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)'
+    /* ================= BRAND ================= */
+    ctx.font = '700 64px NotoSansDevanagari'
+
+    let x = 80
+    ctx.fillStyle = '#fff'
+    ctx.fillText('Wry', x, 70)
+    x += ctx.measureText('Wry').width
+
+    ctx.fillStyle = '#FDC116'
+    ctx.fillText('ta', x, 70)
+
+    ctx.strokeStyle = 'rgba(56,189,248,0.25)'
     ctx.lineWidth = 1
     ctx.beginPath()
     ctx.moveTo(80, 155)
     ctx.lineTo(1120, 155)
     ctx.stroke()
 
-    // 3. TITLE (Name)
+    /* ================= NAME TITLE ================= */
     ctx.fillStyle = '#ffffff'
-    const maxTitleWidth = 720
-    ctx.font = 'bold 48px WrytaFont'
-    let titleText = (user.name || 'Wryta User').replace(/\r?\n/g, ' ')
+    ctx.font = '700 52px NotoSansDevanagari'
 
-    if (ctx.measureText(titleText).width > maxTitleWidth) {
-      while (ctx.measureText(titleText + '...').width > maxTitleWidth && titleText.length > 0) {
-        titleText = titleText.slice(0, -1)
-      }
-      titleText += '...'
+    let name = (user.name || 'Wryta User')
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+
+    const maxNameWidth = 720
+
+    while (ctx.measureText(name).width > maxNameWidth) {
+      name = name.slice(0, -1)
     }
-    ctx.fillText(titleText, 80, 210)
 
-    // 4. BIO/DESCRIPTION (Poem & Multi-line Aware)
+    ctx.fillText(name, 80, 210)
+
+    /* ================= BIO WRAP (CHAR SMART) ================= */
     ctx.fillStyle = '#94a3b8'
-    ctx.font = '32px WrytaFont'
-    const maxDescWidth = 720
-    const descLineHeight = 46
-    const descStartY = 290
+    ctx.font = '400 32px NotoSansDevanagari'
 
-    // Split by actual newlines to preserve user formatting
-    const paragraphs = (user.bio || 'Read more from this user.').split(/\r?\n/)
-    const finalLines = []
+    const bio = user.bio || 'Read more from this user.'
+    const maxWidth = 720
+    const lineHeight = 48
+    const startY = 290
 
-    for (const p of paragraphs) {
-      if (p.trim() === '') {
-        finalLines.push('') // Preserve empty spacer lines
+    const lines = []
+    const paragraphs = bio.split(/\r?\n/)
+
+    for (const para of paragraphs) {
+      const text = para.trim()
+
+      if (!text) {
+        lines.push('')
         continue
       }
-      const words = p.trim().split(' ')
-      let currentLine = ''
-      for (const word of words) {
-        const testLine = currentLine ? `${currentLine} ${word}` : word
-        if (ctx.measureText(testLine).width > maxDescWidth && currentLine !== '') {
-          finalLines.push(currentLine)
-          currentLine = word
+
+      let line = ''
+
+      for (const ch of text) {
+        const test = line + ch
+
+        if (ctx.measureText(test).width > maxWidth && line) {
+          lines.push(line)
+          line = ch
         } else {
-          currentLine = testLine
+          line = test
         }
       }
-      if (currentLine) finalLines.push(currentLine)
+
+      if (line) lines.push(line)
     }
 
-    // Draw up to 6 lines to allow for longer bios/poems
-    finalLines.slice(0, 6).forEach((line, i) => {
-      if (i === 5 && finalLines.length > 6) line += '...'
-      if (line !== '') {
-        ctx.fillText(line, 80, descStartY + (i * descLineHeight))
-      }
+    lines.slice(0, 4).forEach((l, i) => {
+      if (i === 3 && lines.length > 4) l += '...'
+      ctx.fillText(l, 80, startY + i * lineHeight)
     })
 
-    // 5. STATS GRID (Dashboard Style)
-    const statsX = 850
-    const statsYStart = 240
-    const colGap = 180
-    const rowGap = 120
+    /* ================= STATS GRID ================= */
+    const statsX = 900
+    const statsY = 240
+    const gapX = 180
+    const gapY = 120
 
     const drawStat = (label, value, x, y) => {
       ctx.textAlign = 'center'
       ctx.fillStyle = '#ffffff'
-      ctx.font = '500 42px WrytaFont' // Medium weight for numbers
-      ctx.fillText(value.toString(), x, y)
+      ctx.font = '600 44px NotoSansDevanagari'
+      ctx.fillText(String(value), x, y)
 
-      ctx.fillStyle = 'rgba(148, 163, 184, 0.8)'
-      ctx.font = '22px WrytaFont'
-      ctx.fillText(label.toUpperCase(), x, y + 45)
+      ctx.fillStyle = 'rgba(148,163,184,0.85)'
+      ctx.font = '400 22px NotoSansDevanagari'
+      ctx.fillText(label.toUpperCase(), x, y + 48)
     }
 
-    drawStat('Notes', totalNotes, statsX, statsYStart)
-    drawStat('Public', publicNotes, statsX + colGap, statsYStart)
-    drawStat('Followers', followersCount, statsX, statsYStart + rowGap)
-    drawStat('Following', followingCount, statsX + colGap, statsYStart + rowGap)
+    drawStat('Notes', totalNotes, statsX, statsY)
+    drawStat('Public', publicNotes, statsX + gapX, statsY)
+    drawStat('Followers', followersCount, statsX, statsY + gapY)
+    drawStat('Following', followingCount, statsX + gapX, statsY + gapY)
 
-    ctx.textAlign = 'left' // Reset for footer
+    ctx.textAlign = 'left'
 
-    // 6. FOOTER
-    if (user.username) {
-      ctx.fillStyle = '#38bdf8'; ctx.fillRect(80, height - 110, 30, 4)
-      ctx.fillStyle = '#f8fafc'
-      ctx.font = '500 30px WrytaFont'
-      ctx.fillText(`@${user.username}`, 80, height - 70)
-    }
+    /* ================= FOOTER ================= */
+    ctx.fillStyle = '#38bdf8'
+    ctx.fillRect(80, height - 110, 30, 4)
 
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.5)'
-    ctx.font = '24px WrytaFont'
+    ctx.fillStyle = '#f8fafc'
+    ctx.font = '500 30px NotoSansDevanagari'
+    ctx.fillText(`@${user.username}`, 80, height - 70)
+
     ctx.textAlign = 'right'
+    ctx.fillStyle = 'rgba(148,163,184,0.5)'
+    ctx.font = '400 24px NotoSansDevanagari'
     ctx.fillText('wryta', 1120, height - 70)
 
-    // 7. RESPONSE
+    /* ================= EXPORT ================= */
     const buffer = await canvas.toBuffer('png')
+
     res.set('Content-Type', 'image/png')
     res.set('Cache-Control', 'public, max-age=86400')
     res.send(buffer)
   } catch (err) {
-    console.error('User OG Error:', err)
+    console.error(err)
     res.status(500).send('Error generating OG image')
   }
 })

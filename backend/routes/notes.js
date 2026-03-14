@@ -737,133 +737,133 @@ router.post('/views/batch', fetchuser, async (req, res) => {
 // ROUTE: Generate OG Image for a Note
 router.get('/og-image/:id', async (req, res) => {
   try {
-    const note = await Note.findById(req.params.id).populate('user', 'name username').lean()
+    const note = await Note.findById(req.params.id)
+      .populate('user', 'name username')
+      .lean()
+
     if (!note) return res.status(404).send('Note not found')
 
     const width = 1200
     const height = 630
+
     const canvas = new Canvas(width, height)
     const ctx = canvas.getContext('2d')
 
-    // 1. Background & Aesthetic Glow
-    const bg = ctx.createLinearGradient(0, 0, width, height)
-    bg.addColorStop(0, '#020617')
-    bg.addColorStop(1, '#0f172a')
-    ctx.fillStyle = bg
+    // Background
+    const gradient = ctx.createLinearGradient(0, 0, width, height)
+    gradient.addColorStop(0, '#020617')
+    gradient.addColorStop(1, '#0f172a')
+
+    ctx.fillStyle = gradient
     ctx.fillRect(0, 0, width, height)
 
-    const glow = ctx.createRadialGradient(1000, 100, 50, 1000, 100, 600)
-    glow.addColorStop(0, 'rgba(56, 189, 248, 0.15)')
-    glow.addColorStop(1, 'rgba(0,0,0,0)')
-    ctx.fillStyle = glow
-    ctx.fillRect(0, 0, width, height)
-
-    // 2. Header Branding
+    // Branding
     ctx.textBaseline = 'top'
-    let curX = 80
-    ctx.font = 'bold 64px Wryta';
-    [['Wry', '#fff'], ['ta', '#FDC116']].forEach(([txt, col]) => {
-      ctx.fillStyle = col
-      ctx.fillText(txt, curX, 70)
-      curX += ctx.measureText(txt).width
-    })
+    ctx.textAlign = 'left'
 
-    // Horizontal Line (Fixed Y-coordinate for straightness)
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)'
+    ctx.font = '700 64px NotoSansDevanagari'
+    let x = 80
+    ctx.fillStyle = '#ffffff'
+    ctx.fillText('Wry', x, 70)
+    x += ctx.measureText('Wry').width
+
+    ctx.fillStyle = '#FDC116'
+    ctx.fillText('ta', x, 70)
+
+    ctx.strokeStyle = 'rgba(56,189,248,0.25)'
     ctx.lineWidth = 1
     ctx.beginPath()
     ctx.moveTo(80, 155)
     ctx.lineTo(1120, 155)
     ctx.stroke()
 
-    // 3. TITLE: Sanitized to prevent gaps
-    ctx.fillStyle = '#ffffff'
-    ctx.font = 'bold 56px Wryta'
-    const maxTitleWidth = 720
-
-    // Remove all newlines and multiple spaces to prevent rendering gaps
-    let titleText = (note.title || 'Untitled Note')
+    // Title
+    let title = (note.title || 'Untitled')
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')
       .replace(/\s+/g, ' ')
       .trim()
 
-    if (ctx.measureText(titleText).width > maxTitleWidth) {
-      while (ctx.measureText(titleText + '...').width > maxTitleWidth && titleText.length > 0) {
-        titleText = titleText.slice(0, -1)
-      }
-      titleText += '...'
+    ctx.fillStyle = '#ffffff'
+    ctx.font = '700 56px NotoSansDevanagari'
+
+    const maxTitleWidth = 1040
+
+    while (ctx.measureText(title).width > maxTitleWidth) {
+      title = title.slice(0, -1)
     }
-    ctx.fillText(titleText, 80, 210)
 
-    // 4. DESCRIPTION/BIO: Multi-line & Poem Aware
+    if (title !== note.title) title += '...'
+
+    ctx.fillText(title, 80, 210)
+
+    // Description
     ctx.fillStyle = '#94a3b8'
-    ctx.font = '32px Wryta'
-    const maxDescWidth = 1040
-    const descLineHeight = 48
-    const descStartY = 300
+    ctx.font = '400 32px NotoSansDevanagari'
 
-    // SPLIT by actual newlines first to preserve poem structure
-    const paragraphs = (note.description || '').split(/\r?\n/)
-    const finalLines = []
+    const desc = note.description || ''
+    const maxWidth = 1040
+    const lineHeight = 52
+    const startY = 310
 
-    for (const p of paragraphs) {
-    // If it's an empty line, add an empty string to maintain the gap
-      if (p.trim() === '') {
-        finalLines.push('')
+    const lines = []
+
+    const paragraphs = desc.split(/\r?\n/)
+
+    for (const para of paragraphs) {
+      const text = para.trim()
+      if (!text) {
+        lines.push('')
         continue
       }
 
-      // Wrap the individual line if it's too long
-      const words = p.trim().split(' ')
-      let currentLine = ''
+      let line = ''
 
-      for (const word of words) {
-        const testLine = currentLine ? `${currentLine} ${word}` : word
-        if (ctx.measureText(testLine).width > maxDescWidth && currentLine !== '') {
-          finalLines.push(currentLine)
-          currentLine = word
+      for (const ch of text) {
+        const test = line + ch
+
+        if (ctx.measureText(test).width > maxWidth && line) {
+          lines.push(line)
+          line = ch
         } else {
-          currentLine = testLine
+          line = test
         }
       }
-      if (currentLine) finalLines.push(currentLine)
+
+      if (line) lines.push(line)
     }
 
-    // Render the lines, respecting the limit of 6 lines for poems/long notes
-    const maxVisibleLines = 4
-    finalLines.slice(0, maxVisibleLines).forEach((line, i) => {
-    // Truncate only the very last allowed line if there's more content
-      if (i === maxVisibleLines - 1 && finalLines.length > maxVisibleLines) {
-        line = line.substring(0, line.length - 3) + '...'
-      }
-
-      // Only draw if the line isn't just a manual spacer
-      if (line !== '') {
-        ctx.fillText(line, 80, descStartY + (i * descLineHeight))
-      }
+    lines.slice(0, 4).forEach((l, i) => {
+      if (i === 3 && lines.length > 4) l += '...'
+      ctx.fillText(l, 80, startY + i * lineHeight)
     })
 
-    // 5. FOOTER
+    // Footer
     if (note.user) {
       ctx.fillStyle = '#38bdf8'
-      ctx.fillRect(80, height - 115, 30, 4)
+      ctx.fillRect(80, height - 110, 30, 4)
+
       ctx.fillStyle = '#f8fafc'
-      ctx.font = '500 30px Wryta'
-      ctx.fillText(`@${note.user.username || note.user.name}`, 80, height - 75)
+      ctx.font = '500 30px NotoSansDevanagari'
+
+      ctx.fillText(
+        `@${note.user.username || note.user.name}`,
+        80,
+        height - 70
+      )
     }
 
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.5)'
-    ctx.font = '24px Wryta'
     ctx.textAlign = 'right'
-    ctx.fillText('wryta', 1120, height - 75)
+    ctx.fillStyle = 'rgba(148,163,184,0.5)'
+    ctx.font = '400 24px NotoSansDevanagari'
+    ctx.fillText('wryta', 1120, height - 70)
 
-    // 6. RESPONSE
     const buffer = await canvas.toBuffer('png')
     res.set('Content-Type', 'image/png')
     res.set('Cache-Control', 'public, max-age=86400')
     res.send(buffer)
   } catch (err) {
-    console.error('OG Generation Error:', err)
-    res.status(500).send('Error generating OG image')
+    console.error(err)
+    res.status(500).send('OG generation failed')
   }
 })
 
