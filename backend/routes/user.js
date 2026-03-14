@@ -299,7 +299,7 @@ router.get('/og-image/:username', async (req, res) => {
     // 2. Header Branding
     ctx.textBaseline = 'top'
     let curX = 80
-    ctx.font = 'bold 64px Wryta';
+    ctx.font = 'bold 64px WrytaFont';
     [['Wry', '#fff'], ['ta', '#FDC116']].forEach(([txt, col]) => {
       ctx.fillStyle = col
       ctx.fillText(txt, curX, 70)
@@ -313,10 +313,11 @@ router.get('/og-image/:username', async (req, res) => {
     ctx.moveTo(80, 155)
     ctx.lineTo(1120, 155)
     ctx.stroke()
+
     // 3. TITLE (Name)
     ctx.fillStyle = '#ffffff'
     const maxTitleWidth = 720
-    ctx.font = 'bold 48px Wryta'
+    ctx.font = 'bold 48px WrytaFont'
     let titleText = (user.name || 'Wryta User').replace(/\r?\n/g, ' ')
 
     if (ctx.measureText(titleText).width > maxTitleWidth) {
@@ -329,7 +330,7 @@ router.get('/og-image/:username', async (req, res) => {
 
     // 4. BIO/DESCRIPTION (Poem & Multi-line Aware)
     ctx.fillStyle = '#94a3b8'
-    ctx.font = '32px Wryta'
+    ctx.font = '32px WrytaFont'
     const maxDescWidth = 720
     const descLineHeight = 46
     const descStartY = 290
@@ -374,11 +375,11 @@ router.get('/og-image/:username', async (req, res) => {
     const drawStat = (label, value, x, y) => {
       ctx.textAlign = 'center'
       ctx.fillStyle = '#ffffff'
-      ctx.font = '500 42px Wryta' // Medium weight for numbers
+      ctx.font = '500 42px WrytaFont' // Medium weight for numbers
       ctx.fillText(value.toString(), x, y)
 
       ctx.fillStyle = 'rgba(148, 163, 184, 0.8)'
-      ctx.font = '22px Wryta'
+      ctx.font = '22px WrytaFont'
       ctx.fillText(label.toUpperCase(), x, y + 45)
     }
 
@@ -393,12 +394,12 @@ router.get('/og-image/:username', async (req, res) => {
     if (user.username) {
       ctx.fillStyle = '#38bdf8'; ctx.fillRect(80, height - 110, 30, 4)
       ctx.fillStyle = '#f8fafc'
-      ctx.font = '500 30px Wryta'
+      ctx.font = '500 30px WrytaFont'
       ctx.fillText(`@${user.username}`, 80, height - 70)
     }
 
     ctx.fillStyle = 'rgba(148, 163, 184, 0.5)'
-    ctx.font = '24px Wryta'
+    ctx.font = '24px WrytaFont'
     ctx.textAlign = 'right'
     ctx.fillText('wryta', 1120, height - 70)
 

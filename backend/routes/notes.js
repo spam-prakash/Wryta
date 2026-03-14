@@ -779,7 +779,7 @@ router.get('/og-image/:id', async (req, res) => {
     // 3. TITLE: Sanitized to prevent gaps
     ctx.fillStyle = '#ffffff'
     ctx.font = 'bold 56px Wryta'
-    const maxTitleWidth = 1040
+    const maxTitleWidth = 720
 
     // Remove all newlines and multiple spaces to prevent rendering gaps
     let titleText = (note.title || 'Untitled Note')
