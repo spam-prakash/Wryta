@@ -203,8 +203,12 @@ app.get('/note/:id', async (req, res) => {
       return res.redirect(`${liveLink}/404`)
     }
 
-    const title = note.title || 'Untitled Note'
-    const description = note.description ? note.description.substring(0, 70) + '...' : 'Check out this note on Wryta!'
+    // Sanitize title to prevent breaking HTML attributes
+    const title = (note.title || 'Untitled Note').replace(/\s+/g, ' ').trim()
+    const description = note.description
+      ? note.description.substring(0, 160).replace(/\s+/g, ' ').trim() + '...'
+      : 'Check out this note on Wryta!'
+
     const imageUrl = `${hostLink}/api/notes/og-image/${note._id}`
     const url = `${hostLink}/note/${note._id}`
 
@@ -212,10 +216,9 @@ app.get('/note/:id', async (req, res) => {
     const userAgent = req.get('User-Agent') || ''
     const isCrawler = /bot|crawler|spider|facebook|twitter|linkedin|whatsapp|telegram|discord/i.test(userAgent)
 
-    let html
     if (isCrawler) {
       // Serve static HTML with meta tags for crawlers
-      html = `
+      const html = `
         <!DOCTYPE html>
         <html lang="en">
         <head>
@@ -223,38 +226,40 @@ app.get('/note/:id', async (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${title} - Wryta</title>
           
-          <!-- Open Graph Meta Tags -->
+          <meta property="og:type" content="article" />
+          <meta property="og:url" content="${url}" />
           <meta property="og:title" content="${title}" />
           <meta property="og:description" content="${description}" />
           <meta property="og:image" content="${imageUrl}" />
-          <meta property="og:url" content="${url}" />
-          <meta property="og:type" content="article" />
+          <meta property="og:image:secure_url" content="${imageUrl}" />
+          <meta property="og:image:type" content="image/png" />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="630" />
           <meta property="og:site_name" content="Wryta" />
           
-          <!-- Twitter Card -->
           <meta name="twitter:card" content="summary_large_image" />
           <meta name="twitter:title" content="${title}" />
           <meta name="twitter:description" content="${description}" />
           <meta name="twitter:image" content="${imageUrl}" />
         </head>
         <body>
-          <p>Loading Wryta...</p>
+          <script>window.location.href = "${liveLink}/note/${note._id}?sharedBy=${sharedById}";</script>
+          <p>Redirecting to Wryta...</p>
         </body>
         </html>
       `
+      return res.send(html)
     } else {
       // Redirect users to the frontend
       return res.redirect(`${liveLink}/note/${note._id}?sharedBy=${sharedById}`)
     }
-
-    res.send(html)
   } catch (error) {
     console.error('Error serving note HTML:', error)
     res.redirect(`${liveLink}/404`)
   }
 })
 
-// Serve HTML for note links (for OG sharing)
+// Serve HTML for user links (for OG sharing)
 app.get('/user/:username', async (req, res) => {
   try {
     const { username } = req.params
@@ -283,22 +288,30 @@ app.get('/user/:username', async (req, res) => {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${username} - Wryta</title>
           
-          <!-- Open Graph Meta Tags -->
-          <meta property="og:title" content="${username}" />
-          <meta property="og:description" content="${bio}" />
-          <meta property="og:image" content="${imageUrl}" />
-          <meta property="og:url" content="${url}" />
-          <meta property="og:type" content="article" />
-          <meta property="og:site_name" content="Wryta" />
+          <meta name="title" content="${username} on Wryta">
+          <meta name="description" content="${bio}">
+
+          <meta property="og:type" content="website">
+          <meta property="og:url" content="${url}">
+          <meta property="og:title" content="${username}">
+          <meta property="og:description" content="${bio}">
+          <meta property="og:image" content="${imageUrl}">
+          <meta property="og:image:secure_url" content="${imageUrl}">
+          <meta property="og:image:type" content="image/png">
+          <meta property="og:image:width" content="1200">
+          <meta property="og:image:height" content="630">
+
+          <meta name="twitter:card" content="summary_large_image">
+          <meta name="twitter:url" content="${url}">
+          <meta name="twitter:title" content="${username}">
+          <meta name="twitter:description" content="${bio}">
+          <meta name="twitter:image" content="${imageUrl}">
           
-          <!-- Twitter Card -->
-          <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content="${username}" />
-          <meta name="twitter:description" content="${bio}" />
-          <meta name="twitter:image" content="${imageUrl}" />
+          <meta property="og:site_name" content="Wryta">
         </head>
         <body>
-          <p>Loading Wryta...</p>
+          <script>window.location.href = "${liveLink}/u/${username}";</script>
+          <p>Redirecting to Wryta...</p>
         </body>
         </html>
       `
