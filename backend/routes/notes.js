@@ -8,8 +8,9 @@ const Notification = require('../models/Notification')
 // const ENGAGEMENT_WEIGHTS=require('../utils/engagement')
 const { body, validationResult } = require('express-validator')
 const { getIO, onlineUsers, emitNotification } = require('../socket')
+const { createCanvas } = require('canvas')
 const liveLink = process.env.REACT_APP_LIVE_LINK
-
+const hostLink = process.env.REACT_APP_HOSTLINK
 
 const ENGAGEMENT_WEIGHTS = {
   view: 1,
@@ -18,7 +19,6 @@ const ENGAGEMENT_WEIGHTS = {
   share: 5,
   download: 6
 }
-
 
 // ROUTE: 1 GET ALL NOTES GET:"/api/notes/fetchallnotes" LOGIN REQUIRED
 router.get('/fetchallnotes', fetchuser, async (req, res) => {
@@ -410,7 +410,7 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
   try {
     const noteId = req.params.id
     const likingUserId = req.user?.id
-    
+
     if (!noteId || !likingUserId) {
       return res.status(400).json({ success: false, message: 'Invalid request data' })
     }
@@ -434,7 +434,7 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
       await Note.findByIdAndUpdate(noteId, {
         $pull: { 'actions.likes': likingUserId },
         $inc: { likes: -1 },
-        $inc: { engagementScore: -ENGAGEMENT_WEIGHTS.like}
+        $inc: { engagementScore: -ENGAGEMENT_WEIGHTS.like }
       })
 
       await User.findByIdAndUpdate(likingUserId, {
@@ -447,7 +447,7 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
       await Note.findByIdAndUpdate(noteId, {
         $addToSet: { 'actions.likes': likingUserId },
         $inc: { likes: 1 },
-  $inc: { engagementScore: ENGAGEMENT_WEIGHTS.like }
+        $inc: { engagementScore: ENGAGEMENT_WEIGHTS.like }
       })
 
       await User.findByIdAndUpdate(likingUserId, {
@@ -499,11 +499,12 @@ router.post('/note/:id/share', fetchuser, async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'User not found' })
 
     // ✅ Always increment share count
-    await Note.findByIdAndUpdate(noteId, { 
+    await Note.findByIdAndUpdate(noteId, {
       $inc: {
-      shares: 1,
-      engagementScore: ENGAGEMENT_WEIGHTS.share,
-    } })
+        shares: 1,
+        engagementScore: ENGAGEMENT_WEIGHTS.share
+      }
+    })
 
     // ✅ Add userId to shares list only if not already present
     await Note.updateOne(
@@ -559,10 +560,11 @@ router.post('/note/:id/copy', fetchuser, async (req, res) => {
 
     // ✅ Always increment copy count
     await Note.findByIdAndUpdate(noteId, {
-    $inc: {
-      copies: 1,
-      engagementScore: ENGAGEMENT_WEIGHTS.copy,
-    }})
+      $inc: {
+        copies: 1,
+        engagementScore: ENGAGEMENT_WEIGHTS.copy
+      }
+    })
 
     // ✅ Add userId to copies list only if not already there
     await Note.updateOne(
@@ -600,11 +602,11 @@ router.post('/note/:id/download', fetchuser, async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'User not found' })
 
     // ✅ Always increase download count
-    await Note.findByIdAndUpdate(noteId, { 
+    await Note.findByIdAndUpdate(noteId, {
       $inc: {
-      downloads: 1,
-      engagementScore: ENGAGEMENT_WEIGHTS.download,
-    }
+        downloads: 1,
+        engagementScore: ENGAGEMENT_WEIGHTS.download
+      }
     })
 
     // ✅ Add userId to note's downloads (only if not already added)
@@ -711,6 +713,163 @@ router.post('/views/batch', fetchuser, async (req, res) => {
   } catch (error) {
     console.error('Error tracking batch views:', error.message)
     res.status(500).json({ success: false, message: 'Internal Server Error' })
+  }
+})
+
+// ROUTE: Generate OG Image for a Note
+router.get('/og-image/:id', async (req, res) => {
+  try {
+    const note = await Note.findById(req.params.id).populate('user', 'name username').lean()
+
+    if (!note) return res.status(404).send('Note not found')
+
+    const width = 1200
+    const height = 630
+    const canvas = createCanvas(width, height)
+    const ctx = canvas.getContext('2d')
+
+    // 1. Background Layer
+    const bg = ctx.createLinearGradient(0, 0, width, height)
+    bg.addColorStop(0, '#020617') // Deep Slate
+    bg.addColorStop(1, '#0f172a')
+    ctx.fillStyle = bg
+    ctx.fillRect(0, 0, width, height)
+
+    // 2. Artistic "Glow" (Top Right)
+    const glow = ctx.createRadialGradient(1000, 100, 50, 1000, 100, 600)
+    glow.addColorStop(0, 'rgba(56, 189, 248, 0.15)')
+    glow.addColorStop(1, 'rgba(0,0,0,0)')
+    ctx.fillStyle = glow
+    ctx.fillRect(0, 0, width, height)
+
+    // 3. Branding & Accents
+    ctx.fillStyle = '#38bdf8'
+    ctx.font = 'bold 40px sans-serif'
+    ctx.fillText('WRYTA', 80, 70)
+
+    ctx.fillStyle = '#94a3b8'
+    ctx.font = '28px sans-serif'
+    ctx.fillText('write your thoughts', 80, 110)
+
+    // Horizontal Accent Line
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)'
+    ctx.lineWidth = 1
+    ctx.beginPath()
+    ctx.moveTo(80, 140)
+    ctx.lineTo(1120, 140)
+    ctx.stroke()
+
+    // 4. TITLE: Fixed Area (Max 2 Lines)
+    ctx.fillStyle = '#ffffff'
+    const maxTitleWidth = 1040
+    const titleLineHeight = 70
+    const titleY = 230 // Fixed start point
+
+    // Strip explicit line breaks from title just in case
+    const cleanTitle = (note.title || 'Untitled Note').replace(/\r?\n/g, ' ')
+    const titleWords = cleanTitle.split(' ')
+
+    let titleFontSize = 64
+    let titleLines = []
+
+    while (titleFontSize >= 48) {
+      ctx.font = `bold ${titleFontSize}px sans-serif`
+      titleLines = []
+      let currentLine = ''
+
+      for (const word of titleWords) {
+        const testLine = currentLine + word + ' '
+        if (ctx.measureText(testLine).width > maxTitleWidth && currentLine !== '') {
+          titleLines.push(currentLine.trim())
+          currentLine = word + ' '
+        } else {
+          currentLine = testLine
+        }
+      }
+      titleLines.push(currentLine.trim())
+      if (titleLines.length <= 2) break
+      titleFontSize -= 4
+    }
+
+    // Final Truncation for Title
+    if (titleLines.length > 2) {
+      titleLines = titleLines.slice(0, 2)
+      titleLines[1] = titleLines[1].slice(0, -3) + '...'
+    }
+
+    titleLines.forEach((line, i) => {
+      ctx.fillText(line, 80, titleY + (i * titleLineHeight))
+    })
+
+    // 5. DESCRIPTION: Fixed Area (Strict Limit for Line Breaks)
+    ctx.fillStyle = '#94a3b8'
+    ctx.font = '32px sans-serif'
+    const maxDescWidth = 1040
+    const descLineHeight = 45
+    const descStartY = 390 // Fixed starting point below title area
+
+    const rawDesc = note.description || 'Read this thought on Wryta.'
+
+    // Split by explicit newlines FIRST to respect poetry/paragraph formats
+    const rawParagraphs = rawDesc.split(/\r?\n/)
+    let descLines = []
+
+    for (const p of rawParagraphs) {
+      if (p.trim() === '') {
+        descLines.push('') // Preserve intentional blank lines
+        continue
+      }
+
+      const words = p.split(' ')
+      let currentDescLine = ''
+
+      for (const word of words) {
+        const testLine = currentDescLine + word + ' '
+        if (ctx.measureText(testLine).width > maxDescWidth && currentDescLine !== '') {
+          descLines.push(currentDescLine.trim())
+          currentDescLine = word + ' '
+        } else {
+          currentDescLine = testLine
+        }
+      }
+      if (currentDescLine.trim()) {
+        descLines.push(currentDescLine.trim())
+      }
+    }
+
+    // STRICT Truncation: Cut off exactly at 3 lines to prevent overlap
+    if (descLines.length > 3) {
+      descLines = descLines.slice(0, 3)
+      descLines[2] = descLines[2].replace(/\s+$/, '') + '...'
+    }
+
+    descLines.forEach((line, i) => {
+      ctx.fillText(line, 80, descStartY + (i * descLineHeight))
+    })
+
+    // 6. AUTHOR & FOOTER
+    if (note.user) {
+      // Small cyan indicator
+      ctx.fillStyle = '#38bdf8'
+      ctx.fillRect(80, height - 115, 30, 4)
+
+      ctx.fillStyle = '#f8fafc'
+      ctx.font = 'bold 30px sans-serif'
+      ctx.fillText(`@${note.user.username || note.user.name}`, 80, height - 70)
+    }
+
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.5)'
+    ctx.font = '24px sans-serif'
+    ctx.fillText('Wryta', 1000, height - 70)
+
+    // 7. Response Headers
+    res.setHeader('Content-Type', 'image/png')
+    res.setHeader('Cache-Control', 'public, max-age=86400') // 24 hours cache
+
+    canvas.createPNGStream().pipe(res)
+  } catch (err) {
+    console.error(err)
+    res.status(500).send('Error generating OG image')
   }
 })
 

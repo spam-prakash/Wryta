@@ -5,6 +5,7 @@ const morgan = require('morgan')
 const jwt = require('jsonwebtoken')
 const app = express()
 const userdb = require('./models/User')
+const Note = require('./models/Note')
 const passport = require('passport')
 const GoogleStrategy = require('passport-google-oauth2').Strategy
 const sendMail = require('./routes/mailer')
@@ -188,6 +189,66 @@ app.get('/auth/google/callback',
     res.redirect(`${liveLink}/login-success?token=${req.user.token}`)
   }
 )
+
+// Serve HTML for note links (for OG sharing)
+app.get('/note/:id', async (req, res) => {
+  try {
+    const { sharedBy } = req.query
+    const sharedById = sharedBy ? sharedBy.toString() : null
+
+    const note = await Note.findById(req.params.id).populate('user', 'name username')
+
+    if (!note) {
+      return res.redirect(`${liveLink}/404`)
+    }
+
+    // Allow access if public or shared by owner
+    if (!note.isPublic && sharedById !== note.user._id.toString()) {
+      return res.redirect(`${liveLink}/404`)
+    }
+
+    const title = note.title || 'Untitled Note'
+    const description = note.description ? note.description.substring(0, 70) + '...' : 'Check out this note on Wryta!'
+    const imageUrl = `${hostLink}/api/notes/og-image/${note._id}`
+    const url = `${hostLink}/note/${note._id}`
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${title} - Wryta</title>
+        
+        <!-- Open Graph Meta Tags -->
+        <meta property="og:title" content="${title}" />
+        <meta property="og:description" content="${description}" />
+        <meta property="og:image" content="${imageUrl}" />
+        <meta property="og:url" content="${url}" />
+        <meta property="og:type" content="article" />
+        <meta property="og:site_name" content="Wryta" />
+        
+        <!-- Twitter Card (optional, for Twitter) -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="${title}" />
+        <meta name="twitter:description" content="${description}" />
+        <meta name="twitter:image" content="${imageUrl}" />
+        
+        <!-- Redirect to React app after meta tags are read -->
+        <script>window.location.href = '${liveLink}/note/${note._id}';</script>
+      </head>
+      <body>
+        <p>Redirecting to Wryta...</p>
+      </body>
+      </html>
+    `
+
+    res.send(html)
+  } catch (error) {
+    console.error('Error serving note HTML:', error)
+    res.redirect(`${liveLink}/404`)
+  }
+})
 
 // Available Routes
 app.use('/api/auth', require('./routes/auth'))
