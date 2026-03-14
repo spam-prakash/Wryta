@@ -31,6 +31,8 @@ try {
     family: 'WrytaMainMedium'
   })
 
+  registerFont(path.join(fontsDir, 'NotoColorEmoji.ttf'), { family: 'EmojiFont' })
+
   console.log('🔥 OG Fonts Registered Successfully')
 } catch (e) {
   console.error('❌ FONT LOAD FAILED', e)
@@ -793,7 +795,7 @@ router.get('/og-image/:id', async (req, res) => {
 
     // 4. DESCRIPTION: Using WrytaMainRegular
     ctx.fillStyle = '#94a3b8'
-    ctx.font = '32px WrytaMainRegular'
+    ctx.font = '32px EmojiFont, WrytaMainRegular'
     const maxDescWidth = 1040
     const descLineHeight = 48
     const descStartY = 280

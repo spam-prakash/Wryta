@@ -27,6 +27,7 @@ const ProfileHeader = ({
 }) => {
   const imageAPI = process.env.REACT_APP_IMAGEAPI
   const navigate = useNavigate()
+  const hostLink = process.env.REACT_APP_HOSTLINK
 
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
   const [modalType, setModalType] = useState(null)
@@ -34,7 +35,7 @@ const ProfileHeader = ({
 
   // Share profile: copy link to clipboard and attempt Web Share API
   const shareProfile = async () => {
-    const shareUrl = `${window.location.origin}/u/${username}`
+    const shareUrl = `${hostLink}/user/${username}`
     const shareTitle = name || `@${username}`
 
     // Try copying the URL to clipboard first (useful fallback)

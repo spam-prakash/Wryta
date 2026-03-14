@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken')
 const app = express()
 const userdb = require('./models/User')
 const Note = require('./models/Note')
+const User = require('./models/User')
 const passport = require('passport')
 const GoogleStrategy = require('passport-google-oauth2').Strategy
 const sendMail = require('./routes/mailer')
@@ -244,6 +245,66 @@ app.get('/note/:id', async (req, res) => {
     } else {
       // Redirect users to the frontend
       return res.redirect(`${liveLink}/note/${note._id}?sharedBy=${sharedById}`)
+    }
+
+    res.send(html)
+  } catch (error) {
+    console.error('Error serving note HTML:', error)
+    res.redirect(`${liveLink}/404`)
+  }
+})
+
+// Serve HTML for note links (for OG sharing)
+app.get('/user/:username', async (req, res) => {
+  try {
+    const { username } = req.params
+    const user = await User.findOne({ username: { $regex: `^${username}$`, $options: 'i' } })
+
+    if (!user) {
+      return res.redirect(`${liveLink}/404`)
+    }
+
+    const bio = user.bio
+    const imageUrl = `${hostLink}/api/users/og-image/${username}`
+    const url = `${hostLink}/u/${username}`
+
+    // Check if request is from a crawler/bot
+    const userAgent = req.get('User-Agent') || ''
+    const isCrawler = /bot|crawler|spider|facebook|twitter|linkedin|whatsapp|telegram|discord/i.test(userAgent)
+
+    let html
+    if (isCrawler) {
+      // Serve static HTML with meta tags for crawlers
+      html = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${username} - Wryta</title>
+          
+          <!-- Open Graph Meta Tags -->
+          <meta property="og:title" content="${username}" />
+          <meta property="og:description" content="${bio}" />
+          <meta property="og:image" content="${imageUrl}" />
+          <meta property="og:url" content="${url}" />
+          <meta property="og:type" content="article" />
+          <meta property="og:site_name" content="Wryta" />
+          
+          <!-- Twitter Card -->
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content="${username}" />
+          <meta name="twitter:description" content="${bio}" />
+          <meta name="twitter:image" content="${imageUrl}" />
+        </head>
+        <body>
+          <p>Loading Wryta...</p>
+        </body>
+        </html>
+      `
+    } else {
+      // Redirect users to the frontend
+      return res.redirect(`${liveLink}/u/${username}`)
     }
 
     res.send(html)
