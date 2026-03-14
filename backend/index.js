@@ -265,7 +265,7 @@ app.get('/user/:username', async (req, res) => {
     }
 
     const bio = user.bio
-    const imageUrl = `${hostLink}/api/users/og-image/${username}`
+    const imageUrl = `${hostLink}/api/user/og-image/${username}`
     const url = `${hostLink}/u/${username}`
 
     // Check if request is from a crawler/bot
