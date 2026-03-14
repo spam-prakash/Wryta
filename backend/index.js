@@ -243,7 +243,7 @@ app.get('/note/:id', async (req, res) => {
       `
     } else {
       // Redirect users to the frontend
-      return res.redirect(`${liveLink}/note/${note._id}`)
+      return res.redirect(`${liveLink}/note/${note._id}?sharedBy=${sharedById}`)
     }
 
     res.send(html)
