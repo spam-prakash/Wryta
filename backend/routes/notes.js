@@ -8,9 +8,33 @@ const Notification = require('../models/Notification')
 // const ENGAGEMENT_WEIGHTS=require('../utils/engagement')
 const { body, validationResult } = require('express-validator')
 const { getIO, onlineUsers, emitNotification } = require('../socket')
-const { createCanvas } = require('canvas')
+const { createCanvas, registerFont } = require('canvas')
+const path = require('path')
+const fs = require('fs')
 const liveLink = process.env.REACT_APP_LIVE_LINK
 const hostLink = process.env.REACT_APP_HOSTLINK
+
+// Path logic: from /backend/routes/notes.js to /backend/fonts/
+const fontsDir = path.join(__dirname, '../fonts')
+
+try {
+  // Use unique names that DON'T overlap with system font names or keywords
+  registerFont(path.join(fontsDir, 'NotoSansDevanagari_Condensed-Regular.ttf'), {
+    family: 'WrytaMainRegular'
+  })
+
+  registerFont(path.join(fontsDir, 'NotoSansDevanagari_Condensed-Bold.ttf'), {
+    family: 'WrytaMainBold'
+  })
+
+  registerFont(path.join(fontsDir, 'NotoSansDevanagari_Condensed-Medium.ttf'), {
+    family: 'WrytaMainMedium'
+  })
+
+  console.log('🔥 OG Fonts Registered Successfully')
+} catch (e) {
+  console.error('❌ FONT LOAD FAILED', e)
+}
 
 const ENGAGEMENT_WEIGHTS = {
   view: 1,
@@ -720,7 +744,6 @@ router.post('/views/batch', fetchuser, async (req, res) => {
 router.get('/og-image/:id', async (req, res) => {
   try {
     const note = await Note.findById(req.params.id).populate('user', 'name username').lean()
-
     if (!note) return res.status(404).send('Note not found')
 
     const width = 1200
@@ -728,144 +751,92 @@ router.get('/og-image/:id', async (req, res) => {
     const canvas = createCanvas(width, height)
     const ctx = canvas.getContext('2d')
 
-    // 1. Background Layer
+    // 1. Background & Aesthetic Glow
     const bg = ctx.createLinearGradient(0, 0, width, height)
-    bg.addColorStop(0, '#020617') // Deep Slate
+    bg.addColorStop(0, '#020617')
     bg.addColorStop(1, '#0f172a')
     ctx.fillStyle = bg
     ctx.fillRect(0, 0, width, height)
 
-    // 2. Artistic "Glow" (Top Right)
     const glow = ctx.createRadialGradient(1000, 100, 50, 1000, 100, 600)
     glow.addColorStop(0, 'rgba(56, 189, 248, 0.15)')
     glow.addColorStop(1, 'rgba(0,0,0,0)')
     ctx.fillStyle = glow
     ctx.fillRect(0, 0, width, height)
 
-    // 3. Branding & Accents
-    ctx.fillStyle = '#38bdf8'
-    ctx.font = 'bold 40px sans-serif'
-    ctx.fillText('WRYTA', 80, 70)
-
-    ctx.fillStyle = '#94a3b8'
-    ctx.font = '28px sans-serif'
-    ctx.fillText('write your thoughts', 80, 110)
-
-    // Horizontal Accent Line
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)'
-    ctx.lineWidth = 1
-    ctx.beginPath()
-    ctx.moveTo(80, 140)
-    ctx.lineTo(1120, 140)
-    ctx.stroke()
-
-    // 4. TITLE: Fixed Area (Max 2 Lines)
+    // 2. Header Branding
     ctx.fillStyle = '#ffffff'
-    const maxTitleWidth = 1040
-    const titleLineHeight = 70
-    const titleY = 230 // Fixed start point
+    ctx.font = 'bold 64px sans-serif' // System font for logo is safe with 'bold'
+    ctx.fillText('Wry', 80, 120)
+    ctx.fillStyle = '#FDC116'
+    ctx.fillText('ta', 210, 120)
 
-    // Strip explicit line breaks from title just in case
-    const cleanTitle = (note.title || 'Untitled Note').replace(/\r?\n/g, ' ')
-    const titleWords = cleanTitle.split(' ')
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)'; ctx.lineWidth = 1; ctx.beginPath()
+    ctx.moveTo(80, 140); ctx.lineTo(1120, 140); ctx.stroke()
 
-    let titleFontSize = 64
-    let titleLines = []
+    // 3. TITLE: Using WrytaMainBold (No 'bold' keyword)
+    ctx.fillStyle = '#ffffff'
+    const maxTitleWidth = 720
+    const titleY = 240
+    ctx.font = '48px WrytaMainBold'
 
-    while (titleFontSize >= 48) {
-      ctx.font = `bold ${titleFontSize}px sans-serif`
-      titleLines = []
-      let currentLine = ''
+    let titleText = (note.title || 'Untitled Note').replace(/\r?\n/g, ' ')
 
-      for (const word of titleWords) {
+    if (ctx.measureText(titleText).width > maxTitleWidth) {
+      while (ctx.measureText(titleText + '...').width > maxTitleWidth && titleText.length > 0) {
+        titleText = titleText.slice(0, -1)
+      }
+      titleText += '...'
+    }
+    ctx.fillText(titleText, 80, titleY)
+
+    // 4. DESCRIPTION: Using WrytaMainRegular
+    ctx.fillStyle = '#94a3b8'
+    ctx.font = '32px WrytaMainRegular'
+    const maxDescWidth = 1040
+    const descLineHeight = 48
+    const descStartY = 330
+
+    const rawParagraphs = (note.description || 'Read this thought on Wryta.').split(/\r?\n/)
+    let descLines = []
+
+    for (const p of rawParagraphs) {
+      const words = p.split(' '); let currentLine = ''
+      for (const word of words) {
         const testLine = currentLine + word + ' '
-        if (ctx.measureText(testLine).width > maxTitleWidth && currentLine !== '') {
-          titleLines.push(currentLine.trim())
+        if (ctx.measureText(testLine).width > maxDescWidth && currentLine !== '') {
+          descLines.push(currentLine.trim())
           currentLine = word + ' '
         } else {
           currentLine = testLine
         }
       }
-      titleLines.push(currentLine.trim())
-      if (titleLines.length <= 2) break
-      titleFontSize -= 4
+      if (currentLine.trim()) descLines.push(currentLine.trim())
     }
 
-    // Final Truncation for Title
-    if (titleLines.length > 2) {
-      titleLines = titleLines.slice(0, 2)
-      titleLines[1] = titleLines[1].slice(0, -3) + '...'
-    }
-
-    titleLines.forEach((line, i) => {
-      ctx.fillText(line, 80, titleY + (i * titleLineHeight))
-    })
-
-    // 5. DESCRIPTION: Fixed Area (Strict Limit for Line Breaks)
-    ctx.fillStyle = '#94a3b8'
-    ctx.font = '32px sans-serif'
-    const maxDescWidth = 1040
-    const descLineHeight = 45
-    const descStartY = 390 // Fixed starting point below title area
-
-    const rawDesc = note.description || 'Read this thought on Wryta.'
-
-    // Split by explicit newlines FIRST to respect poetry/paragraph formats
-    const rawParagraphs = rawDesc.split(/\r?\n/)
-    let descLines = []
-
-    for (const p of rawParagraphs) {
-      if (p.trim() === '') {
-        descLines.push('') // Preserve intentional blank lines
-        continue
-      }
-
-      const words = p.split(' ')
-      let currentDescLine = ''
-
-      for (const word of words) {
-        const testLine = currentDescLine + word + ' '
-        if (ctx.measureText(testLine).width > maxDescWidth && currentDescLine !== '') {
-          descLines.push(currentDescLine.trim())
-          currentDescLine = word + ' '
-        } else {
-          currentDescLine = testLine
-        }
-      }
-      if (currentDescLine.trim()) {
-        descLines.push(currentDescLine.trim())
-      }
-    }
-
-    // STRICT Truncation: Cut off exactly at 3 lines to prevent overlap
-    if (descLines.length > 3) {
-      descLines = descLines.slice(0, 3)
-      descLines[2] = descLines[2].replace(/\s+$/, '') + '...'
+    if (descLines.length > 4) {
+      descLines = descLines.slice(0, 4)
+      descLines[3] = descLines[3].replace(/\s+$/, '') + '...'
     }
 
     descLines.forEach((line, i) => {
       ctx.fillText(line, 80, descStartY + (i * descLineHeight))
     })
 
-    // 6. AUTHOR & FOOTER
+    // 5. FOOTER: Using WrytaMainMedium
     if (note.user) {
-      // Small cyan indicator
-      ctx.fillStyle = '#38bdf8'
-      ctx.fillRect(80, height - 115, 30, 4)
-
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(80, height - 115, 30, 4)
       ctx.fillStyle = '#f8fafc'
-      ctx.font = 'bold 30px sans-serif'
+      ctx.font = '30px WrytaMainMedium'
       ctx.fillText(`@${note.user.username || note.user.name}`, 80, height - 70)
     }
 
     ctx.fillStyle = 'rgba(148, 163, 184, 0.5)'
-    ctx.font = '24px sans-serif'
-    ctx.fillText('Wryta', 1000, height - 70)
+    ctx.font = '30px WrytaMainMedium'
+    ctx.fillText('Wryta', 1040, height - 70)
 
-    // 7. Response Headers
     res.setHeader('Content-Type', 'image/png')
-    res.setHeader('Cache-Control', 'public, max-age=86400') // 24 hours cache
-
+    res.setHeader('Cache-Control', 'public, max-age=86400')
     canvas.createPNGStream().pipe(res)
   } catch (err) {
     console.error(err)

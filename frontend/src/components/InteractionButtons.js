@@ -176,7 +176,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
 
   const shareNote = async () => {
     // console.log(userId)
-    const shareUrl = `${window.location.origin}/note/${noteId}?sharedBy=${userId}`
+    const shareUrl = `${hostLink}/note/${noteId}?sharedBy=${userId}`
     const shareText = `Check out this note: "${note.title}" by @${ownerName}\n\n${shareUrl}`
 
     // Always copy the full text to clipboard (works even if share dialog doesn't)

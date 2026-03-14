@@ -202,11 +202,6 @@ app.get('/note/:id', async (req, res) => {
       return res.redirect(`${liveLink}/404`)
     }
 
-    // Allow access if public or shared by owner
-    if (!note.isPublic && sharedById !== note.user._id.toString()) {
-      return res.redirect(`${liveLink}/404`)
-    }
-
     const title = note.title || 'Untitled Note'
     const description = note.description ? note.description.substring(0, 70) + '...' : 'Check out this note on Wryta!'
     const imageUrl = `${hostLink}/api/notes/og-image/${note._id}`
