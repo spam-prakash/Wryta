@@ -271,7 +271,7 @@ app.get('/user/:username', async (req, res) => {
 
     const bio = user.bio || 'Read more from this user.'
     const imageUrl = `${hostLink}/api/user/og-image/${username}`
-    const url = `${hostLink}/u/${username}`
+    const url = `${hostLink}/u/${user.username}`
 
     // Check if request is from a crawler/bot
     const userAgent = req.get('User-Agent') || ''
@@ -286,14 +286,14 @@ app.get('/user/:username', async (req, res) => {
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${username} - Wryta</title>
+          <title>${user.username} - Wryta</title>
           
-          <meta name="title" content="${username} on Wryta">
+          <meta name="title" content="${user.username} on Wryta">
           <meta name="description" content="${bio}">
 
           <meta property="og:type" content="website">
           <meta property="og:url" content="${url}">
-          <meta property="og:title" content="${username}">
+          <meta property="og:title" content="${user.username}">
           <meta property="og:description" content="${bio}">
           <meta property="og:image" content="${imageUrl}">
           <meta property="og:image:secure_url" content="${imageUrl}">
@@ -302,22 +302,21 @@ app.get('/user/:username', async (req, res) => {
           <meta property="og:image:height" content="630">
 
           <meta name="twitter:card" content="summary_large_image">
-          <meta name="twitter:url" content="${url}">
-          <meta name="twitter:title" content="${username}">
+          <meta name="twitter:title" content="${user.username}">
           <meta name="twitter:description" content="${bio}">
           <meta name="twitter:image" content="${imageUrl}">
           
           <meta property="og:site_name" content="Wryta">
         </head>
         <body>
-          <script>window.location.href = "${liveLink}/u/${username}";</script>
+          <script>window.location.href = "${liveLink}/u/${user.username}";</script>
           <p>Redirecting to Wryta...</p>
         </body>
         </html>
       `
     } else {
       // Redirect users to the frontend
-      return res.redirect(`${liveLink}/u/${username}`)
+      return res.redirect(`${liveLink}/u/${user.username}`)
     }
 
     res.send(html)
