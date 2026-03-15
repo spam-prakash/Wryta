@@ -195,67 +195,87 @@ app.get('/auth/google/callback',
 app.get('/note/:id', async (req, res) => {
   try {
     const { sharedBy } = req.query
-    const sharedById = sharedBy ? sharedBy.toString() : null
+    const sharedById = sharedBy ? sharedBy.toString() : ''
 
-    const note = await Note.findById(req.params.id).populate('user', 'name username')
+    const note = await Note.findById(req.params.id)
+      .populate('user', 'name username')
 
     if (!note) {
       return res.redirect(`${liveLink}/404`)
     }
 
-    // Sanitize title to prevent breaking HTML attributes
-    const title = (note.title || 'Untitled Note').replace(/\s+/g, ' ').trim()
+    const title = (note.title || 'Untitled Note')
+      .replace(/\s+/g, ' ')
+      .trim()
+
     const description = note.description
-      ? note.description.substring(0, 160).replace(/\s+/g, ' ').trim() + '...'
-      : 'Check out this note on Wryta!'
+      ? note.description.substring(0, 180).replace(/\s+/g, ' ').trim()
+      : 'Check out this note on Wryta'
 
+    const url = `${liveLink}/note/${note._id}`
     const imageUrl = `${hostLink}/api/notes/og-image/${note._id}`
-    const url = `${hostLink}/note/${note._id}`
 
-    // Check if request is from a crawler/bot
-    const userAgent = req.get('User-Agent') || ''
-    const isCrawler = /bot|crawler|spider|facebook|twitter|linkedin|whatsapp|telegram|discord/i.test(userAgent)
+    const ua = (req.get('user-agent') || '').toLowerCase()
+
+    const isCrawler =
+      ua.includes('bot') ||
+      ua.includes('crawler') ||
+      ua.includes('spider') ||
+      ua.includes('facebookexternalhit') ||
+      ua.includes('twitterbot') ||
+      ua.includes('linkedinbot') ||
+      ua.includes('whatsapp') ||
+      ua.includes('telegram') ||
+      ua.includes('discord')
 
     if (isCrawler) {
-      // Serve static HTML with meta tags for crawlers
-      const html = `
+      return res.status(200).send(`
         <!DOCTYPE html>
         <html lang="en">
         <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${title} - Wryta</title>
-          
-          <meta property="og:type" content="article" />
-          <meta property="og:url" content="${url}" />
-          <meta property="og:title" content="${title}" />
-          <meta property="og:description" content="${description}" />
-          <meta property="og:image" content="${imageUrl}" />
-          <meta property="og:image:secure_url" content="${imageUrl}" />
-          <meta property="og:image:type" content="image/png" />
-          <meta property="og:image:width" content="1200" />
-          <meta property="og:image:height" content="630" />
-          <meta property="og:site_name" content="Wryta" />
-          
-          <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content="${title}" />
-          <meta name="twitter:description" content="${description}" />
-          <meta name="twitter:image" content="${imageUrl}" />
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+        <title>${title} | Wryta</title>
+
+        <meta name="description" content="${description}" />
+
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content="${title}" />
+        <meta property="og:description" content="${description}" />
+        <meta property="og:url" content="${url}" />
+        <meta property="og:image" content="${imageUrl}" />
+        <meta property="og:image:secure_url" content="${imageUrl}" />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:site_name" content="Wryta" />
+
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="${title}" />
+        <meta name="twitter:description" content="${description}" />
+        <meta name="twitter:image" content="${imageUrl}" />
+        <meta name="twitter:image:src" content="${imageUrl}" />
+        <meta name="twitter:site" content="@wryta" />
+
         </head>
         <body>
-          <script>window.location.href = "${liveLink}/note/${note._id}?sharedBy=${sharedById}";</script>
-          <p>Redirecting to Wryta...</p>
+
+        <script>
+        window.location.replace("${liveLink}/note/${note._id}?sharedBy=${sharedById}");
+        </script>
+
         </body>
         </html>
-      `
-      return res.send(html)
-    } else {
-      // Redirect users to the frontend
-      return res.redirect(`${liveLink}/note/${note._id}?sharedBy=${sharedById}`)
+`)
     }
-  } catch (error) {
-    console.error('Error serving note HTML:', error)
-    res.redirect(`${liveLink}/404`)
+
+    return res.redirect(
+      `${liveLink}/note/${note._id}?sharedBy=${sharedById}`
+    )
+  } catch (err) {
+    console.error('Note OG error:', err)
+    return res.redirect(`${liveLink}/404`)
   }
 })
 
@@ -263,66 +283,82 @@ app.get('/note/:id', async (req, res) => {
 app.get('/user/:username', async (req, res) => {
   try {
     const { username } = req.params
-    const user = await User.findOne({ username: { $regex: `^${username}$`, $options: 'i' } })
+
+    const user = await User.findOne({
+      username: { $regex: `^${username}$`, $options: 'i' }
+    })
 
     if (!user) {
       return res.redirect(`${liveLink}/404`)
     }
 
-    const bio = user.bio || 'Read more from this user.'
-    const imageUrl = `${hostLink}/api/user/og-image/${username}`
-    const url = `${hostLink}/u/${user.username}`
+    const bio = (user.bio || 'Read amazing notes on Wryta ✨')
+      .substring(0, 180)
+      .replace(/\s+/g, ' ')
+      .trim()
 
-    // Check if request is from a crawler/bot
-    const userAgent = req.get('User-Agent') || ''
-    const isCrawler = /bot|crawler|spider|facebook|twitter|linkedin|whatsapp|telegram|discord/i.test(userAgent)
+    const url = `${liveLink}/u/${user.username}`
+    const imageUrl = `${hostLink}/api/user/og-image/${user.username}`
 
-    let html
+    const ua = (req.get('user-agent') || '').toLowerCase()
+
+    const isCrawler =
+      ua.includes('bot') ||
+      ua.includes('crawler') ||
+      ua.includes('spider') ||
+      ua.includes('facebookexternalhit') ||
+      ua.includes('twitterbot') ||
+      ua.includes('linkedinbot') ||
+      ua.includes('whatsapp') ||
+      ua.includes('telegram') ||
+      ua.includes('discord')
+
     if (isCrawler) {
-      // Serve static HTML with meta tags for crawlers
-      html = `
+      return res.status(200).send(`
         <!DOCTYPE html>
         <html lang="en">
         <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${user.username} - Wryta</title>
-          
-          <meta name="title" content="${user.username} on Wryta">
-          <meta name="description" content="${bio}">
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-          <meta property="og:type" content="website">
-          <meta property="og:url" content="${url}">
-          <meta property="og:title" content="${user.username}">
-          <meta property="og:description" content="${bio}">
-          <meta property="og:image" content="${imageUrl}">
-          <meta property="og:image:secure_url" content="${imageUrl}">
-          <meta property="og:image:type" content="image/png">
-          <meta property="og:image:width" content="1200">
-          <meta property="og:image:height" content="630">
+        <title>${user.username} | Wryta</title>
 
-          <meta name="twitter:card" content="summary_large_image">
-          <meta name="twitter:title" content="${user.username}">
-          <meta name="twitter:description" content="${bio}">
-          <meta name="twitter:image" content="${imageUrl}">
-          
-          <meta property="og:site_name" content="Wryta">
+        <meta name="description" content="${bio}" />
+
+        <meta property="og:type" content="profile" />
+        <meta property="og:title" content="${user.username}" />
+        <meta property="og:description" content="${bio}" />
+        <meta property="og:url" content="${url}" />
+        <meta property="og:image" content="${imageUrl}" />
+        <meta property="og:image:secure_url" content="${imageUrl}" />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:site_name" content="Wryta" />
+
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="${user.username}" />
+        <meta name="twitter:description" content="${bio}" />
+        <meta name="twitter:image" content="${imageUrl}" />
+        <meta name="twitter:image:src" content="${imageUrl}" />
+        <meta name="twitter:site" content="@wryta" />
+
         </head>
         <body>
-          <script>window.location.href = "${liveLink}/u/${user.username}";</script>
-          <p>Redirecting to Wryta...</p>
+
+        <script>
+        window.location.replace("${liveLink}/u/${user.username}");
+        </script>
+
         </body>
         </html>
-      `
-    } else {
-      // Redirect users to the frontend
-      return res.redirect(`${liveLink}/u/${user.username}`)
+`)
     }
 
-    res.send(html)
-  } catch (error) {
-    console.error('Error serving note HTML:', error)
-    res.redirect(`${liveLink}/404`)
+    return res.redirect(`${liveLink}/u/${user.username}`)
+  } catch (err) {
+    console.error('User OG error:', err)
+    return res.redirect(`${liveLink}/404`)
   }
 })
 
