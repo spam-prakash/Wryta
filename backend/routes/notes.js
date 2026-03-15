@@ -166,6 +166,9 @@ router.put('/updatenote/:id', [body('description').isLength({ min: 3 })], fetchu
           description,
           tag,
           modifiedDate: Date.now()
+        },
+        $inc: {
+          version: 1
         }
       },
       { new: true }

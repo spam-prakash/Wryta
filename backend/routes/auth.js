@@ -189,7 +189,6 @@ router.post('/login', [
   }
 })
 
-
 // ROUTE 4: GET LOGGEDIN USER DETAILS POST: "/api/auth/getuser" LOGIN REQUIRE
 router.post('/getuser', fetchuser, async (req, res) => {
   try {
@@ -313,20 +312,31 @@ router.put('/updateprofile', fetchuser, [
   }
 
   const { username, name, bio } = req.body
+
   try {
     const user = await User.findById(req.user.id)
     if (!user) {
       return res.status(404).json({ error: 'User not found' })
     }
 
-    const existingUser = await User.findOne({ username: { $regex: `^${username}$`, $options: 'i' }, _id: { $ne: user._id } })
+    const existingUser = await User.findOne({
+      username: { $regex: `^${username}$`, $options: 'i' },
+      _id: { $ne: user._id }
+    })
+
     if (existingUser) {
       return res.status(400).json({ success: false, error: 'Username already taken' })
+    }
+
+    // ⭐ increment og version only if preview data changed
+    if (user.username !== username || user.name !== name || user.bio !== bio) {
+      user.version = (user.version || 1) + 1
     }
 
     user.username = username
     user.name = name
     user.bio = bio
+
     await user.save()
 
     res.json({ success: true, user })

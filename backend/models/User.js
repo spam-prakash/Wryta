@@ -50,6 +50,10 @@ const UserSchema = new mongoose.Schema({
     copies: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Note' }],
     downloads: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Note' }],
     views: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Note' }]
+  },
+  version: {
+    type: Number,
+    default: 1
   }
 })
 

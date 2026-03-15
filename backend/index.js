@@ -213,7 +213,7 @@ app.get('/note/:id', async (req, res) => {
       : 'Check out this note on Wryta'
 
     const url = `${liveLink}/note/${note._id}`
-    const imageUrl = `${hostLink}/api/notes/og-image/${note._id}`
+    const imageUrl = `${hostLink}/api/notes/og-image/${note._id}?v=${note.version}`
 
     const ua = (req.get('user-agent') || '').toLowerCase()
 
@@ -298,7 +298,7 @@ app.get('/user/:username', async (req, res) => {
       .trim()
 
     const url = `${liveLink}/u/${user.username}`
-    const imageUrl = `${hostLink}/api/user/og-image/${user.username}`
+    const imageUrl = `${hostLink}/api/user/og-image/${user.username}?v=${user.version}`
 
     const ua = (req.get('user-agent') || '').toLowerCase()
 
