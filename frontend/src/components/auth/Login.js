@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, Link, useNavigate } from 'react-router-dom'
-import Loader from '../utils/Loader' // Import the Loader component
+import Loader from '../utils/Loader'
 
 const Login = ({ showAlert = () => {}, setUser = () => {}, ...props }) => {
   useEffect(() => {
@@ -13,13 +13,13 @@ const Login = ({ showAlert = () => {}, setUser = () => {}, ...props }) => {
     identifier: '',
     password: ''
   })
-  const [loading, setLoading] = useState(false) // State for loader
+  const [loading, setLoading] = useState(false)
   const location = useLocation()
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token')
     if (storedToken) {
-      navigate('/') // Redirect to home page
+      navigate('/')
       return
     }
 
@@ -65,19 +65,14 @@ const Login = ({ showAlert = () => {}, setUser = () => {}, ...props }) => {
       const json = await response.json()
 
       if (json.success) {
-      // ✅ Save token
         localStorage.setItem('token', json.authToken)
-
-        // ✅ Update user state immediately with accurate data from backend
         setUser({
           email: json.email,
           name: json.name,
           image: json.image || '',
-          username: json.username, // ✅ backend now sends correct username
-          id: json.id // optional but useful for future features
+          username: json.username,
+          id: json.id
         })
-
-        // ✅ Navigate to the logged-in user's profile
         showAlert('Logged in successfully!', '#D4EDDA')
         navigate('/')
       } else {
@@ -95,22 +90,20 @@ const Login = ({ showAlert = () => {}, setUser = () => {}, ...props }) => {
   }
 
   return (
-    <div className='relative flex min-h-full flex-1 flex-col justify-center px-6 py-8 lg:px-8'>
+    <div className='min-h-screen flex items-center justify-center px-6 py-8 lg:px-8'>
       {/* Loader overlay */}
       {loading && (
-        <div className='absolute mt-28 inset-0 z-50 flex items-center justify-center bg-opacity-50 backdrop-blur-sm'>
+        <div className='absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm'>
           <Loader />
         </div>
       )}
 
-      <div className='sm:mx-auto sm:w-full sm:max-w-sm mt-16'>
-        <h2 className='mt-5 text-center text-xl md:text-2xl font-bold leading-9 tracking-tight text-white'>
+      <div className='sm:mx-auto sm:w-full sm:max-w-sm'>
+        <h2 className='text-center text-xl md:text-2xl font-bold leading-9 tracking-tight text-white'>
           Sign in to your account
         </h2>
-      </div>
 
-      <div className='mt-10 sm:mx-auto sm:w-full sm:max-w-sm'>
-        <form className='space-y-6' onSubmit={handleSubmit}>
+        <form className='mt-10 space-y-6' onSubmit={handleSubmit}>
           <div>
             <label htmlFor='identifier' className='block text-sm font-medium leading-6 text-white'>
               Email or Username
@@ -198,7 +191,7 @@ const Login = ({ showAlert = () => {}, setUser = () => {}, ...props }) => {
           onClick={logInWithGoogle}
           disabled={loading}
         >
-          {loading ? 'Signing in with Google...' : 'Sign in with Google '}
+          {loading ? 'Signing in with Google...' : 'Sign in with Google'}
         </button>
       </div>
     </div>
