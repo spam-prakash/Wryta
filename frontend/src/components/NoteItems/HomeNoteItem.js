@@ -103,7 +103,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, views, name
           cardRef.current = el
           if (viewRef) viewRef.current = el
         }}
-        className='w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 text-white flex flex-col'
+        className='w-full max-w-sm mx-auto mb-6 bg-card-light dark:bg-card-dark rounded-xl shadow-lg border border-gray-700 text-text-light dark:text-text-dark flex flex-col'
       >
         {/* Header (User Info) */}
         <div className='flex flex-row justify-between p-4 pb-1 border-b border-gray-700'>
@@ -121,10 +121,10 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, views, name
 
             </Link>
             <div>
-              <Link to={`/u/${username}`} className='ml-3 font-semibold text-gray-200 hover:underline'>
+              <Link to={`/u/${username}`} className='ml-3 font-semibold text-text-light dark:text-text-dark hover:underline'>
                 @{username}
               </Link>
-              <div className='text-gray-400 text-xs ml-4'>
+              <div className='text-small-light dark:text-small-dark text-xs ml-4'>
                 {modifiedDate
                   ? (
                     <p>{formatDate(modifiedDate)} at {formatTime(modifiedDate)}</p>
@@ -163,11 +163,11 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, views, name
         {/* Note Content */}
         <div className='p-4 flex-grow'>
           <h5 className='text-lg font-bold'>{title}</h5>
-          {tag.length > 2 && <span className='text-[#FDC116] font-medium text-sm'># {tag}</span>}
+          {tag.length > 2 && <span className='text-tag-light dark:text-tag-dark font-medium text-sm'># {tag}</span>}
           <div className='relative'>
             <p
               ref={contentRef}
-              className='mb-0 mt-2 font-normal text-white whitespace-pre-wrap line-clamp-3 overflow-hidden'
+              className='mb-0 mt-2 font-normal text-text-light dark:text-text-dark whitespace-pre-wrap line-clamp-3 overflow-hidden'
             >
               {renderWithLinksAndMentions(description)}
             </p>
@@ -180,13 +180,13 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, views, name
         </div>
 
         {/* Timestamp - Shows Both Created & Modified Dates */}
-        <div className='flex items-center justify-between text-gray-400 text-xs px-4 pb-3'>
+        <div className='flex items-center justify-between text-small-light dark:text-small-dark text-xs px-4 pb-3'>
           <div className='flex items-center justify-between gap-3'>
 
-            <p className='text-xs text-slate-500'>
+            <p className='text-xs'>
               Published: {formatDate(note.publicDate || note.date)} at {formatTime(note.publicDate || note.date)}
             </p>
-            <p className='text-xs text-slate-300 flex items-center'>
+            <p className='text-xs flex items-center'>
               <ChartNoAxesColumn className='mr-1' /> {note.views} views
             </p>
           </div>

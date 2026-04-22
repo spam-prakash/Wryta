@@ -119,16 +119,16 @@ export default function NotificationDropdown ({ onClose }) {
   if (!isDesktop) return null
 
   return (
-    <div ref={dropdownRef} className='notification-dropdown absolute right-0 mt-2 w-96 bg-[#0a1122] border border-gray-800 rounded-lg shadow-2xl z-50'>
+    <div ref={dropdownRef} className='notification-dropdown absolute right-0 mt-2 w-96 bg-minCard-light dark:bg-minCard-dark border border-gray-800 rounded-lg shadow-2xl z-50'>
       {/* Header */}
-      <div className='flex items-center justify-between px-4 py-3 border-b border-gray-800 sticky top-0 bg-[#0a1122] z-10 rounded-t-lg'>
+      <div className='flex items-center justify-between px-4 py-3 border-b border-gray-800 sticky top-0 bg-minCard-light dark:bg-minCard-dark z-10 rounded-t-lg'>
         <div className='flex items-center gap-2'>
-          <svg className='w-4 h-4 text-[#FDC116]' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+          <svg className='w-4 h-4 text-tag-light dark:text-tag-dark' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9' />
           </svg>
-          <h3 className='font-bold text-white'>Notifications</h3>
+          <h3 className='font-bold text-text-light dark:text-text-dark'>Notifications</h3>
           {unreadCount > 0 && (
-            <span className='bg-[#FDC116] text-black text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center'>
+            <span className='bg-tag-light dark:bg-tag-dark text-black text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center'>
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
@@ -142,8 +142,8 @@ export default function NotificationDropdown ({ onClose }) {
                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
               </svg>}
           </button>
-          {unreadCount > 0 && <button onClick={markAllAsRead} className='text-xs text-[#FDC116] hover:text-white px-2 py-1' title='Mark all as read'>Mark all read</button>}
-          <button onClick={handleClose} className='text-gray-400 hover:text-[#FDC116] focus:outline-none transition-colors'>
+          {unreadCount > 0 && <button onClick={markAllAsRead} className='text-xs text-tag-light dark:text-tag-dark hover:text-white px-2 py-1' title='Mark all as read'>Mark all read</button>}
+          <button onClick={handleClose} className='text-gray-400 hover:text-tag-light dark:hover:text-tag-dark focus:outline-none transition-colors'>
             <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
               <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
             </svg>
@@ -158,7 +158,7 @@ export default function NotificationDropdown ({ onClose }) {
         ) : latestNotifications.map((n, index) => (
           <div
             key={n._id || `notification-${index}-${Date.now()}`}
-            className={`px-4 py-3 border-b border-gray-800 hover:bg-[#1a2238] transition-colors cursor-pointer ${!n.isRead ? 'bg-[#1a2238]' : ''}`}
+            className={`px-4 py-3 border-b border-gray-800 hover:bg-[#efefd0] dark:hover:bg-[#1a2238] transition-colors cursor-pointer ${!n.isRead ? 'bg-[#1a2238]' : ''}`}
             onClick={() => handleNotificationClick(n)}
           >
             {/* Avatar and Content */}
@@ -175,14 +175,14 @@ export default function NotificationDropdown ({ onClose }) {
                     handleClose()
                   }}
                 />
-                {!n.isRead && <span className='absolute -top-1 -right-1 w-3 h-3 bg-[#FDC116] rounded-full border-2 border-[#0a1122]' />}
+                {!n.isRead && <span className='absolute -top-1 -right-1 w-3 h-3 bg-tag-light dark:bg-tag-dark rounded-full border-2 border-[#0a1122]' />}
               </div>
 
               <div className='flex-1 min-w-0'>
                 <div className='flex justify-between items-start'>
                   <div>
                     <div
-                      className='font-bold text-white hover:text-[#FDC116] transition-colors cursor-pointer'
+                      className='font-bold text-text-light dark:text-text-dark hover:text-tag-light dark:hover:text-tag-dark transition-colors cursor-pointer'
                       onClick={(e) => {
                         e.stopPropagation()
                         if (!n.isRead) markAsRead(n._id)
@@ -194,19 +194,19 @@ export default function NotificationDropdown ({ onClose }) {
                     </div>
                     <div className='flex items-center gap-2 mt-1'>
                       {n.type === 'like' && (
-                        <span className='text-[#FDC116]'>
+                        <span className='text-tag-light dark:text-tag-dark'>
                           <svg className='w-4 h-4' fill='currentColor' viewBox='0 0 24 24'>
                             <path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z' />
                           </svg>
                         </span>
                       )}
-                      <span className='text-gray-300 text-sm flex-1 line-clamp-2'>{n.message || 'New notification'}</span>
+                      <span className='text-slate-500 dark:text-gary-300 hover:text-slate-800 dark:hover:text-white text-sm flex-1 line-clamp-2'>{n.message || 'New notification'}</span>
                     </div>
                   </div>
                   <span className='text-xs text-gray-500 whitespace-nowrap ml-2 flex-shrink-0'>{n.createdAt ? formatTime(n.createdAt) : 'Recently'}</span>
                 </div>
                 {n.note?.content && (
-                  <div className='mt-2 p-2 bg-gray-900 rounded border-l-2 border-[#FDC116]'>
+                  <div className='mt-2 p-2 bg-gray-900 rounded border-l-2 border-tag-light dark:border-tag-dark'>
                     <p className='text-xs text-gray-400 line-clamp-2'>"{n.note.content.substring(0, 80)}"</p>
                   </div>
                 )}
@@ -218,7 +218,7 @@ export default function NotificationDropdown ({ onClose }) {
 
       {/* Footer */}
       <div className='border-t border-gray-800 rounded-b-lg overflow-hidden'>
-        <button onClick={handleSeeAll} className='w-full flex items-center justify-center gap-2 py-3 text-sm text-gray-400 hover:text-[#FDC116] hover:bg-[#1a2238] transition-all duration-300'>
+        <button onClick={handleSeeAll} className='w-full flex items-center justify-center gap-2 py-3 text-sm text-gray-400 hover:text-tag-light dark:text-tag-dark hover:bg-[#1a2238] transition-all duration-300'>
           <span>See All Notifications</span>
           <svg className='w-4 h-4 transition-transform duration-300' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />

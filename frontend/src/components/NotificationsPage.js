@@ -55,7 +55,7 @@ export default function NotificationsPage () {
           <div className='flex items-center justify-between mb-2'>
             <div className='flex items-center gap-2'>
               <svg
-                className='w-5 h-5 text-[#FDC116]'
+                className='w-5 h-5 text-tag-light dark:text-tag-dark'
                 fill='none'
                 stroke='currentColor'
                 viewBox='0 0 24 24'
@@ -67,7 +67,7 @@ export default function NotificationsPage () {
                   d='M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9'
                 />
               </svg>
-              <h1 className='text-lg font-bold text-white'>Notifications</h1>
+              <h1 className='text-lg font-bold text-text-light dark:text-text-dark'>Notifications</h1>
               {notifications.filter((n) => !n.isRead).length > 0 && (
                 <span className='bg-[#FDC116] text-black text-xs font-bold px-2 py-0.5 rounded-full'>
                   {notifications.filter((n) => !n.isRead).length}
@@ -79,13 +79,13 @@ export default function NotificationsPage () {
               <button
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className='text-xs text-white hover:text-white transition-colors flex items-center gap-1 disabled:opacity-50'
+                className='text-xs text-text-light dark:text-text-dark hover:opacity-50 transition-colors flex items-center gap-1 disabled:opacity-50'
                 aria-label='Refresh notifications'
               >
                 {isRefreshing
                   ? (
                     <>
-                      <div className='w-3 h-3 border-2 border-[#FDC116] border-t-transparent rounded-full animate-spin' />
+                      <div className='w-3 h-3 border-2 border-tag-light dark:bordet-tag-dark border-t-transparent rounded-full animate-spin' />
                       <span>Refreshing</span>
                     </>
                     )
@@ -115,7 +115,7 @@ export default function NotificationsPage () {
             <div className='self-end'>
               <button
                 onClick={markAllAsRead}
-                className='text-sm text-[#FDC116] hover:text-white transition-colors'
+                className='text-sm text-tag-light dark:text-tag-dark hover:opacity-50 transition-colors'
               >
                 Mark all as read
               </button>
@@ -129,8 +129,8 @@ export default function NotificationsPage () {
         {notifications.map((n) => (
           <div
             key={n._id}
-            className={`py-3 px-1 hover:bg-[#1a2238] transition-colors ${
-              !n.isRead ? 'bg-[#1a2238]/30' : ''
+            className={`py-3 px-1 hover:bg-[#efefd0] dark:hover:bg-[#1a2238] transition-colors ${
+              !n.isRead ? 'bg-[#3f3fd0]/30 dark:bg-[#1a2238]/30' : ''
             }`}
           >
             <div className='flex gap-3 pb-1 border-b-2 border-gray-600'>
@@ -157,14 +157,14 @@ export default function NotificationsPage () {
                   <div>
                     <Link
                       to={`/u/${n.sender?.username}`}
-                      className='font-semibold text-white hover:text-[#FDC116] transition-colors text-sm'
+                      className='font-semibold text-text-light dark:text-text-dark hover:text-tag-light dark:hover:text-tag-dark transition-colors text-sm'
                     >
                       {n.sender?.username}
                     </Link>
 
-                    <div className='flex items-center gap-1 mt-0.5'>
+                    <div className='flex items-center gap-1 mt-0.5 text-tag-light dark:text-tag-dark'>
                       {n.type === 'like' && (
-                        <span className='text-[#FDC116]'>
+                        <span className=''>
                           <svg
                             className='w-3.5 h-3.5'
                             fill='currentColor'
@@ -175,7 +175,7 @@ export default function NotificationsPage () {
                         </span>
                       )}
                       {n.type === 'follow' && (
-                        <span className='text-[#FDC116]'>
+                        <span className=''>
                           <svg
                             className='w-3.5 h-3.5'
                             fill='none'
@@ -192,7 +192,7 @@ export default function NotificationsPage () {
                         </span>
                       )}
                       {n.type === 'comment' && (
-                        <span className='text-[#FDC116]'>
+                        <span className=''>
                           <svg
                             className='w-3.5 h-3.5'
                             fill='none'
@@ -212,7 +212,7 @@ export default function NotificationsPage () {
                       <Link
                         to={getNotificationLink(n)}
                         onClick={() => !n.isRead && markAsRead(n._id)}
-                        className='text-gray-300 hover:text-white text-sm transition-colors'
+                        className='text-slate-500 dark:text-gary-300 hover:text-slate-800 dark:hover:text-white text-sm transition-colors'
                       >
                         {n.message}
                       </Link>
@@ -226,7 +226,7 @@ export default function NotificationsPage () {
                     {!n.isRead && (
                       <button
                         onClick={() => markAsRead(n._id)}
-                        className='text-xs text-[#FDC116] hover:text-white transition-colors'
+                        className='text-xs text-tag-light dark:text-tag-dark hover:text-white transition-colors'
                       >
                         Mark as read
                       </button>

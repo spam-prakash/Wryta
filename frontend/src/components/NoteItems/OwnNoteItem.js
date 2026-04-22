@@ -110,10 +110,10 @@ const OwnNoteItem = (props) => {
 
   return (
     <>
-      <div className='text-white w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 flex flex-col'>
+      <div className='text-text-light dark:text-text-dark w-full max-w-sm mx-auto mb-6 bg-card-light dark:bg-card-dark rounded-xl shadow-lg border border-gray-700 flex flex-col'>
         {/* Header */}
         <div className='flex items-center justify-between px-4 py-3 border-b border-gray-700'>
-          <h5 className='text-lg font-bold text-white truncate'>{note.title}</h5>
+          <h5 className='text-lg font-bold text-text-light dark:text-text-dark truncate'>{note.title}</h5>
           <div className='flex gap-3'>
             <img
               onClick={() => {
@@ -137,9 +137,9 @@ const OwnNoteItem = (props) => {
 
         {/* Content */}
         <div className='p-4 flex-grow'>
-          {note.tag.length > 2 && <span className='text-[#FDC116] font-medium text-sm'># {note.tag}</span>}
+          {note.tag.length > 2 && <span className='text-tag-light dark:text-tag-dark font-medium text-sm'># {note.tag}</span>}
           <div className='relative'>
-            <p ref={contentRef} className='mt-2 font-normal text-white whitespace-pre-wrap line-clamp-3 overflow-hidden'>
+            <p ref={contentRef} className='mt-2 font-normal text-text-light dark:text-text-dark whitespace-pre-wrap line-clamp-3 overflow-hidden'>
               {renderWithLinksAndMentions(note.description)}
             </p>
             {isOverflowing && (
@@ -152,8 +152,8 @@ const OwnNoteItem = (props) => {
 
         {/* Footer */}
         <div className='px-2 pb-3 border-t border-gray-700 flex flex-col'>
-          <div className='text-gray-400 text-xs border-b border-gray-700 pb-2 flex justify-between items-center pt-2'>
-            <div className='left flex items-end justify-between text-gray-400 text-xs gap-3'>
+          <div className='text-small-light dark:text-small-dark text-xs border-b border-gray-700 pb-2 flex justify-between items-center pt-2'>
+            <div className='left flex items-end justify-between text-small-light dark:text-small-dark text-xs gap-3'>
               <div className='dates'>
                 {note.modifiedDate && (
                   <p>
@@ -169,7 +169,7 @@ const OwnNoteItem = (props) => {
                   Created: {formatDate(note.date)} at {formatTime(note.date)}
                 </p>
               </div>
-              <p className='text-xs text-slate-300 flex items-end'>
+              <p className='text-xs text-small-light dark:text-small-dark flex items-end'>
                 <ChartNoAxesColumn className='mr-1' /> {note.views} views
               </p>
             </div>

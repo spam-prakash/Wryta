@@ -300,7 +300,7 @@ const OthersProfile = ({ loggedInUser, showAlert, isAuthenticated }) => {
         <select
           value={sortCriteria}
           onChange={(e) => setSortCriteria(e.target.value)}
-          className='px-4 py-2 text-sm rounded-full border bg-[#1E293B] text-white border-gray-600 hover:border-white hover:bg-[#374151]'
+          className='px-4 py-2 text-sm rounded-full border bg-[#CCC5B9] dark:bg-[#1E293B] text-text-light dark:text-text-dark border-gray-600 hover:border-white hover:bg-[#374151]'
         >
           <option value='modifiedDate'>Modified Date</option>
           <option value='date'>Created Date</option>
@@ -308,14 +308,14 @@ const OthersProfile = ({ loggedInUser, showAlert, isAuthenticated }) => {
         <select
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value)}
-          className='px-4 py-2 text-sm rounded-full border bg-[#1E293B] text-white border-gray-600 hover:border-white hover:bg-[#374151]'
+          className='px-4 py-2 text-sm rounded-full border bg-[#CCC5B9] dark:bg-[#1E293B] text-text-light dark:text-text-dark border-gray-600 hover:border-white hover:bg-[#374151]'
         >
           <option value='new'>Newest</option>
           <option value='old'>Oldest</option>
         </select>
       </div>
 
-      <div className='w-full flex flex-wrap text-white gap-3 mt-4 px-4'>
+      <div className='w-full flex flex-wrap text-text-light dark:text-text-dark gap-3 mt-4 px-4'>
         {sortedNotesToDisplay.length > 0
           ? (
               sortedNotesToDisplay.map((note) =>

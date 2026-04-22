@@ -70,7 +70,7 @@ const ProfileHeader = ({
 
   return (
     <>
-      <div className='flex flex-col text-white px-4  mx-auto pt-44 mb-10 max-w-2xl'>
+      <div className='flex flex-col text-text-light dark:text-text-dark px-4  mx-auto pt-44 mb-10 max-w-2xl'>
         <div className='flex items-center space-x-8 mb-4'>
           <div className='left relative flex flex-col items-center'>
             <div className='relative'>
@@ -128,11 +128,11 @@ const ProfileHeader = ({
               <div className='flex justify-center items-center flex-wrap gap-y-2 md:flex-nowrap md:space-x-12 '>
                 <div className='w-1/2 md:w-auto text-center flex flex-col'>
                   <span className='font-semibold'>{totalNotes}</span>
-                  <span className='text-sm text-gray-300 ml-1'>notes</span>
+                  <span className='text-sm text-slate-500 dark:text-gray-300 ml-1'>notes</span>
                 </div>
                 <div className='w-1/2 md:w-auto text-center flex flex-col'>
                   <span className='font-semibold'>{publicNotesCount}</span>
-                  <span className='text-sm text-gray-300 ml-1'>public</span>
+                  <span className='text-sm text-slate-500 dark:text-gray-300 ml-1'>public</span>
                 </div>
                 <div
                   className='w-1/2 md:w-auto text-center cursor-pointer flex flex-col'
@@ -142,7 +142,7 @@ const ProfileHeader = ({
                   }}
                 >
                   <span className='font-semibold'>{followerCount}</span>
-                  <span className='text-sm text-gray-300 ml-1'>followers</span>
+                  <span className='text-sm text-slate-500 dark:text-gray-300 ml-1'>followers</span>
                 </div>
                 <div
                   className='w-1/2 md:w-auto text-center cursor-pointer flex flex-col'
@@ -152,7 +152,7 @@ const ProfileHeader = ({
                   }}
                 >
                   <span className='font-semibold'>{followingCount}</span>
-                  <span className='text-sm text-gray-300 ml-1'>following</span>
+                  <span className='text-sm text-slate-500 dark:text-gray-300 ml-1'>following</span>
                 </div>
               </div>
 
@@ -174,7 +174,7 @@ const ProfileHeader = ({
               <>
                 <button
                   onClick={() => setIsEditProfileModelOpen(true)}
-                  className='w-full px-8 py-2 bg-gray-800 hover:bg-gray-700 text-sm flex items-center justify-center space-x-2 rounded-full shadow-sm transition-transform duration-150'
+                  className='w-full px-8 py-2 bg-slate-200 hover:bg-slate-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-sm flex items-center justify-center space-x-2 rounded-full shadow-sm transition-transform duration-150'
                 >
                   <span>Edit profile</span>
                   <Edit3 size={16} />
@@ -187,9 +187,9 @@ const ProfileHeader = ({
                     onClick={onFollowToggle}
                     className={`w-full px-8 py-2 rounded-full ${
                   isFollowing
-                    ? 'bg-gray-800 hover:bg-gray-700'
-                    : 'bg-blue-600 hover:bg-blue-700'
-                } text-base font-medium focus:outline-none transition-colors shadow-sm`}
+                      ? 'bg-gray-200 hover:bg-gray-300 text-black dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white'
+                      : 'bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-600 dark:hover:bg-blue-700'
+                  } text-base font-medium focus:outline-none transition-colors shadow-sm`}
                   >
                     {isFollowing ? 'Unfollow' : 'Follow'}
                   </button>

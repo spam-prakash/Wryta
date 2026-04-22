@@ -51,10 +51,10 @@ const UserListModal = ({ title, users = [], onClose, isOpen }) => {
     <div className='fixed inset-0 bg-opacity-50 md:backdrop-blur-sm flex items-center justify-center z-50 backdrop-blur-sm '>
       <div
         ref={modalRef}
-        className='bg-[#0a0d22] w-full max-w-md rounded-2xl shadow-lg overflow-hidden border  border-gray-700 mx-6 '
+        className='bg-model-light dark:bg-model-dark w-full max-w-md rounded-2xl shadow-lg overflow-hidden border border-black-300 dark:border-gray-700 mx-6 '
       >
         {/* Header */}
-        <div className='flex items-center justify-between px-4 py-3 border-b border-gray-700'>
+        <div className='flex items-center justify-between px-4 py-3 border-b border-black-300 dark:border-gray-700'>
           <h2 className='text-lg font-semibold text-gray-100'>{title}</h2>
           <button
             onClick={onClose}
@@ -65,7 +65,7 @@ const UserListModal = ({ title, users = [], onClose, isOpen }) => {
         </div>
 
         {/* List */}
-        <div className='max-h-96 overflow-y-auto divide-y divide-gray-700'>
+        <div className='max-h-96 overflow-y-auto divide-y divide-black-300 dark:divide-gray-700'>
           {users.length > 0
             ? (
                 users.map((user) => (

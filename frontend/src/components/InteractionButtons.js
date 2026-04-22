@@ -215,15 +215,19 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
         <button className='flex items-center space-x-2'>
           <Heart
             onClick={handleLike}
-            color={liked ? '#FF0000' : '#FFFFFF'}
-            fill={liked ? '#FF0000' : 'none'}
+            className={`cursor-pointer transition-colors
+              ${liked
+                ? 'text-red-500 fill-red-500'
+                : 'text-black dark:text-white fill-none'
+              }
+            `}
           />
           <span
             onClick={() => {
               fetchLikingUsers()
               setIsUserListModalOpen(true)
             }}
-            className='text-sm text-gray-400 cursor-pointer hover:underline'
+            className='text-sm text-small-light dark:text-small-dark cursor-pointer hover:underline'
           >
             {counts.likes} {counts.likes === 1 ? 'Like' : 'Likes'}
           </span>
@@ -232,19 +236,19 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
         {/* 📋 Copy */}
         <button onClick={copyToClipboard} className='flex items-center space-x-2'>
           <Copy />
-          <span className='text-sm text-gray-400'>{counts.copies}</span>
+          <span className='text-sm text-small-light dark:text-small-dark'>{counts.copies}</span>
         </button>
 
         {/* ⬇️ Download */}
         <button onClick={downloadCardAsImage} className='flex items-center space-x-2'>
           <Download />
-          <span className='text-sm text-gray-400'>{counts.downloads}</span>
+          <span className='text-sm text-small-light dark:text-small-dark'>{counts.downloads}</span>
         </button>
 
         {/* 🔗 Share */}
         <button onClick={shareNote} className='flex items-center space-x-2'>
           <Share2 />
-          <span className='text-sm text-gray-400'>{counts.shares}</span>
+          <span className='text-sm text-small-light dark:text-small-dark'>{counts.shares}</span>
         </button>
       </div>
 

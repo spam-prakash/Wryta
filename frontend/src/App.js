@@ -72,37 +72,39 @@ function App () {
 
   return (
     <>
-      <NotificationProvider>
-        <NoteState>
-          <Router>
-            <Navbar showAlert={showAlert} user={user} setUser={setUser} setIsAuthenticated={setIsAuthenticated} />
+      <div className='bg-bg-light dark:bg-bg-dark'>
+        <NotificationProvider>
+          <NoteState>
+            <Router>
+              <Navbar showAlert={showAlert} user={user} setUser={setUser} setIsAuthenticated={setIsAuthenticated} />
 
-            <Alert alert={alert} />
-            <div className='container px-4'>
-              <Routes>
-                {/* <Route
+              <Alert alert={alert} />
+              <div className='container px-4'>
+                <Routes>
+                  {/* <Route
                 exact path='/'
                 element={isAuthenticated ? <Home showAlert={showAlert} isAuthenticated={isAuthenticated} /> : <Navigate to='/login' />}
               /> */}
-                <Route exact path='/' element={<Home showAlert={showAlert} isAuthenticated={isAuthenticated} />} />
-                <Route exact path='/about' key='/about' element={<About />} />
-                <Route exact path='/upload-image' key='/about' element={<UploadImage user={user} setUser={setUser} />} />
-                <Route exact path='/login' key='/login' element={<Login showAlert={showAlert} setUser={setUser} />} />
-                <Route exact path='/signup' key='/signup' element={<Signup showAlert={showAlert} />} />
-                <Route path='/notifications' element={<NotificationsPage />} />
+                  <Route exact path='/' element={<Home showAlert={showAlert} isAuthenticated={isAuthenticated} />} />
+                  <Route exact path='/about' key='/about' element={<About />} />
+                  <Route exact path='/upload-image' key='/about' element={<UploadImage user={user} setUser={setUser} />} />
+                  <Route exact path='/login' key='/login' element={<Login showAlert={showAlert} setUser={setUser} />} />
+                  <Route exact path='/signup' key='/signup' element={<Signup showAlert={showAlert} />} />
+                  <Route path='/notifications' element={<NotificationsPage />} />
 
-                {/* <Route exact path='/profile' key='/profile' element={<Profile showAlert={showAlert} user={user} />} /> */}
-                <Route path='/u/:username' element={<OthersProfile loggedInUser={user} showAlert={showAlert} isAuthenticated={isAuthenticated} />} />
-                <Route path='/login-success' element={<Login />} />
-                <Route path='/request-reset-password' element={<RequestResetPassword showAlert={showAlert} />} />
-                <Route path='/reset-password' element={<ResetPassword showAlert={showAlert} />} />
-                <Route path='/note/:id' element={<SharedNote loggedInUser={user} showAlert={showAlert} />} />
-                <Route path='*' key='/' element={<Home />} />
-              </Routes>
-            </div>
-          </Router>
-        </NoteState>
-      </NotificationProvider>
+                  {/* <Route exact path='/profile' key='/profile' element={<Profile showAlert={showAlert} user={user} />} /> */}
+                  <Route path='/u/:username' element={<OthersProfile loggedInUser={user} showAlert={showAlert} isAuthenticated={isAuthenticated} />} />
+                  <Route path='/login-success' element={<Login />} />
+                  <Route path='/request-reset-password' element={<RequestResetPassword showAlert={showAlert} />} />
+                  <Route path='/reset-password' element={<ResetPassword showAlert={showAlert} />} />
+                  <Route path='/note/:id' element={<SharedNote loggedInUser={user} showAlert={showAlert} />} />
+                  <Route path='*' key='/' element={<Home />} />
+                </Routes>
+              </div>
+            </Router>
+          </NoteState>
+        </NotificationProvider>
+      </div>
     </>
   )
 }

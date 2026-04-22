@@ -49,7 +49,7 @@ const Addnote = ({ modalRef, showAlert, toggleModal, isOpen }) => {
       ref={modalRef}
       className='hidden fixed top-0 left-0 z-50 w-full h-full backdrop-blur-sm bg-opacity-50 flex justify-center items-center'
     >
-      <form className='bg-[#0a1122] md:w-[60vw] max-w-[50rem] shadow-2xl rounded px-8 pt-6 pb-8 mb-4'>
+      <form className='bg-model-light dark:bg-model-dark md:w-[60vw] max-w-[50rem] shadow-2xl rounded px-8 pt-6 pb-8 mb-4'>
         {/* Title */}
         <div className='mb-4'>
           <label className='block text-white text-sm font-bold mb-2' htmlFor='title'>

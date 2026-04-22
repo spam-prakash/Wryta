@@ -51,7 +51,7 @@ const NoteUpdateModal = ({ currentNote, editNote, showAlert, toggleModal, isOpen
     <div
       className={`fixed inset-0 z-50 flex justify-center items-center backdrop-blur-sm bg-black bg-opacity-50 p-4 ${!isOpen ? 'hidden' : ''}`}
     >
-      <form className='bg-[#0a1122] w-full md:w-[60vw] max-w-[50rem] shadow-2xl rounded px-8 pt-6 pb-8'>
+      <form className='bg-model-light dark:bg-model-dark w-full md:w-[60vw] max-w-[50rem] shadow-2xl rounded px-8 pt-6 pb-8'>
         {/* Title */}
         <div className='mb-4'>
           <label

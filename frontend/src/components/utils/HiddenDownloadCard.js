@@ -10,12 +10,35 @@ const HiddenDownloadCard = forwardRef(({ note, username, image, formatDate, form
 
   const getAvatarURL = (username) => {
     const base = process.env.REACT_APP_IMAGEAPI
-    // Request PNG output instead of SVG (supported by DiceBear)
     return `${base}${encodeURIComponent(username)}&format=png`
   }
 
   if (!image) {
     image = getAvatarURL(username)
+  }
+
+  // Get the latest date for display
+  const getLatestDate = () => {
+    const dates = [note.publicDate, note.modifiedDate, note.date]
+      .filter(Boolean)
+      .map((d) => new Date(d))
+      .filter((d) => !isNaN(d))
+
+    if (!dates.length) return null
+    return new Date(Math.max(...dates.map((d) => d.getTime())))
+  }
+
+  const latestDate = getLatestDate()
+
+  // Format date properly
+  const formatDateForDisplay = (date) => {
+    if (!date) return 'Invalid Date'
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
+
+  const formatTimeForDisplay = (date) => {
+    if (!date) return ''
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
   }
 
   return (
@@ -24,60 +47,147 @@ const HiddenDownloadCard = forwardRef(({ note, username, image, formatDate, form
     >
       <div
         ref={ref}
-        className='w-full max-w-lg mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 text-white flex flex-col overflow-hidden min-w-[320px]'
+        style={{
+          width: '100%',
+          maxWidth: '32rem',
+          minWidth: '320px',
+          background: 'linear-gradient(135deg, #020617 0%, #0f172a 100%)',
+          border: '1px solid rgba(51, 65, 85, 0.5)',
+          borderRadius: '12px',
+          overflow: 'hidden'
+        }}
       >
-        {/* Header (User Info) */}
-        <div className='flex items-center gap-3 p-4 border-b border-gray-700'>
-          <div className='relative w-12 h-12 rounded-full border border-gray-600 bg-gray-800 overflow-hidden flex-shrink-0'>
-            <img
-              src={image || `${imageAPI}${encodeURIComponent(username)}`}
-              onError={(e) => {
-                e.target.onerror = null // prevent infinite loop
-                e.target.src = `${imageAPI}${encodeURIComponent(username)}`
-              }}
-              alt={username}
-              crossOrigin='anonymous'
-              referrerPolicy='no-referrer'
-              className=' w-full h-full object-cover rounded-full'
-              onError={(e) => { e.target.style.display = 'none' }}
-            />
+        <div style={{ padding: '1.25rem' }}>
+          {/* Big Wryta at top */}
+          <div style={{ marginBottom: '0.5rem' }}>
+            <span style={{ color: 'white', fontWeight: 'bold', fontSize: '3rem', letterSpacing: '-0.025em' }}>Wry</span>
+            <span style={{ color: '#FDC116', fontWeight: 'bold', fontSize: '3rem', letterSpacing: '-0.025em' }}>ta</span>
           </div>
 
-          <div className='flex flex-col justify-center'>
-            <p className='font-semibold text-gray-200 leading-tight'>@{username}</p>
-            <p className='text-gray-400 text-xs leading-tight mt-1'>
-              {(() => {
-                const dates = [note.publicDate, note.modifiedDate, note.date]
-                  .filter(Boolean)
-                  .map((d) => new Date(d))
-                  .filter((d) => !isNaN(d))
-
-                if (!dates.length) return 'Published: N/A'
-
-                const latest = new Date(Math.max(...dates.map((d) => d.getTime())))
-                return <>Published: {formatDate(latest)} at {formatTime(latest)}</>
-              })()}
-            </p>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className='p-4 flex-grow'>
-          <h5 className='text-lg font-bold uppercase leading-tight'>{title}</h5>
-          {tag?.length > 2 && <span className='text-[#FDC116] font-medium text-sm leading-tight'># {tag}</span>}
-          <p className='mb-0 mt-2 font-normal text-white whitespace-pre-wrap leading-relaxed'>{renderWithLinksAndMentions(description)}</p>
-        </div>
-
-        {/* Interaction buttons - wrapped in a container with explicit styling */}
-        <div className='border-t border-gray-700'>
-          <InteractionButtons
-            title={title}
-            tag={tag}
-            description={description}
-            noteId={note._id}
-            note={note}
+          {/* Thin line under Wryta */}
+          <div style={{
+            width: '100%',
+            height: '2px',
+            background: 'rgba(56, 189, 248, 0.3)',
+            marginBottom: '1.25rem'
+          }}
           />
+
+          {/* Title */}
+          <h2 style={{
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: '1.25rem',
+            lineHeight: '1.4',
+            marginBottom: '0.5rem',
+            wordBreak: 'break-word'
+          }}
+          >
+            {title || 'Untitled Note'}
+          </h2>
+
+          {/* Tag */}
+          {tag?.length > 2 && (
+            <div style={{
+              color: '#FDC116',
+              fontWeight: '500',
+              fontSize: '0.875rem',
+              marginBottom: '0.75rem'
+            }}
+            >
+              # {tag}
+            </div>
+          )}
+
+          {/* Description */}
+          <div style={{
+            color: '#94a3b8',
+            fontSize: '0.875rem',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+            marginBottom: '1.25rem',
+            lineHeight: '1.5'
+          }}
+          >
+            {description
+              ? (
+                <div>
+                  {description.split(/\r?\n/).map((paragraph, idx) => {
+                    if (!paragraph.trim()) return <br key={idx} />
+                    return (
+                      <p key={idx} style={{ marginBottom: '0.25rem' }}>
+                        {renderWithLinksAndMentions(paragraph)}
+                      </p>
+                    )
+                  })}
+                </div>
+                )
+              : (
+                  renderWithLinksAndMentions(description)
+                )}
+          </div>
+
+          {/* Footer - Avatar, Username, Date on left, wryta on right same line */}
+          <div style={{
+            borderTop: '1px solid rgba(51, 65, 85, 0.3)',
+            paddingTop: '0.75rem'
+          }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              {/* Left side: Avatar + Username and Date */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                {/* Avatar */}
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  border: '1px solid rgba(71, 85, 105, 0.5)',
+                  background: '#1e293b',
+                  overflow: 'hidden',
+                  flexShrink: 0
+                }}
+                >
+                  <img
+                    src={image || `${imageAPI}${encodeURIComponent(username)}`}
+                    onError={(e) => {
+                      e.target.onerror = null
+                      e.target.src = `${imageAPI}${encodeURIComponent(username)}`
+                    }}
+                    alt={username}
+                    crossOrigin='anonymous'
+                    referrerPolicy='no-referrer'
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                </div>
+
+                {/* Username and Date - vertically stacked */}
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ color: '#e2e8f0', fontWeight: '500', fontSize: '0.875rem', lineHeight: '1.4' }}>
+                    @{username}
+                  </div>
+                  {latestDate && (
+                    <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '0.25rem', lineHeight: '1.4' }}>
+                      {formatDateForDisplay(latestDate)} at {formatTimeForDisplay(latestDate)}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right side: wryta */}
+              <div style={{
+                color: '#64748b',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                letterSpacing: '0.025em',
+                paddingTop: '0.25rem'
+              }}
+              >
+                wryta
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
     </div>
   )

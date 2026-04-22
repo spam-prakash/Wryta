@@ -27,7 +27,7 @@ const EditProfileModel = ({ isOpen, onClose, onSubmit, initialData }) => {
 
   return (
     <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4'>
-      <div className='bg-[#1E293B] rounded-lg p-6 w-full max-w-md'>
+      <div className='bg-model-light dark:bg-model-dark rounded-lg p-6 w-full max-w-md'>
         <h2 className='text-xl font-bold mb-4 text-white'>Edit Profile</h2>
         <form onSubmit={handleSubmit}>
           <div className='mb-4'>
@@ -40,7 +40,7 @@ const EditProfileModel = ({ isOpen, onClose, onSubmit, initialData }) => {
               type='text'
               value={formData.username}
               onChange={handleChange}
-              className='mt-1 block w-full rounded-md border-gray-600 bg-[#374151] text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2'
+              className='mt-1 block w-full rounded-md border-gray-600  text-text-light dark:text-text-dark shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2'
               placeholder={initialData.username}
             />
           </div>
@@ -54,7 +54,7 @@ const EditProfileModel = ({ isOpen, onClose, onSubmit, initialData }) => {
               type='text'
               value={formData.name}
               onChange={handleChange}
-              className='mt-1 block w-full rounded-md border-gray-600 bg-[#374151] text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2'
+              className='mt-1 block w-full rounded-md border-gray-600 text-text-light dark:text-text-dark shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2'
               placeholder={initialData.name}
             />
           </div>
@@ -68,7 +68,7 @@ const EditProfileModel = ({ isOpen, onClose, onSubmit, initialData }) => {
               value={formData.bio}
               onChange={handleChange}
               maxLength={250}
-              className='mt-1 block w-full rounded-md border-gray-600 bg-[#374151] text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2'
+              className='mt-1 block w-full rounded-md border-gray-600 text-text-light dark:text-text-dark shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2'
               placeholder={initialData.bio || 'Write something about yourself...'}
               rows={4}
             />

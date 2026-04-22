@@ -64,7 +64,7 @@ const OtherProfileNoteItem = ({
     <>
       {/* Visible Note Card */}
       <div
-        className='w-full max-w-sm mx-auto mb-6 bg-[#0a1122] rounded-xl shadow-lg border border-gray-700 text-white flex flex-col'
+        className='w-full max-w-sm mx-auto mb-6 bg-card-light dark:bg-card-dark rounded-xl shadow-lg border border-gray-700 text-text-light dark:text-text-dark flex flex-col'
         ref={(el) => {
           cardRef.current = el
           if (viewRef) viewRef.current = el
@@ -91,11 +91,11 @@ const OtherProfileNoteItem = ({
         {/* Content */}
         <div className='p-4 flex-grow'>
           <h5 className='text-lg font-bold uppercase'>{title}</h5>
-          {tag.length > 2 && <span className='text-[#FDC116] font-medium text-sm'># {tag}</span>}
+          {tag.length > 2 && <span className='text-tag-light dark:text-tag-dark font-medium text-sm'># {tag}</span>}
           <div className='relative'>
             <p
               ref={contentRef}
-              className='mb-0 mt-2 font-normal text-white whitespace-pre-wrap line-clamp-3 overflow-hidden'
+              className='mb-0 mt-2 font-normal text-text-light dark:text-text-dark whitespace-pre-wrap line-clamp-3 overflow-hidden'
             >
               {renderWithLinksAndMentions(description)}
             </p>
@@ -108,7 +108,7 @@ const OtherProfileNoteItem = ({
         </div>
 
         {/* Footer */}
-        <div className='flex items-center justify-between text-gray-400 text-xs px-4 pb-3'>
+        <div className='flex items-center justify-between text-small-light dark:text-small-dark text-xs px-4 pb-3'>
           {/* {note.modifiedDate && (
             <p className='py-1'>
               Modified: {formatDate(note.modifiedDate)} at {formatTime(note.modifiedDate)}
@@ -127,7 +127,7 @@ const OtherProfileNoteItem = ({
               return <>Published: {formatDate(latest)} at {formatTime(latest)}</>
             })()}
           </p>
-          <p className='text-xs text-slate-300 flex items-end'>
+          <p className='text-xs text-small-light dark:text-small-dark flex items-end'>
             <ChartNoAxesColumn className='mr-1' /> {note.views} views
           </p>
         </div>
