@@ -21,6 +21,8 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
   const [likingUsers, setLikingUsers] = useState([])
   const [liked, setLiked] = useState(false)
   const [isUserListModelOpen, setIsUserListModalOpen] = useState(false)
+  const [isLiking, setIsLiking] = useState(false)
+  const [isDownloading, setIsDownloading] = useState(false)
   const [counts, setCounts] = useState({
     likes: note.likes || 0,
     copies: note.copies || 0,
@@ -97,7 +99,9 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
 
   // ✅ Like/Unlike (instant update + backend sync)
   const handleLike = async () => {
+    if (isLiking) return
     try {
+      setIsLiking(true)
       const response = await fetch(`${hostLink}/api/notes/note/${noteId}/like`, {
         method: 'POST',
         headers: {
@@ -119,6 +123,8 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
       }
     } catch (error) {
       console.error('Error liking/unliking note:', error)
+    } finally {
+      setIsLiking(false)
     }
   }
 
@@ -148,29 +154,37 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
   }
 
   const downloadCardAsImage = async () => {
+    if (!cardRef.current || isDownloading) return
+
     if (!canDownload) {
       showAlert('You are not allowed to download this note.', '#F8D7DA')
       return
     }
 
     try {
-      if (cardRef.current) {
-        const canvas = await html2canvas(cardRef.current, {
-          useCORS: true,
-          backgroundColor: '#0a1122',
-          scale: 2
-        })
-        const dataURL = canvas.toDataURL('image/png')
-        const link = document.createElement('a')
-        link.href = dataURL
-        link.download = `${note.title || 'note'}.png`
-        link.click()
-        showAlert('Card downloaded successfully!', '#D4EDDA')
-        updateCount('download')
-      }
+      setIsDownloading(true)
+
+      const canvas = await html2canvas(cardRef.current, {
+        useCORS: true,
+        backgroundColor: '#0a1122',
+        scale: 2
+      })
+
+      const dataURL = canvas.toDataURL('image/png')
+
+      const link = document.createElement('a')
+      link.href = dataURL
+      link.download = `${note.title || 'note'}.png`
+      link.click()
+
+      await updateCount('download')
+
+      showAlert('Card downloaded successfully!', '#D4EDDA')
     } catch (error) {
       console.error('Error downloading card:', error)
       showAlert('Failed to download card. Please try again.', '#F8D7DA')
+    } finally {
+      setIsDownloading(false)
     }
   }
 
@@ -212,7 +226,12 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
     <>
       <div className='flex items-center justify-between px-4 py-2 border-t border-gray-700'>
         {/* ❤️ Like Button */}
-        <button className='flex items-center space-x-2'>
+        <button
+          className={`flex items-center space-x-2 ${
+    isLiking ? 'opacity-60 cursor-not-allowed' : ''
+  }`}
+          disabled={isLiking}
+        >
           <Heart
             onClick={handleLike}
             className={`cursor-pointer transition-colors
@@ -240,7 +259,12 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
         </button>
 
         {/* ⬇️ Download */}
-        <button onClick={downloadCardAsImage} className='flex items-center space-x-2'>
+        <button
+          onClick={downloadCardAsImage} className={`flex items-center space-x-2 ${
+    isLiking ? 'opacity-60 cursor-not-allowed' : ''
+  }`}
+          disabled={isDownloading}
+        >
           <Download />
           <span className='text-sm text-small-light dark:text-small-dark'>{counts.downloads}</span>
         </button>

@@ -19,6 +19,7 @@ const ProfileHeader = ({
   showAlert,
   setIsEditProfileModelOpen,
   isFollowing,
+  isFollowLoading,
   onFollowToggle,
   showPublicOnly, // boolean - owner only
   onTogglePublic, // function - owner only
@@ -185,13 +186,14 @@ const ProfileHeader = ({
                 loggedInUser && (
                   <button
                     onClick={onFollowToggle}
+                    disabled={isFollowLoading}
                     className={`w-full px-8 py-2 rounded-full ${
                   isFollowing
                       ? 'bg-gray-200 hover:bg-gray-300 text-black dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white'
                       : 'bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-600 dark:hover:bg-blue-700'
-                  } text-base font-medium focus:outline-none transition-colors shadow-sm`}
+                  } text-base font-medium focus:outline-none transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
-                    {isFollowing ? 'Unfollow' : 'Follow'}
+                    {isFollowLoading ? '...' : (isFollowing ? 'Unfollow' : 'Follow')}
                   </button>
                 )
               )}

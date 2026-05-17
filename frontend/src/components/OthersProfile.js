@@ -21,6 +21,7 @@ const OthersProfile = ({ loggedInUser, showAlert, isAuthenticated }) => {
   const [sortCriteria, setSortCriteria] = useState('modifiedDate')
   const [sortOrder, setSortOrder] = useState('desc')
   const [isFollowing, setIsFollowing] = useState(false)
+  const [isFollowLoading, setIsFollowLoading] = useState(false)
   const [isEditProfileModelOpen, setIsEditProfileModelOpen] = useState(false)
   const [filterText, setFilterText] = useState('')
   const [isOwnProfile, setIsOwnProfile] = useState(false)
@@ -151,6 +152,7 @@ const OthersProfile = ({ loggedInUser, showAlert, isAuthenticated }) => {
   }
 
   const followUnfollow = async () => {
+    setIsFollowLoading(true)
     try {
       const endpoint = isFollowing ? 'unfollow' : 'follow'
       await fetch(`${hostLink}/api/user/${endpoint}/${user.id}`, {
@@ -164,6 +166,8 @@ const OthersProfile = ({ loggedInUser, showAlert, isAuthenticated }) => {
     } catch (error) {
       console.error('Error updating follow status:', error)
       showAlert('Failed to update follow status', '#F8D7DA')
+    } finally {
+      setIsFollowLoading(false)
     }
   }
 
@@ -289,6 +293,7 @@ const OthersProfile = ({ loggedInUser, showAlert, isAuthenticated }) => {
         loggedInUser={loggedInUser}
         userId={user.id}
         isFollowing={isFollowing}
+        isFollowLoading={isFollowLoading}
         setIsEditProfileModelOpen={setIsEditProfileModelOpen}
         onFollowToggle={followUnfollow}
         showAlert={showAlert}
