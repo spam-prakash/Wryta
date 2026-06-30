@@ -13,7 +13,7 @@ import Addnote from './Addnote'
 import { Plus } from 'lucide-react'
 
 const OthersProfile = ({ loggedInUser, showAlert, isAuthenticated }) => {
-  const { notes, getNotes, editNote } = useContext(noteContext)
+  const { getNotes, editNote } = useContext(noteContext)
   const { username: initialUsername } = useParams()
   const [username, setUsername] = useState(initialUsername)
   const [user, setUser] = useState(null)
@@ -31,6 +31,11 @@ const OthersProfile = ({ loggedInUser, showAlert, isAuthenticated }) => {
   const [currentNoteForUpdate, setCurrentNoteForUpdate] = useState(null)
   const addNoteModalRef = useRef(null)
   const [isNoteAddModelOpen, setisNoteAddModelOpen] = useState(false)
+  const [page, setPage] = useState(1)
+  const [hasNextPage, setHasNextPage] = useState(true)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [ownNotes, setOwnNotes] = useState([])
+  const isLoadingMoreRef = useRef(false)
 
   const hostLink = process.env.REACT_APP_HOSTLINK
   const imageAPI = process.env.REACT_APP_IMAGEAPI
@@ -64,22 +69,47 @@ const OthersProfile = ({ loggedInUser, showAlert, isAuthenticated }) => {
   }, [isEditProfileModelOpen])
 
   // Fetch user profile
-  const fetchUserProfile = useCallback(async (username) => {
+  const fetchUserProfile = useCallback(async (username, page = 1) => {
     try {
-      const response = await fetch(`${hostLink}/api/user/${username}`, {
+      const limit = 10
+
+      const response = await fetch(
+      `${hostLink}/api/user/${username}?page=${page}&limit=${limit}`,
+      {
         headers: {
           'auth-token': localStorage.getItem('token')
         }
-      })
+      }
+      )
 
       if (!response.ok) {
-        setError(response.status === 404 ? 'User not found.' : 'Failed to load user profile.')
+        setError(
+          response.status === 404
+            ? 'User not found.'
+            : 'Failed to load user profile.'
+        )
         setUser(null)
         return
       }
 
       const data = await response.json()
-      setUser(data)
+      setHasNextPage(Boolean(data.pagination?.hasNextPage))
+
+      // For page 1, replace the notes
+      if (page === 1) {
+        setUser(data)
+      } else {
+      // For subsequent pages, append only the notes
+        setUser(prev => ({
+          ...prev,
+          ...data,
+          publicNotes: [
+            ...(prev?.publicNotes || []),
+            ...(data.publicNotes || [])
+          ]
+        }))
+      }
+
       setIsFollowing(data.isFollowing || false)
     } catch (error) {
       console.error('Error fetching user profile:', error)
@@ -87,13 +117,81 @@ const OthersProfile = ({ loggedInUser, showAlert, isAuthenticated }) => {
     }
   }, [hostLink, setUser, setIsFollowing])
 
+  const fetchOwnNotes = useCallback(async (pageToFetch = 1, append = false) => {
+    try {
+      const response = await fetch(`${hostLink}/api/notes/fetchallnotes?page=${pageToFetch}&limit=10`, {
+        headers: {
+          'auth-token': localStorage.getItem('token')
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to load notes')
+      }
+
+      const data = await response.json()
+      const notesList = Array.isArray(data) ? data : (data.notes || [])
+      const pagination = Array.isArray(data) ? null : data.pagination
+
+      setOwnNotes(prev => append ? [...prev, ...notesList] : notesList)
+      setHasNextPage(Boolean(pagination?.hasNextPage))
+      return pagination
+    } catch (error) {
+      console.error('Error fetching own notes:', error)
+      setError('Something went wrong while loading your notes.')
+      return null
+    }
+  }, [hostLink])
+
+  const loadMoreNotes = useCallback(async () => {
+    if (!hasNextPage || isLoadingMoreRef.current) return
+
+    isLoadingMoreRef.current = true
+    setIsLoadingMore(true)
+
+    const nextPage = page + 1
+
+    try {
+      if (isOwnProfile) {
+        await fetchOwnNotes(nextPage, true)
+      } else {
+        await fetchUserProfile(username, nextPage)
+      }
+      setPage(nextPage)
+    } finally {
+      isLoadingMoreRef.current = false
+      setIsLoadingMore(false)
+    }
+  }, [
+    page,
+    username,
+    hasNextPage,
+    isLoadingMore,
+    isOwnProfile,
+    fetchOwnNotes,
+    fetchUserProfile
+  ])
+
   // Load profile data when username changes
   useEffect(() => {
-    if (username) {
-      fetchUserProfile(username)
-      setIsEditProfileModelOpen(false)
+    if (!username) return
+
+    setPage(1)
+    setHasNextPage(true)
+    isLoadingMoreRef.current = false
+    setIsLoadingMore(false)
+    setIsEditProfileModelOpen(false)
+
+    const loadProfileData = async () => {
+      await fetchUserProfile(username, 1)
+
+      if (loggedInUser?.username === username) {
+        await fetchOwnNotes(1, false)
+      }
     }
-  }, [username, fetchUserProfile])
+
+    loadProfileData()
+  }, [username, loggedInUser?.username, fetchUserProfile, fetchOwnNotes])
 
   // Update username from params
   useEffect(() => {
@@ -115,6 +213,26 @@ const OthersProfile = ({ loggedInUser, showAlert, isAuthenticated }) => {
       document.title = `${username} || Wryta`
     }
   }, [user, username])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isLoadingMoreRef.current || !hasNextPage) return
+
+      const scrollTop = window.scrollY
+      const windowHeight = window.innerHeight
+      const documentHeight = document.documentElement.scrollHeight
+
+      if (scrollTop + windowHeight >= documentHeight - 300) {
+        loadMoreNotes()
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [loadMoreNotes, hasNextPage, isLoadingMore])
 
   const handleEditProfileSubmit = async (e) => {
     try {
@@ -198,7 +316,7 @@ const OthersProfile = ({ loggedInUser, showAlert, isAuthenticated }) => {
   }
 
   const profilePic = user.profilePic || `${imageAPI}${encodeURIComponent(username)}`
-  const notesToDisplay = isOwnProfile ? notes : user.publicNotes || []
+  const notesToDisplay = isOwnProfile ? ownNotes : (user.publicNotes || [])
 
   const filteredNotes = notesToDisplay.filter((note) =>
     note.title.toLowerCase().includes(filterText.toLowerCase()) ||

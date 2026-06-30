@@ -8,7 +8,9 @@ const getUserIdFromToken = () => {
     const token = localStorage.getItem('token')
     if (!token) return null
     const [, payload] = token.split('.')
-    return JSON.parse(atob(payload)).user.id
+    const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/')
+    const decodedPayload = JSON.parse(atob(normalizedPayload))
+    return decodedPayload.user?.id || decodedPayload.id || decodedPayload._id || null
   } catch (error) {
     console.error('Error decoding token:', error)
     return null
@@ -33,27 +35,25 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
 
   const hostLink = process.env.REACT_APP_HOSTLINK
   const userId = getUserIdFromToken()
-  // console.log(note)
-  const canDownload = note.user === userId || note.isPublic
+  const isPublicNote = note?.isPublic === true || note?.isPublic === 1 || String(note?.isPublic).toLowerCase() === 'true'
+  const isOwnerNote = String(note?.user || '') === String(userId || '')
+  const canDownload = isPublicNote || isOwnerNote
 
   // ✅ Determine liked status on mount or when note changes
   useEffect(() => {
     if (!note) return
 
     // handle both profile and public structures
-    const likesArray = note.actions?.likes || []
-    const isLiked = Array.isArray(likesArray) && likesArray.includes(userId)
-    setLiked(isLiked)
+    setLiked(note.likedByCurrentUser ?? false)
 
-    // initialize counts if available in note
     setCounts({
-      likes: note.actions?.likes?.length ?? 0,
-      copies: note.copies ?? note.actions?.copies ?? 0,
-      views: note.views ?? note.actions?.views ?? 0,
-      downloads: note.downloads ?? note.actions?.downloads ?? 0,
-      shares: note.shares ?? note.actions?.shares ?? 0
+      likes: note.likes ?? 0,
+      copies: note.copies ?? 0,
+      views: note.views ?? 0,
+      downloads: note.downloads ?? 0,
+      shares: note.shares ?? 0
     })
-  }, [note, userId])
+  }, [note])
 
   // ✅ Re-fetch live counts when noteId changes
   // useEffect(() => {
@@ -191,7 +191,6 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
   const shareNote = async () => {
     // console.log(userId)
     const shareUrl = `${hostLink}/note/${noteId}?sharedBy=${userId}`
-    const shareText = `Check out this note: "${note.title}" by @${ownerName}\n\n${shareUrl}`
 
     // Always copy the full text to clipboard (works even if share dialog doesn't)
     await navigator.clipboard.writeText(shareUrl)

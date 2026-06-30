@@ -33,6 +33,8 @@ const ProfileHeader = ({
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
   const [modalType, setModalType] = useState(null)
   const [isUserListModal, setIsUserListModalOpen] = useState(false)
+  const [userList, setUserList] = useState([])
+  const [isUserListLoading, setIsUserListLoading] = useState(false)
 
   // Share profile: copy link to clipboard and attempt Web Share API
   const shareProfile = async () => {
@@ -63,10 +65,41 @@ const ProfileHeader = ({
     }
   }
 
+  const handleUserListOpen = async (type) => {
+    setModalType(type)
+    setIsUserListModalOpen(true)
+    setIsUserListLoading(true)
+    setUserList([])
+
+    try {
+      const endpoint = type === 'followers' ? 'followers' : 'following'
+      const response = await fetch(`${hostLink}/api/user/${userId}/${endpoint}`, {
+        headers: {
+          'auth-token': localStorage.getItem('token') || ''
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch user list')
+      }
+
+      const data = await response.json()
+      setUserList(type === 'followers' ? (data.followers || []) : (data.following || []))
+    } catch (error) {
+      console.error('Error fetching user list:', error)
+      if (showAlert) {
+        showAlert('Failed to load the list.', '#F8D7DA')
+      }
+    } finally {
+      setIsUserListLoading(false)
+    }
+  }
+
   // Close modals when clicking outside
   const handleModalClose = () => {
     setModalType(null)
     setIsUserListModalOpen(false)
+    setUserList([])
   }
 
   return (
@@ -137,20 +170,14 @@ const ProfileHeader = ({
                 </div>
                 <div
                   className='w-1/2 md:w-auto text-center cursor-pointer flex flex-col'
-                  onClick={() => {
-                    setModalType('followers')
-                    setIsUserListModalOpen(true)
-                  }}
+                  onClick={() => handleUserListOpen('followers')}
                 >
                   <span className='font-semibold'>{followerCount}</span>
                   <span className='text-sm text-slate-500 dark:text-gray-300 ml-1'>followers</span>
                 </div>
                 <div
                   className='w-1/2 md:w-auto text-center cursor-pointer flex flex-col'
-                  onClick={() => {
-                    setModalType('following')
-                    setIsUserListModalOpen(true)
-                  }}
+                  onClick={() => handleUserListOpen('following')}
                 >
                   <span className='font-semibold'>{followingCount}</span>
                   <span className='text-sm text-slate-500 dark:text-gray-300 ml-1'>following</span>
@@ -228,17 +255,19 @@ const ProfileHeader = ({
       {modalType === 'followers' && isUserListModal && (
         <UserListModal
           title='Followers'
-          users={followerList || []}
+          users={userList}
           onClose={handleModalClose}
           isOpen={isUserListModal}
+          isLoading={isUserListLoading}
         />
       )}
       {modalType === 'following' && isUserListModal && (
         <UserListModal
           title='Following'
-          users={followingList || []}
+          users={userList}
           onClose={handleModalClose}
           isOpen={isUserListModal}
+          isLoading={isUserListLoading}
         />
       )}
     </>

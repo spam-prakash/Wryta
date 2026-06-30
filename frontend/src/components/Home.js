@@ -12,8 +12,11 @@ import NoteUpdateModal from './models/NoteUpdateModal'
 const Home = (props) => {
   const { notes, getNotes, editNote } = useContext(noteContext)
   const [publicNotes, setPublicNotes] = useState([])
-  const [hasMore, setHasMore] = useState(true)
+  const [hasMore, setHasMore] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [isFetchingMore, setIsFetchingMore] = useState(false)
   const [filterText, setFilterText] = useState('') // State for filtering notes
   const hostLink = process.env.REACT_APP_HOSTLINK
   const addNoteModalRef = useRef(null)
@@ -42,7 +45,7 @@ const Home = (props) => {
 
   useEffect(() => {
     document.title = 'Wryta - Your notes secured in the cloud'
-    fetchPublicNotes()
+    fetchPublicNotes(1)
   }, [])
 
   useEffect(() => {
@@ -70,29 +73,45 @@ const Home = (props) => {
     }
   }, [location.search, navigate])
 
-  const fetchPublicNotes = async () => {
-    setLoading(true)
+  const fetchPublicNotes = async (currentPage = 1, append = false) => {
+    if (currentPage > 1 && (!hasMore || isFetchingMore)) return
+    const limit = 10
+    if (currentPage === 1) {
+      setLoading(true)
+    } else {
+      setIsFetchingMore(true)
+    }
+
     try {
-      const response = await fetch(`${hostLink}/api/notes/public`)
+      const response = await fetch(`${hostLink}/api/notes/public?page=${currentPage}&limit=${limit}`, {
+        headers: {
+          'auth-token': localStorage.getItem('token') || ''
+        }
+      })
       const data = await response.json()
 
       if (response.ok) {
-        // Sort the notes by modifiedDate in descending order
-        const sortedNotes = [...data.notes].sort((a, b) => {
+        const sortedNotes = [...(data.notes || [])].sort((a, b) => {
           const dateA = new Date(a.publicDate || a.modifiedDate || a.date)
           const dateB = new Date(b.publicDate || b.modifiedDate || b.date)
-          return dateB - dateA // latest (newest) note first
+          return dateB - dateA
         })
 
-        setPublicNotes(sortedNotes)
-        setHasMore(data.hasMore)
+        setPublicNotes(prev => (append ? [...prev, ...sortedNotes] : sortedNotes))
+        setHasMore(Boolean(data.hasNextPage))
+        setTotalPages(Math.max(1, data.totalPages || 1))
       } else {
         props.showAlert('Failed to fetch public notes!', '#F8D7DA')
       }
     } catch (error) {
       props.showAlert('An error occurred while fetching public notes!', '#F8D7DA')
     }
-    setLoading(false)
+
+    if (currentPage === 1) {
+      setLoading(false)
+    } else {
+      setIsFetchingMore(false)
+    }
   }
 
   const toggleAddNoteModal = () => {
@@ -110,6 +129,24 @@ const Home = (props) => {
     setCurrentNoteForUpdate(note)
     setIsUpdateNoteModalOpen(true)
   }
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const nearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 250
+      if (nearBottom && hasMore && !loading && !isFetchingMore) {
+        setPage(prev => prev + 1)
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [hasMore, loading, isFetchingMore])
+
+  useEffect(() => {
+    if (page > 1) {
+      fetchPublicNotes(page, true)
+    }
+  }, [page])
 
   // Filter the notes based on the filter text
   const filteredNotes = publicNotes.filter((note) =>
@@ -164,6 +201,12 @@ const Home = (props) => {
           )}
 
         </div>
+
+        {isFetchingMore && (
+          <div className='mt-4 flex justify-center'>
+            <Loader />
+          </div>
+        )}
 
       </div>
 

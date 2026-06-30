@@ -95,6 +95,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, views, name
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [isVisibilityModalOpen])
+  // console.log(note)
 
   return (
     <>
@@ -220,7 +221,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, views, name
           noteId={noteId} // Pass the noteId for sharing
           note={note} // Pass the note object for sharing
           // onInteraction={fetchAllNotes}
-          ownerName={note.user.username}
+          ownerName={note.userDetails.username}
         />
       </div>
 

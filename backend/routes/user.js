@@ -38,67 +38,83 @@ try {
 router.get('/:username', fetchuser, async (req, res) => {
   try {
     const { username } = req.params
-    // console.log(req.user.id)
 
-    const user = await User.findOne({ username: { $regex: `^${username}$`, $options: 'i' } })
-    if (!user) return res.status(404).json({ error: 'User Does Not Exists' })
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 10
+    const skip = (page - 1) * limit
 
-    // Fetch notes of the user
-    const notes = await Note.find({ user: user._id })
+    const user = await User.findOne({
+      username: { $regex: `^${username}$`, $options: 'i' }
+    })
 
-    // Fetch only public notes
-    const publicNotes = notes.filter((note) => note.isPublic)
-    // console.log(publicNotes)
+    if (!user) {
+      return res.status(404).json({ error: 'User Does Not Exists' })
+    }
 
-    // Fetch follower details
-    const followers = await User.find({ _id: { $in: user.follower.list } }).select('name username image')
-    const following = await User.find({ _id: { $in: user.following.list } }).select('name username image')
+    const totalNotes = await Note.countDocuments({
+      user: user._id
+    })
 
-    // Map to your response structure
-    const userData = {
-      id: user.id,
+    const publicNotesCount = await Note.countDocuments({
+      user: user._id,
+      isPublic: true
+    })
+
+    const publicNotes = await Note.find({
+      user: user._id,
+      isPublic: true
+    })
+      .sort({ publicDate: -1, _id: -1 })
+      .skip(skip)
+      .limit(limit)
+      .select(
+        '_id title description tag date modifiedDate publicDate isPublic actions'
+      )
+
+    res.json({
+      id: user._id,
       name: user.name,
-      email: user.email,
       username: user.username,
-      bio: user.bio || ' ',
-      followerCount: followers.length,
-      followingCount: following.length,
-      followerList: followers.map(f => ({
-        id: f._id,
-        name: f.name,
-        username: f.username,
-        profilePic: f.image?.trim() || null
-      })),
-      followingList: following.map(f => ({
-        id: f._id,
-        name: f.name,
-        username: f.username,
-        profilePic: f.image?.trim() || null
-      })),
-      isFollowing: followers.some(f => String(f._id) === String(req.user.id)),
+      bio: user.bio || '',
       profilePic: user.image?.trim() || null,
-      totalNotes: notes.length,
-      publicNotesCount: publicNotes.length,
+
+      followerCount: user.follower.list.length,
+      followingCount: user.following.list.length,
+
+      isFollowing: user.follower.list.some(
+        id => String(id) === String(req.user.id)
+      ),
+
+      totalNotes,
+      publicNotesCount,
       likesCount: user.actions.likes.length,
+
       publicNotes: publicNotes.map(note => ({
         _id: note._id,
         title: note.title,
-        tag: note.tag,
         description: note.description,
+        tag: note.tag,
         date: note.date,
         modifiedDate: note.modifiedDate,
         publicDate: note.publicDate,
         isPublic: note.isPublic,
-        likes: note.likes,
-        views: note.views,
-        copies: note.copies,
-        downloads: note.downloads,
-        shares: note.shares,
-        actions: note.actions
-      }))
-    }
 
-    res.json(userData)
+        likes: note.actions?.likes?.length ?? 0,
+        shares: note.actions?.shares?.length ?? 0,
+        copies: note.actions?.copies?.length ?? 0,
+        downloads: note.actions?.downloads?.length ?? 0,
+        views: note.actions?.views?.length ?? 0
+      })),
+
+      pagination: {
+        page,
+        limit,
+        totalPages: Math.ceil(publicNotesCount / limit),
+        totalNotes: publicNotesCount,
+        hasNextPage: page * limit < publicNotesCount,
+        hasPreviousPage: page > 1
+      }
+    })
   } catch (error) {
     console.error('Error fetching user:', error)
     res.status(500).json({ error: 'Internal Server Error' })
@@ -202,21 +218,20 @@ router.post('/unfollow/:userId', fetchuser, async (req, res) => {
   }
 })
 
-router.get('/:userId/followers', async (req, res) => {
+router.get('/:userId/followers', fetchuser, async (req, res) => {
   try {
     const userId = req.params.userId
     const user = await User.findById(userId)
 
     if (!user) return res.status(404).json({ error: 'User not found' })
 
-    // Fetch follower details
     const followersData = await User.find({ _id: { $in: user.follower.list } }).select('username name image')
 
-    // Map to the old response structure
     const followers = followersData.map(f => ({
+      id: f._id,
       name: f.name,
       username: f.username,
-      profilePic: f.image
+      profilePic: f.image?.trim() || null
     }))
 
     res.json({
@@ -229,21 +244,20 @@ router.get('/:userId/followers', async (req, res) => {
   }
 })
 
-router.get('/:userId/following', async (req, res) => {
+router.get('/:userId/following', fetchuser, async (req, res) => {
   try {
     const userId = req.params.userId
     const user = await User.findById(userId)
 
     if (!user) return res.status(404).json({ error: 'User not found' })
 
-    // Fetch following details from stored user IDs
     const followingData = await User.find({ _id: { $in: user.following.list } }).select('username name image')
 
-    // Map to old response structure
     const following = followingData.map(f => ({
+      id: f._id,
       name: f.name,
       username: f.username,
-      profilePic: f.image
+      profilePic: f.image?.trim() || null
     }))
 
     res.json({

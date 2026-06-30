@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useCallback } from 'react'
 import { X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-const UserListModal = ({ title, users = [], onClose, isOpen }) => {
+const UserListModal = ({ title, users = [], onClose, isOpen, isLoading = false }) => {
   const modalRef = useRef(null)
   const navigate = useNavigate()
   const imageAPI = process.env.REACT_APP_IMAGEAPI
@@ -66,33 +66,37 @@ const UserListModal = ({ title, users = [], onClose, isOpen }) => {
 
         {/* List */}
         <div className='max-h-96 overflow-y-auto divide-y divide-black-300 dark:divide-gray-700'>
-          {users.length > 0
+          {isLoading
             ? (
-                users.map((user) => (
-                  <div
-                    key={user._id || user.id || user.username}
-                    onClick={() => handleUserClick(user.username)}
-                    className='flex items-center gap-3 px-4 py-3 hover:bg-gray-800/60 cursor-pointer transition  '
-                  >
-                    <img
-                      src={user.profilePic || `${imageAPI}${encodeURIComponent(user.username)}`}
-                      onError={(e) => {
-                        e.target.onerror = null // prevent infinite loop
-                        e.target.src = `${imageAPI}${encodeURIComponent(user.username)}`
-                      }}
-                      alt={user.username}
-                      className='w-10 h-10 rounded-full object-cover border border-gray-700'
-                    />
-                    <div className='flex flex-col'>
-                      <span className='text-gray-200 font-medium'>{user.name}</span>
-                      <span className='text-gray-400 text-sm'>@{user.username}</span>
-                    </div>
-                  </div>
-                ))
+              <p className='text-gray-400 text-center py-6'>Loading...</p>
               )
-            : (
-              <p className='text-gray-400 text-center py-6'>No users found.</p>
-              )}
+            : users.length > 0
+              ? (
+                  users.map((user) => (
+                    <div
+                      key={user._id || user.id || user.username}
+                      onClick={() => handleUserClick(user.username)}
+                      className='flex items-center gap-3 px-4 py-3 hover:bg-gray-800/60 cursor-pointer transition'
+                    >
+                      <img
+                        src={user.profilePic || `${imageAPI}${encodeURIComponent(user.username)}`}
+                        onError={(e) => {
+                          e.target.onerror = null
+                          e.target.src = `${imageAPI}${encodeURIComponent(user.username)}`
+                        }}
+                        alt={user.username}
+                        className='w-10 h-10 rounded-full object-cover border border-gray-700'
+                      />
+                      <div className='flex flex-col'>
+                        <span className='text-gray-200 font-medium'>{user.name}</span>
+                        <span className='text-gray-400 text-sm'>@{user.username}</span>
+                      </div>
+                    </div>
+                  ))
+                )
+              : (
+                <p className='text-gray-400 text-center py-6'>No users found.</p>
+                )}
         </div>
       </div>
     </div>

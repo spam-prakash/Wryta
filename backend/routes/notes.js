@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const express = require('express')
+const jwt = require('jsonwebtoken')
 const router = express.Router()
 const fetchuser = require('../middleware/fetchuser')
 const Note = require('../models/Note')
@@ -46,8 +47,56 @@ const ENGAGEMENT_WEIGHTS = {
 // ROUTE: 1 GET ALL NOTES GET:"/api/notes/fetchallnotes" LOGIN REQUIRED
 router.get('/fetchallnotes', fetchuser, async (req, res) => {
   try {
-    const notes = await Note.find({ user: req.user.id })
-    res.json(notes)
+    const shouldPaginate = Object.prototype.hasOwnProperty.call(req.query, 'page') || Object.prototype.hasOwnProperty.call(req.query, 'limit')
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 10
+    const skip = (page - 1) * limit
+
+    const query = { user: req.user.id }
+    const totalNotes = await Note.countDocuments(query)
+
+    let notesQuery = Note.find(query)
+      .sort({ publicDate: -1, modifiedDate: -1, date: -1, _id: -1 })
+      .select('_id title description tag date modifiedDate publicDate isPublic actions')
+
+    if (shouldPaginate && limit > 0) {
+      notesQuery = notesQuery.skip(skip).limit(limit)
+    }
+
+    const notes = await notesQuery
+
+    const normalizedNotes = notes.map(note => ({
+      _id: note._id,
+      title: note.title,
+      description: note.description,
+      tag: note.tag,
+      date: note.date,
+      modifiedDate: note.modifiedDate,
+      publicDate: note.publicDate,
+      isPublic: note.isPublic,
+      likes: note.actions?.likes?.length ?? 0,
+      shares: note.actions?.shares?.length ?? 0,
+      copies: note.actions?.copies?.length ?? 0,
+      downloads: note.actions?.downloads?.length ?? 0,
+      views: note.actions?.views?.length ?? 0,
+      actions: note.actions || { likes: [], shares: [], copies: [], downloads: [], views: [] }
+    }))
+
+    if (shouldPaginate && limit > 0) {
+      return res.json({
+        notes: normalizedNotes,
+        pagination: {
+          page,
+          limit,
+          totalNotes,
+          totalPages: Math.ceil(totalNotes / limit),
+          hasNextPage: page * limit < totalNotes,
+          hasPreviousPage: page > 1
+        }
+      })
+    }
+
+    res.json(normalizedNotes)
   } catch (error) {
     console.error(error.message)
     res.status(500).send('Internal Server Error')
@@ -321,36 +370,114 @@ router.put('/visibility/:id', fetchuser, async (req, res) => {
 // ROUTE 6: Get Public Notes (GET /api/notes/public)
 router.get('/public', async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 10
+    const skip = (page - 1) * limit
+
+    let userId = null
+    const token = req.header('auth-token')
+
+    if (token) {
+      const normalizedToken = token.trim()
+      const cleanToken = normalizedToken.startsWith('Bearer ')
+        ? normalizedToken.slice(7).trim()
+        : normalizedToken
+
+      if (cleanToken && cleanToken.toLowerCase() !== 'undefined' && cleanToken.toLowerCase() !== 'null' && cleanToken !== '') {
+        try {
+          const decoded = jwt.verify(cleanToken, process.env.JWTSIGN)
+          const decodedUserId = decoded.user?.id || decoded.id || null
+
+          if (decodedUserId) {
+            userId = mongoose.Types.ObjectId.isValid(decodedUserId)
+              ? new mongoose.Types.ObjectId(decodedUserId)
+              : decodedUserId
+          }
+        } catch (error) {
+          console.error('Public notes token verification error:', error && error.message ? error.message : error)
+        }
+      }
+    }
+
+    const totalNotes = await Note.countDocuments({ isPublic: true })
+
     const publicNotes = await Note.aggregate([
       { $match: { isPublic: true } },
-      {
-        $addFields: {
-          sortDate: {
-            $ifNull: ['$modifiedDate', '$createdDate'] // Prioritize modifiedDate, fallback to createdDate
-          }
-        }
-      },
-      { $sort: { sortDate: -1, _id: -1 } }, // Sort by latest date and then by ID for consistency
+
+      { $sort: { publicDate: -1, _id: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+
       {
         $lookup: {
-          from: 'users', // Collection name for users
+          from: 'users',
           localField: 'user',
           foreignField: '_id',
           as: 'userDetails'
         }
       },
-      { $unwind: '$userDetails' }, // Convert userDetails array into an object
+
+      { $unwind: '$userDetails' },
+
       {
         $project: {
-          'userDetails.password': 0, // Exclude sensitive fields
-          'userDetails.tokens': 0
+          // 'userDetails.password': 0,
+          // 'userDetails.tokens': 0,
+          likes: {
+            $size: '$actions.likes'
+          },
+          shares: {
+            $size: '$actions.shares'
+          },
+          copies: {
+            $size: '$actions.copies'
+          },
+          downloads: {
+            $size: '$actions.downloads'
+          },
+          likedByCurrentUser: {
+            $cond: {
+              if: Boolean(userId),
+              then: { $in: [userId, '$actions.likes'] },
+              else: false
+            }
+          },
+
+          title: 1,
+          description: 1,
+          tag: 1,
+          isPublic: 1,
+          user: 1,
+          date: 1,
+          modifiedDate: 1,
+          publicDate: 1,
+          // likes: 1,
+          // shares: 1,
+          // copies: 1,
+          // downloads: 1,
+          views: 1,
+          engagementScore: 1,
+          version: 1,
+          'userDetails._id': 1,
+          'userDetails.name': 1,
+          'userDetails.email': 1,
+          'userDetails.username': 1,
+          'userDetails.image': 1
         }
       }
     ])
 
-    res.json({ notes: publicNotes })
+    res.json({
+      notes: publicNotes,
+      page,
+      limit,
+      totalNotes,
+      totalPages: Math.ceil(totalNotes / limit),
+      hasNextPage: page * limit < totalNotes,
+      hasPreviousPage: page > 1
+    })
   } catch (error) {
-    console.error(error.message)
+    console.error(error)
     res.status(500).send('Internal Server Error')
   }
 })
@@ -450,8 +577,10 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' })
     }
 
+    const noteActions = note.actions || { likes: [], shares: [], copies: [], downloads: [], views: [] }
+
     // ✅ Check if user already liked (direct ID comparison)
-    const alreadyLiked = note.actions.likes.some(
+    const alreadyLiked = (noteActions.likes || []).some(
       (id) => id.toString() === likingUserId.toString()
     )
 
