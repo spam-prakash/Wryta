@@ -18,6 +18,7 @@ const getUserIdFromToken = () => {
 }
 
 const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteId, note, ownerName }) => {
+  const safeShowAlert = typeof showAlert === 'function' ? showAlert : () => {}
   // console.log(note.userDetails.username)
   const [modalType, setModalType] = useState(null)
   const [likingUsers, setLikingUsers] = useState([])
@@ -147,17 +148,17 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
     const textToCopy = `Title: ${note.title}\nTag: ${note.tag}\n\nDescription:\n${note.description}`
     navigator.clipboard.writeText(textToCopy)
       .then(() => {
-        showAlert('Note successfully copied!', '#D4EDDA')
+        safeShowAlert('Note successfully copied!', '#D4EDDA')
         updateCount('copy')
       })
-      .catch(() => showAlert('Failed to copy note.', '#F8D7DA'))
+      .catch(() => safeShowAlert('Failed to copy note.', '#F8D7DA'))
   }
 
   const downloadCardAsImage = async () => {
     if (!cardRef.current || isDownloading) return
 
     if (!canDownload) {
-      showAlert('You are not allowed to download this note.', '#F8D7DA')
+      safeShowAlert('You are not allowed to download this note.', '#F8D7DA')
       return
     }
 
@@ -179,10 +180,10 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
 
       await updateCount('download')
 
-      showAlert('Card downloaded successfully!', '#D4EDDA')
+      safeShowAlert('Card downloaded successfully!', '#D4EDDA')
     } catch (error) {
       console.error('Error downloading card:', error)
-      showAlert('Failed to download card. Please try again.', '#F8D7DA')
+      safeShowAlert('Failed to download card. Please try again.', '#F8D7DA')
     } finally {
       setIsDownloading(false)
     }
@@ -194,7 +195,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
 
     // Always copy the full text to clipboard (works even if share dialog doesn't)
     await navigator.clipboard.writeText(shareUrl)
-    showAlert('Note link copied to clipboard!', '#D4EDDA')
+    safeShowAlert('Note link copied to clipboard!', '#D4EDDA')
 
     try {
       if (navigator.share) {
@@ -217,7 +218,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
       if (response.ok) fetchCounts()
     } catch (error) {
       console.error('Error sharing:', error)
-      showAlert('Failed to share note. Please try again.', '#F8D7DA')
+      safeShowAlert('Failed to share note. Please try again.', '#F8D7DA')
     }
   }
 

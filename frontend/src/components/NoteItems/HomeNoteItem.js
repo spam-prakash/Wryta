@@ -12,6 +12,8 @@ import { useNoteView } from '../../hooks/useNoteView'
 import { trackNoteView } from '../../utils/batchViewTracking'
 
 const HomeNoteItem = ({ title, tag, description, date, modifiedDate, views, name, username, image, showAlert, noteId, note, updateNote, userIdThroughProps }) => {
+  const safeUsername = username || note?.userDetails?.username || note?.user?.username || 'unknown'
+  const safeOwnerName = note?.userDetails?.username || note?.user?.username || safeUsername
   const context = useContext(noteContext)
   const { deleteNote, updateVisibility } = context
   // console.log(note)
@@ -109,21 +111,21 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, views, name
         {/* Header (User Info) */}
         <div className='flex flex-row justify-between p-4 pb-1 border-b border-gray-700'>
           <div className='flex items-center mb-1'>
-            <Link to={`/u/${username}`}>
+            <Link to={`/u/${safeUsername}`}>
               <img
-                src={image || `${imageAPI}${encodeURIComponent(username)}`}
+                src={image || `${imageAPI}${encodeURIComponent(safeUsername)}`}
                 onError={(e) => {
                   e.target.onerror = null // prevent infinite loop
-                  e.target.src = `${imageAPI}${encodeURIComponent(username)}`
+                  e.target.src = `${imageAPI}${encodeURIComponent(safeUsername)}`
                 }}
-                alt={username}
+                alt={safeUsername}
                 className='w-10 h-10 rounded-full object-cover'
               />
 
             </Link>
             <div>
-              <Link to={`/u/${username}`} className='ml-3 font-semibold text-text-light dark:text-text-dark hover:underline'>
-                @{username}
+              <Link to={`/u/${safeUsername}`} className='ml-3 font-semibold text-text-light dark:text-text-dark hover:underline'>
+                @{safeUsername}
               </Link>
               <div className='text-small-light dark:text-small-dark text-xs ml-4'>
                 {modifiedDate
@@ -221,7 +223,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, views, name
           noteId={noteId} // Pass the noteId for sharing
           note={note} // Pass the note object for sharing
           // onInteraction={fetchAllNotes}
-          ownerName={note.userDetails.username}
+          ownerName={safeOwnerName}
         />
       </div>
 
@@ -234,7 +236,7 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, views, name
       <HiddenDownloadCard
         ref={hiddenCardRef}
         note={note}
-        username={username}
+        username={safeUsername}
         image={image}
         formatDate={formatDate}
         formatTime={formatTime}
