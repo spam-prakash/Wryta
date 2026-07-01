@@ -5,7 +5,8 @@ import UserListModal from './models/UserListModal'
 
 const getUserIdFromToken = () => {
   try {
-    const token = localStorage.getItem('token')
+    if (typeof window === 'undefined' || !window.localStorage) return null
+    const token = window.localStorage.getItem('token')
     if (!token) return null
     const [, payload] = token.split('.')
     const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/')
@@ -15,6 +16,11 @@ const getUserIdFromToken = () => {
     console.error('Error decoding token:', error)
     return null
   }
+}
+
+const getAuthToken = () => {
+  if (typeof window === 'undefined' || !window.localStorage) return null
+  return window.localStorage.getItem('token')
 }
 
 const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteId, note, ownerName }) => {
@@ -67,7 +73,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'auth-token': localStorage.getItem('token')
+          'auth-token': getAuthToken()
         }
       })
       if (response.ok) {
@@ -85,7 +91,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'auth-token': localStorage.getItem('token')
+          'auth-token': getAuthToken()
         }
       })
       if (response.ok) {
@@ -107,7 +113,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'auth-token': localStorage.getItem('token')
+          'auth-token': getAuthToken()
         }
       })
 
@@ -135,7 +141,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'auth-token': localStorage.getItem('token')
+          'auth-token': getAuthToken()
         }
       })
       if (response.ok) fetchCounts()
@@ -211,7 +217,7 @@ const InteractionButtons = ({ title, tag, description, showAlert, cardRef, noteI
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'auth-token': localStorage.getItem('token')
+          'auth-token': getAuthToken()
         }
       })
 

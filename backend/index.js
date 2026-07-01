@@ -366,12 +366,16 @@ app.get('/user/:username', async (req, res) => {
 })
 
 // Available Routes
-app.use('/api/auth', require('./routes/auth'))
-app.use('/api/notes', require('./routes/notes'))
-app.use('/api/user', require('./routes/user'))
-app.use('/api/notification', require('./routes/notification'))
-app.use('/api/search', require('./routes/search'))
-app.use('/api/upload', require('./routes/upload'))
+try {
+  app.use('/api/auth', require('./routes/auth'))
+  app.use('/api/notes', require('./routes/notes'))
+  app.use('/api/user', require('./routes/user'))
+  app.use('/api/notification', require('./routes/notification'))
+  app.use('/api/search', require('./routes/search'))
+  app.use('/api/upload', require('./routes/upload'))
+} catch (error) {
+  console.error('Route initialization failed:', error)
+}
 
 // Health check endpoint
 app.get('/ping', (req, res) => {
@@ -384,7 +388,7 @@ app.get('/ping', (req, res) => {
 
 // Test Route
 app.get('/', (req, res) => {
-  res.send('Hello World!')
+  res.status(200).json({ ok: true, message: 'Wryta backend is running' })
 })
 
 // Error handling middleware

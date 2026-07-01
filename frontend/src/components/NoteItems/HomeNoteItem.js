@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom'
 import InteractionButtons from '../InteractionButtons'
 import HiddenDownloadCard from '../utils/HiddenDownloadCard'
 import renderWithLinksAndMentions from '../utils/renderWithLinksAndMentions'
-import { LockOpen, Lock, ViewIcon, View, Share, ChartNoAxesColumn } from 'lucide-react'
+import { LockOpen, Lock, ChartNoAxesColumn } from 'lucide-react'
 import { useNoteView } from '../../hooks/useNoteView'
 import { trackNoteView } from '../../utils/batchViewTracking'
 
@@ -18,18 +18,21 @@ const HomeNoteItem = ({ title, tag, description, date, modifiedDate, views, name
   const { deleteNote, updateVisibility } = context
   // console.log(note)
 
-  // GET USER ID FROM LOACLSTORAGE TOKEN
-  const token = localStorage.getItem('token')
+  // GET USER ID FROM LOCALSTORAGE TOKEN
   let userId = null
 
-  if (token) {
-    try {
-      const base64Url = token.split('.')[1]
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
-      const decodedPayload = JSON.parse(window.atob(base64))
-      userId = decodedPayload.user?.id || decodedPayload.id
-    } catch (error) {
-      console.error('Error decoding token:', error)
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const token = window.localStorage.getItem('token')
+
+    if (token) {
+      try {
+        const base64Url = token.split('.')[1]
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+        const decodedPayload = JSON.parse(window.atob(base64))
+        userId = decodedPayload.user?.id || decodedPayload.id
+      } catch (error) {
+        console.error('Error decoding token:', error)
+      }
     }
   }
 

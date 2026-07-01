@@ -600,8 +600,7 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
       // 🧹 Unlike
       await Note.findByIdAndUpdate(noteId, {
         $pull: { 'actions.likes': likingUserId },
-        $inc: { likes: -1 },
-        $inc: { engagementScore: -ENGAGEMENT_WEIGHTS.like }
+        $inc: { likes: -1, engagementScore: -ENGAGEMENT_WEIGHTS.like }
       })
 
       await User.findByIdAndUpdate(likingUserId, {
@@ -613,16 +612,14 @@ router.post('/note/:id/like', fetchuser, async (req, res) => {
       //  Like
       await Note.findByIdAndUpdate(noteId, {
         $addToSet: { 'actions.likes': likingUserId },
-        $inc: { likes: 1 },
-        $inc: { engagementScore: ENGAGEMENT_WEIGHTS.like }
+        $inc: { likes: 1, engagementScore: ENGAGEMENT_WEIGHTS.like }
       })
 
       await User.findByIdAndUpdate(likingUserId, {
         $addToSet: { 'actions.likes': noteId }
       })
 
-      const updatedNote = await Note.findById(noteId)
-      const totalLikes = updatedNote?.likes || 0
+      await Note.findById(noteId)
 
       // ✉️ Send notification only if not a self-like
       if (noteOwner._id.toString() !== likingUserId.toString()) {
