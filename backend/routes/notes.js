@@ -9,7 +9,17 @@ const Notification = require('../models/Notification')
 // const ENGAGEMENT_WEIGHTS=require('../utils/engagement')
 const { body, validationResult } = require('express-validator')
 const { getIO, onlineUsers, emitNotification } = require('../socket')
-const { Canvas, FontLibrary } = require('skia-canvas')
+let Canvas = null
+let FontLibrary = null
+
+try {
+  const skiaCanvas = require('skia-canvas')
+  Canvas = skiaCanvas.Canvas
+  FontLibrary = skiaCanvas.FontLibrary
+} catch (e) {
+  console.error('❌ skia-canvas unavailable:', e.message)
+}
+
 const path = require('path')
 const fs = require('fs')
 const liveLink = process.env.REACT_APP_LIVE_LINK
@@ -19,19 +29,21 @@ const hostLink = process.env.REACT_APP_HOSTLINK
 const fontsDir = path.join(__dirname, '../fonts')
 
 try {
-  /* ⭐ MAIN FONT (Hindi + English rendering also fine) */
-  FontLibrary.use('WrytaFont', [
-    path.join(fontsDir, 'NotoSansDevanagari_Condensed-Regular.ttf'),
-    { path: path.join(fontsDir, 'NotoSansDevanagari_Condensed-Bold.ttf'), weight: 'bold' },
-    { path: path.join(fontsDir, 'NotoSansDevanagari_Condensed-Medium.ttf'), weight: '500' }
-  ])
+  if (FontLibrary) {
+    /* ⭐ MAIN FONT (Hindi + English rendering also fine) */
+    FontLibrary.use('WrytaFont', [
+      path.join(fontsDir, 'NotoSansDevanagari_Condensed-Regular.ttf'),
+      { path: path.join(fontsDir, 'NotoSansDevanagari_Condensed-Bold.ttf'), weight: 'bold' },
+      { path: path.join(fontsDir, 'NotoSansDevanagari_Condensed-Medium.ttf'), weight: '500' }
+    ])
 
-  /* ⭐ EMOJI FALLBACK MUST BE SEPARATE */
-  FontLibrary.use('EmojiFont', [
-    path.join(fontsDir, 'NotoColorEmoji.ttf')
-  ])
+    /* ⭐ EMOJI FALLBACK MUST BE SEPARATE */
+    FontLibrary.use('EmojiFont', [
+      path.join(fontsDir, 'NotoColorEmoji.ttf')
+    ])
 
-  console.log('🔥 Skia Fonts Loaded Correctly')
+    console.log('🔥 Skia Fonts Loaded Correctly')
+  }
 } catch (e) {
   console.error('❌ FONT LOAD FAILED', e)
 }
@@ -879,6 +891,10 @@ router.get('/og-image/:id', async (req, res) => {
       .lean()
 
     if (!note) return res.status(404).send('Note not found')
+
+    if (!Canvas) {
+      return res.status(200).type('image/png').send(Buffer.from(''))
+    }
 
     const width = 1200
     const height = 630
