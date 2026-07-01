@@ -10,8 +10,8 @@ const sendMail = require('./mailer')
 const otpGenerator = require('otp-generator')
 const crypto = require('crypto')
 
-const liveLink = process.env.REACT_APP_LIVE_LINK
-const JWT_SECRET = process.env.JWTSIGN
+const liveLink = process.env.REACT_APP_LIVE_LINK || 'http://localhost:3006'
+const JWT_SECRET = process.env.JWTSIGN || process.env.JWT_SECRET || 'dev-secret'
 
 // Store OTPs temporarily (in-memory storage for simplicity)
 const otpStore = {}

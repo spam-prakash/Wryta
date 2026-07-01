@@ -21,9 +21,9 @@ const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTI
 // Connect to MongoDB
 connectToMongo()
 
-const liveLink = process.env.REACT_APP_LIVE_LINK
-const JWT_SECRET = process.env.JWT_SECRET
-const hostLink = process.env.REACT_APP_HOSTLINK
+const liveLink = process.env.REACT_APP_LIVE_LINK || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3006'
+const JWT_SECRET = process.env.JWTSIGN || process.env.JWT_SECRET || 'dev-secret'
+const hostLink = process.env.REACT_APP_HOSTLINK || 'http://localhost:8000'
 const environment = process.env.NODE_ENV || 'development'
 
 let redirectURL = process.env.REDIRECT_URL || '/auth/google/callback'
@@ -120,79 +120,93 @@ if (!isServerless && server) {
 app.use(passport.initialize())
 
 // Passport Google Strategy
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID,
-      clientSecret,
-      callbackURL: `${redirectURL}`,
-      passReqToCallback: true
-    },
-    async (request, accessToken, refreshToken, profile, done) => {
-      try {
-        let user = await userdb.findOne({ googleId: profile.id })
+if (clientID && clientSecret) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID,
+        clientSecret,
+        callbackURL: `${redirectURL}`,
+        passReqToCallback: true
+      },
+      async (request, accessToken, refreshToken, profile, done) => {
+        try {
+          let user = await userdb.findOne({ googleId: profile.id })
 
-        if (!user) {
-          user = await userdb.findOne({ email: profile.emails[0].value })
+          if (!user) {
+            user = await userdb.findOne({ email: profile.emails[0].value })
 
-          if (user) {
-            user.googleId = profile.id
-            if (!user.image && profile.photos && profile.photos[0]) {
-              user.image = profile.photos[0].value
+            if (user) {
+              user.googleId = profile.id
+              if (!user.image && profile.photos && profile.photos[0]) {
+                user.image = profile.photos[0].value
+              }
+              await user.save()
+            } else {
+              user = new userdb({
+                googleId: profile.id,
+                name: profile.displayName,
+                email: profile.emails[0].value,
+                image: profile.photos?.[0]?.value || '',
+                username: profile.emails[0].value.split('@')[0]
+              })
+              await user.save()
+
+              const subject = 'Welcome to Wryta'
+              const text = `Hello ${user.name},\n\nThank you for signing up for Wryta. We're excited to have you on board!\n\nBest regards,\nThe Wryta Team`
+              const html = `<p>Hello ${user.name},</p><p>Thank you for signing up for <strong>Wryta</strong>. We're excited to have you on board!</p><p>Best regards,<br>The Wryta Team</p>`
+              await sendMail(user.email, subject, text, html)
             }
-            await user.save()
-          } else {
-            user = new userdb({
-              googleId: profile.id,
-              name: profile.displayName,
-              email: profile.emails[0].value,
-              image: profile.photos?.[0]?.value || '',
-              username: profile.emails[0].value.split('@')[0]
-            })
-            await user.save()
-
-            const subject = 'Welcome to Wryta'
-            const text = `Hello ${user.name},\n\nThank you for signing up for Wryta. We're excited to have you on board!\n\nBest regards,\nThe Wryta Team`
-            const html = `<p>Hello ${user.name},</p><p>Thank you for signing up for <strong>Wryta</strong>. We're excited to have you on board!</p><p>Best regards,<br>The Wryta Team</p>`
-            await sendMail(user.email, subject, text, html)
           }
+
+          const token = jwt.sign(
+            {
+              user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                username: user.username || user.email.split('@')[0]
+              }
+            },
+            JWT_SECRET,
+            { expiresIn: '30d' }
+          )
+
+          return done(null, { user, token })
+        } catch (error) {
+          console.error('Google Auth Error:', error)
+          return done(error, null)
         }
-
-        const token = jwt.sign(
-          {
-            user: {
-              id: user._id,
-              name: user.name,
-              email: user.email,
-              username: user.username || user.email.split('@')[0]
-            }
-          },
-          JWT_SECRET,
-          { expiresIn: '30d' }
-        )
-
-        return done(null, { user, token })
-      } catch (error) {
-        console.error('Google Auth Error:', error)
-        return done(error, null)
       }
-    }
+    )
   )
-)
+} else {
+  console.warn('⚠️ Google OAuth credentials are not configured; Google auth routes are disabled.')
+}
 
 // Google Authentication Routes
-app.get('/auth/google', passport.authenticate('google', { scope: ['email', 'profile'] }))
+if (clientID && clientSecret) {
+  app.get('/auth/google', passport.authenticate('google', { scope: ['email', 'profile'] }))
 
-app.get('/auth/google/callback',
-  passport.authenticate('google', { session: false }),
-  (req, res) => {
-    if (!req.user || !req.user.token) {
-      return res.redirect(`${liveLink}/login?error=token_missing`)
+  app.get('/auth/google/callback',
+    passport.authenticate('google', { session: false }),
+    (req, res) => {
+      if (!req.user || !req.user.token) {
+        return res.redirect(`${liveLink}/login?error=token_missing`)
+      }
+
+      res.redirect(`${liveLink}/login-success?token=${req.user.token}`)
     }
+  )
+} else {
+  app.get('/auth/google', (req, res) => {
+    res.status(503).json({ success: false, message: 'Google auth is not configured' })
+  })
 
-    res.redirect(`${liveLink}/login-success?token=${req.user.token}`)
-  }
-)
+  app.get('/auth/google/callback', (req, res) => {
+    res.status(503).json({ success: false, message: 'Google auth is not configured' })
+  })
+}
 
 // Serve HTML for note links (for OG sharing)
 app.get('/note/:id', async (req, res) => {

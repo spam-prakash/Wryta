@@ -1,21 +1,43 @@
 const { google } = require('googleapis')
 require('dotenv').config()
 
-// OAuth2 client setup
-const oAuth2Client = new google.auth.OAuth2(
-  process.env.MAILING_CLIENT_ID,
-  process.env.MAILING_CLIENT_SECRET,
-  process.env.MAILING_REDIRECT_URI
-)
+let oAuth2Client = null
+let gmail = null
 
-// Set refresh token
-oAuth2Client.setCredentials({ refresh_token: process.env.MAILING_REFRESH_TOKEN })
+const initMailer = () => {
+  if (gmail && oAuth2Client) return true
 
-// Create Gmail API client
-const gmail = google.gmail({ version: 'v1', auth: oAuth2Client })
+  const clientId = process.env.MAILING_CLIENT_ID
+  const clientSecret = process.env.MAILING_CLIENT_SECRET
+  const redirectUri = process.env.MAILING_REDIRECT_URI
+  const refreshToken = process.env.MAILING_REFRESH_TOKEN
+
+  if (!clientId || !clientSecret || !redirectUri || !refreshToken) {
+    console.warn('⚠️ Mailing credentials are not fully configured; email sending is disabled.')
+    return false
+  }
+
+  try {
+    oAuth2Client = new google.auth.OAuth2(clientId, clientSecret, redirectUri)
+    oAuth2Client.setCredentials({ refresh_token: refreshToken })
+    gmail = google.gmail({ version: 'v1', auth: oAuth2Client })
+    return true
+  } catch (error) {
+    console.error('❌ Failed to initialize mailer:', error?.message || error)
+    return false
+  }
+}
 
 const sendMail = async (to, subject, text, html) => {
   try {
+    if (!initMailer()) {
+      return {
+        success: false,
+        error: 'Email service is not configured',
+        code: 'CONFIG_ERROR'
+      }
+    }
+
     // ===== ADDED: Basic validation =====
     if (!to || typeof to !== 'string' || !to.includes('@')) {
       return {

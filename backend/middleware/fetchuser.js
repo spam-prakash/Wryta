@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken')
 
-const JWT_SCREAT = process.env.JWTSIGN
+const JWT_SCREAT = process.env.JWTSIGN || process.env.JWT_SECRET || 'dev-secret'
 
 const fetchuser = (req, res, next) => {
   // Allow preflight requests to pass through without authentication
