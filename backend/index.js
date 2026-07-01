@@ -111,8 +111,10 @@ app.use((req, res, next) => {
   next()
 })
 
-// Initialize Socket.io
-initSocket(server)
+// Initialize Socket.io only for local/non-serverless runs
+if (!process.env.VERCEL) {
+  initSocket(server)
+}
 
 app.use(passport.initialize())
 
@@ -372,8 +374,11 @@ app.use('/api/upload', require('./routes/upload'))
 
 // Health check endpoint
 app.get('/ping', (req, res) => {
-  console.log('Ping received at', new Date())
-  res.status(200).send('Backend is awake')
+  res.status(200).json({
+    status: 'ok',
+    environment: environment,
+    timestamp: new Date().toISOString()
+  })
 })
 
 // Test Route
@@ -395,7 +400,11 @@ app.use((err, req, res, next) => {
 })
 
 // Start Server
-server.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`)
-  // console.log('Allowed origins:', allowedOrigins)
-})
+if (process.env.VERCEL) {
+  module.exports = app
+} else {
+  server.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`)
+    // console.log('Allowed origins:', allowedOrigins)
+  })
+}
