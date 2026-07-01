@@ -16,6 +16,7 @@ const { getIO, onlineUsers, emitNotification } = require('./socket')
 
 // Dynamic Port for Production/Local
 const port = process.env.PORT || 8000
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NOW_REGION)
 
 // Connect to MongoDB
 connectToMongo()
@@ -45,8 +46,8 @@ const allowedOrigins = [
   'http://localhost:3006'
 ]
 
-// Create HTTP server FIRST
-const server = http.createServer(app)
+// Create HTTP server only for local/non-serverless runs
+const server = isServerless ? null : http.createServer(app)
 
 // Middleware for parsing JSON
 app.use(express.json())
@@ -112,7 +113,7 @@ app.use((req, res, next) => {
 })
 
 // Initialize Socket.io only for local/non-serverless runs
-if (!process.env.VERCEL) {
+if (!isServerless && server) {
   initSocket(server)
 }
 
@@ -376,7 +377,7 @@ app.use('/api/upload', require('./routes/upload'))
 app.get('/ping', (req, res) => {
   res.status(200).json({
     status: 'ok',
-    environment: environment,
+    environment,
     timestamp: new Date().toISOString()
   })
 })
@@ -400,7 +401,7 @@ app.use((err, req, res, next) => {
 })
 
 // Start Server
-if (process.env.VERCEL) {
+if (isServerless) {
   module.exports = app
 } else {
   server.listen(port, () => {
